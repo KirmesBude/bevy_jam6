@@ -1,11 +1,14 @@
 //! Spawn the main level.
 
+use std::time::Duration;
+
 use bevy::prelude::*;
 
 use crate::{
     asset_tracking::LoadResource,
     audio::music,
     demo::player::{PlayerAssets, player},
+    demo::cars::car_spawner,
     screens::Screen,
 };
 
@@ -25,7 +28,7 @@ impl FromWorld for LevelAssets {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
-            music: assets.load("audio/music/Fluffing A Duck.ogg"),
+            music: assets.load("audio/music/Monkeys Spinning Monkeys.ogg"),
         }
     }
 }
@@ -47,6 +50,10 @@ pub fn spawn_level(
             (
                 Name::new("Gameplay Music"),
                 music(level_assets.music.clone())
+            ),
+            car_spawner(
+                Vec3::new(0., 0., 0.),
+                Duration::from_secs(1),
             )
         ],
     ));
