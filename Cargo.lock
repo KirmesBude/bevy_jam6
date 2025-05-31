@@ -317,12 +317,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
-name = "avian2d"
+name = "avian3d"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "715a2bd9f406078b91e7cc371533c2a61795dd8ad02b93c91b4c9eb2f606336b"
+checksum = "e8ba10c23fee3d432f3c6cf8d036e269d952b8840c1ca4fa6a021ab926786dc4"
 dependencies = [
- "arrayvec",
  "avian_derive",
  "bevy",
  "bevy_heavy",
@@ -332,8 +331,8 @@ dependencies = [
  "derive_more",
  "itertools 0.13.0",
  "nalgebra",
- "parry2d",
- "parry2d-f64",
+ "parry3d",
+ "parry3d-f64",
  "thread_local",
 ]
 
@@ -879,7 +878,7 @@ dependencies = [
 name = "bevy_jam6"
 version = "0.1.0"
 dependencies = [
- "avian2d",
+ "avian3d",
  "bevy",
  "log",
  "rand",
@@ -3570,10 +3569,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "parry2d"
+name = "parry3d"
 version = "0.17.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87edd53b1639e011e4765eecfceb0fa2c486da696dcdcfbc9a38bfc3574fb7e0"
+checksum = "6aeb9659a05b1783fb2e9bc94f48225ae5b40817eb45b62569c0e4dd767a6e51"
 dependencies = [
  "approx",
  "arrayvec",
@@ -3587,6 +3586,7 @@ dependencies = [
  "num-traits",
  "ordered-float",
  "rayon",
+ "rstar",
  "rustc-hash 2.1.1",
  "simba",
  "slab",
@@ -3596,10 +3596,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "parry2d-f64"
+name = "parry3d-f64"
 version = "0.17.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42dadff562001ff51eed809d7c75ac6f185d8cffc575d7b45a8bdc6ea6f1bf30"
+checksum = "c4484c8ad93ff03c0e57aa1a4f3ff5406ab6301a1eb838ef6dea90e94f00a6c7"
 dependencies = [
  "approx",
  "arrayvec",
@@ -3613,6 +3613,7 @@ dependencies = [
  "num-traits",
  "ordered-float",
  "rayon",
+ "rstar",
  "rustc-hash 2.1.1",
  "simba",
  "slab",
@@ -4042,6 +4043,17 @@ name = "roxmltree"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c20b6793b5c2fa6553b250154b78d6d0db37e72700ae35fad9387a46f487c97"
+
+[[package]]
+name = "rstar"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "421400d13ccfd26dfa5858199c30a5d76f9c54e0dba7575273025b43c5175dbb"
+dependencies = [
+ "heapless",
+ "num-traits",
+ "smallvec",
+]
 
 [[package]]
 name = "rustc-hash"
