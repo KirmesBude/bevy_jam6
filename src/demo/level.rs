@@ -1,5 +1,6 @@
 //! Spawn the main level.
 
+use avian3d::prelude::{Collider, RigidBody};
 use bevy::prelude::*;
 
 use crate::{
@@ -8,6 +9,8 @@ use crate::{
     demo::player::{PlayerAssets, player},
     screens::Screen,
 };
+
+use super::car::car;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<LevelAssets>();
@@ -30,12 +33,27 @@ impl FromWorld for LevelAssets {
     }
 }
 
+fn wall(
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+    z: f32,
+) -> impl Bundle {
+    (
+        Name::new("Wall"),
+        Mesh3d(meshes.add(Cuboid::default())),
+        MeshMaterial3d(materials.add(Color::srgb(0.7, 0.0, 0.0))),
+        Transform::from_xyz(0.0, -5.0, z).with_scale(Vec3::new(100.0, 10.0, 1.0)),
+        RigidBody::Static,
+        Collider::cuboid(1.0, 1.0, 1.0),
+    )
+}
+
 /// A system that spawns the main level.
 pub fn spawn_level(
     mut commands: Commands,
     level_assets: Res<LevelAssets>,
-    player_assets: Res<PlayerAssets>,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands.spawn((
         Name::new("Level"),
@@ -43,7 +61,16 @@ pub fn spawn_level(
         Visibility::default(),
         StateScoped(Screen::Gameplay),
         children![
-            player(400.0, &player_assets, &mut texture_atlas_layouts),
+            (PointLight::default(), Transform::from_xyz(0.0, 5.0, -1.0)),
+            (
+                car(&mut meshes, &mut materials),
+            ),
+            (
+                wall(&mut meshes, &mut materials, 4.0),
+            ),
+            (
+                wall(&mut meshes, &mut materials, -4.0),
+            ),
             (
                 Name::new("Gameplay Music"),
                 music(level_assets.music.clone())

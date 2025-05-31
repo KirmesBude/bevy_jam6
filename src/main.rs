@@ -12,7 +12,8 @@ mod menus;
 mod screens;
 mod theme;
 
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use avian3d::PhysicsPlugins;
+use bevy::{asset::AssetMetaCheck, prelude::*, render::camera::ScalingMode};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -42,6 +43,9 @@ impl Plugin for AppPlugin {
                     ..default()
                 }),
         );
+
+        // third party plugins
+        app.add_plugins(PhysicsPlugins::default());
 
         // Add other plugins.
         app.add_plugins((
@@ -98,5 +102,16 @@ struct Pause(pub bool);
 struct PausableSystems;
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn((Name::new("Camera"), Camera2d));
+    commands.spawn((
+        Name::new("Camera"),
+        Camera3d::default(),
+        Projection::from(OrthographicProjection {
+            // 6 world units per pixel of window height.
+            scaling_mode: ScalingMode::FixedVertical {
+                viewport_height: 6.0,
+            },
+            ..OrthographicProjection::default_3d()
+        }),
+        Transform::from_xyz(0.0, 5.0, -1.0).looking_at(Vec3::ZERO, Vec3::Y),
+    ));
 }
