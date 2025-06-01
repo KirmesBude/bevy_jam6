@@ -17,13 +17,20 @@ fn spawn_pause_menu(mut commands: Commands) {
         widget::ui_root("Pause Menu"),
         GlobalZIndex(2),
         StateScoped(Menu::Pause),
+        #[cfg(not(target_family = "wasm"))]
         children![
             widget::header("Game paused"),
             widget::button("Continue", close_menu),
             widget::button("Settings", open_settings_menu),
             widget::button("Quit to title", quit_to_title),
-            #[cfg(not(target_family = "wasm"))]
             widget::button("Exit", exit_app),
+        ],
+        #[cfg(target_family = "wasm")]
+        children![
+            widget::header("Game paused"),
+            widget::button("Continue", close_menu),
+            widget::button("Settings", open_settings_menu),
+            widget::button("Quit to title", quit_to_title),
         ],
     ));
 }

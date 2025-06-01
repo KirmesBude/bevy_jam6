@@ -14,11 +14,13 @@ mod theme;
 
 use avian3d::prelude::*;
 use bevy::{
-    asset::AssetMetaCheck, input::mouse::AccumulatedMouseScroll, prelude::*,
+    asset::AssetMetaCheck,
+    input::mouse::{AccumulatedMouseScroll, MouseScrollUnit},
+    prelude::*,
     render::camera::ScalingMode,
 };
 
-const ZOOM_SCROLL_FACTOR: f32 = 16.;
+const ZOOM_SCROLL_FACTOR: f32 = 256.;
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -125,7 +127,7 @@ fn spawn_camera(mut commands: Commands) {
         Projection::from(OrthographicProjection {
             // 6 world units per pixel of window height.
             scaling_mode: ScalingMode::FixedVertical {
-                viewport_height: 16.0,
+                viewport_height: 32.0,
             },
             ..OrthographicProjection::default_3d()
         }),
@@ -136,9 +138,14 @@ fn spawn_camera(mut commands: Commands) {
 fn zoom_camera(
     projection: Single<&mut Projection>,
     time: Res<Time>,
-    input_scroll_acc: Res<AccumulatedMouseScroll>,
+    acc_scroll: Res<AccumulatedMouseScroll>,
 ) {
-    let delta = input_scroll_acc.delta.y * ZOOM_SCROLL_FACTOR * time.delta_secs();
+    let scroll_y = match acc_scroll.unit {
+        MouseScrollUnit::Pixel => acc_scroll.delta.y / 100.0,
+        MouseScrollUnit::Line => acc_scroll.delta.y,
+    };
+
+    let delta = scroll_y * ZOOM_SCROLL_FACTOR * time.delta_secs();
 
     if delta == 0.0 {
         return;
@@ -148,7 +155,9 @@ fn zoom_camera(
         if let ScalingMode::FixedVertical { viewport_height } = &mut ortho.scaling_mode {
             let autoscale_factor = 1. - (1.0 / (1. + *viewport_height));
             *viewport_height += delta * autoscale_factor;
-            *viewport_height = viewport_height.clamp(0.1, 128.);
+            *viewport_height = viewport_height.clamp(8., 128.);
+
+            info!(viewport_height, delta, scroll_y, acc_scroll.delta.y);
         }
     }
 }
