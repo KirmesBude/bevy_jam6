@@ -11,7 +11,7 @@ use crate::{
     screens::Screen,
 };
 
-use super::car::car;
+use super::car::{CarAssets, car};
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<LevelAssets>();
@@ -88,6 +88,7 @@ pub fn spawn_level(
     level_assets: Res<LevelAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    car_assets: Res<CarAssets>,
 ) {
     commands.spawn((
         Name::new("Level"),
@@ -97,9 +98,9 @@ pub fn spawn_level(
         children![
             (PointLight::default(), Transform::from_xyz(0.0, 5.0, -1.0)),
             (road(&mut meshes, &mut materials)),
-            (car(&mut meshes, &mut materials),),
+            (car(&car_assets)),
             (
-                car(&mut meshes, &mut materials),
+                car(&car_assets),
                 Transform::from_translation(Vec3 {
                     x: 2.0,
                     y: 0.0,
@@ -107,7 +108,7 @@ pub fn spawn_level(
                 })
             ),
             (
-                car(&mut meshes, &mut materials),
+                car(&car_assets),
                 Transform::from_translation(Vec3 {
                     x: -2.0,
                     y: 0.0,
