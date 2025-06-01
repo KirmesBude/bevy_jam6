@@ -103,7 +103,7 @@ pub fn spawn_level(
     level_assets: Res<LevelAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut gizmos: Gizmos,
+    gizmos: Gizmos,
     car_assets: Res<CarAssets>,
 ) {
     let mut rng = rand::thread_rng();
