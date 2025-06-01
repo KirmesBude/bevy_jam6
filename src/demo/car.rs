@@ -12,10 +12,7 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<Car>();
 }
 
-pub fn car(
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
-) -> impl Bundle {
+pub fn car(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) -> impl Bundle {
     (
         Name::new("Car"),
         Car::default(),
@@ -24,6 +21,10 @@ pub fn car(
         ScreenWrap,
         RigidBody::Dynamic,
         Collider::cuboid(1.0, 1.0, 1.0),
-        LinearVelocity(Vec3 { x: 5.0, y: 0.0, z: 0.0 }),
+        LinearVelocity(Vec3 {
+            x: -4.0,
+            y: 0.0,
+            z: 0.0,
+        }), /* TODO: I have no idea why this needs to be negative */
     )
 }

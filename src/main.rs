@@ -12,7 +12,7 @@ mod menus;
 mod screens;
 mod theme;
 
-use avian3d::PhysicsPlugins;
+use avian3d::{PhysicsPlugins, prelude::Gravity};
 use bevy::{asset::AssetMetaCheck, prelude::*, render::camera::ScalingMode};
 
 fn main() -> AppExit {
@@ -46,6 +46,7 @@ impl Plugin for AppPlugin {
 
         // third party plugins
         app.add_plugins(PhysicsPlugins::default());
+        app.insert_resource(Gravity::ZERO); /* TODO: Set Gravity to zero for now */
 
         // Add other plugins.
         app.add_plugins((
@@ -112,6 +113,6 @@ fn spawn_camera(mut commands: Commands) {
             },
             ..OrthographicProjection::default_3d()
         }),
-        Transform::from_xyz(0.0, 5.0, -1.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_xyz(0.0, 15.0, -3.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 }

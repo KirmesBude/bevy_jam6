@@ -23,7 +23,7 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_systems(
         Update,
-        (apply_movement, apply_screen_wrap)
+        (apply_movement, apply_screen_wrap_x)
             .chain()
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
@@ -68,15 +68,15 @@ fn apply_movement(
 #[reflect(Component)]
 pub struct ScreenWrap;
 
-fn apply_screen_wrap(
+fn apply_screen_wrap_x(
     window: Single<&Window, With<PrimaryWindow>>,
     mut wrap_query: Query<&mut Transform, With<ScreenWrap>>,
 ) {
-    let size = window.size() + 256.0;
-    let half_size = size / 2.0;
     for mut transform in &mut wrap_query {
-        let position = transform.translation.xy();
-        let wrapped = (position + half_size).rem_euclid(size) - half_size;
-        transform.translation = wrapped.extend(transform.translation.z);
+        if transform.translation.x > 7.5 {
+            transform.translation.x = -7.5;
+        } else if transform.translation.x < -7.5 {
+            transform.translation.x = 7.5;
+        }
     }
 }

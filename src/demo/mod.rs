@@ -6,10 +6,10 @@
 use bevy::prelude::*;
 
 mod animation;
+mod car;
 pub mod level;
 mod movement;
 pub mod player;
-mod car;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((

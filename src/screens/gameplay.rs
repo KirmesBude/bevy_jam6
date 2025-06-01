@@ -1,5 +1,6 @@
 //! The screen state for the main gameplay.
 
+use avian3d::prelude::{Physics, PhysicsTime};
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
 use crate::{Pause, demo::level::spawn_level, menus::Menu, screens::Screen};
@@ -30,12 +31,16 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn unpause(mut next_pause: ResMut<NextState<Pause>>) {
+fn unpause(mut next_pause: ResMut<NextState<Pause>>, mut physics_time: ResMut<Time<Physics>>) {
     next_pause.set(Pause(false));
+
+    physics_time.unpause();
 }
 
-fn pause(mut next_pause: ResMut<NextState<Pause>>) {
+fn pause(mut next_pause: ResMut<NextState<Pause>>, mut physics_time: ResMut<Time<Physics>>) {
     next_pause.set(Pause(true));
+
+    physics_time.pause();
 }
 
 fn spawn_pause_overlay(mut commands: Commands) {
