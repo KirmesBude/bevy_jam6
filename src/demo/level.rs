@@ -7,8 +7,8 @@ use bevy::prelude::*;
 use crate::{
     asset_tracking::LoadResource,
     audio::music,
-    demo::player::{PlayerAssets, player},
     demo::cars::car_spawner,
+    demo::player::{PlayerAssets, player},
     screens::Screen,
 };
 
@@ -46,15 +46,12 @@ pub fn spawn_level(
         Visibility::default(),
         StateScoped(Screen::Gameplay),
         children![
-            player(400.0, &player_assets, &mut texture_atlas_layouts),
-            (
-                Name::new("Gameplay Music"),
-                music(level_assets.music.clone())
-            ),
-            car_spawner(
-                Vec3::new(0., 0., 0.),
-                Duration::from_secs(1),
-            )
+            // player(400.0, &player_assets, &mut texture_atlas_layouts),
+            // (
+            //     Name::new("Gameplay Music"),
+            //     music(level_assets.music.clone())
+            // ),
+            car_spawner(Vec3::new(0., 0., 0.), Duration::from_secs(1),)
         ],
     ));
 }
