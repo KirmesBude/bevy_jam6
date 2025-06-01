@@ -1,7 +1,7 @@
 //! Spawn the main level.
 
 use avian3d::prelude::{Collider, Friction, RigidBody};
-use bevy::{diagnostic::FrameCount, prelude::*, window::PrimaryWindow};
+use bevy::{prelude::*, window::PrimaryWindow};
 use std::f32::consts::*;
 
 use crate::{
@@ -183,7 +183,7 @@ fn spawn_cars(
     }
     info!("Spawning car");
 
-    commands.spawn((car(&car_assets)));
+    commands.spawn(car(&car_assets));
 }
 
 pub fn drop_obstacle(
