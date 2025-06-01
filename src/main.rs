@@ -54,7 +54,6 @@ impl Plugin for AppPlugin {
         );
 
         app.add_plugins(FpsOverlayPlugin::default());
-        app.add_plugins(FrameCountPlugin::default());
 
         // third party plugins
         app.add_plugins((

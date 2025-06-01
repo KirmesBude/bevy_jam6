@@ -81,7 +81,7 @@ pub fn car_velocity(time: Res<Time>, cars_query: Query<(&Car, &mut LinearVelocit
 
 pub fn despawn_cars(mut commands: Commands, cars_query: Query<(Entity, &Transform), With<Car>>) {
     for (car, transform) in cars_query {
-        if transform.translation.x < -12.0 {
+        if transform.translation.x < -128.0 {
             commands.entity(car).despawn();
             info!("Despawning car {:?} {:?}", car, transform);
         }
