@@ -23,6 +23,8 @@ fn spawn_pause_menu(mut commands: Commands) {
             widget::button("Continue", close_menu),
             widget::button("Settings", open_settings_menu),
             widget::button("Quit to title", quit_to_title),
+            #[cfg(not(target_family = "wasm"))]
+            widget::button("Exit", exit_app),
         ],
     ));
 }
@@ -41,4 +43,9 @@ fn quit_to_title(_: Trigger<Pointer<Click>>, mut next_screen: ResMut<NextState<S
 
 fn go_back(mut next_menu: ResMut<NextState<Menu>>) {
     next_menu.set(Menu::None);
+}
+
+#[cfg(not(target_family = "wasm"))]
+fn exit_app(_: Trigger<Pointer<Click>>, mut app_exit: EventWriter<AppExit>) {
+    app_exit.write(AppExit::Success);
 }

@@ -1,8 +1,10 @@
 //! Spawn the main level.
 
-use avian3d::prelude::{Collider, RigidBody};
-use bevy::{math::VectorSpace, prelude::*, window::PrimaryWindow};
+use avian3d::prelude::{Collider, Friction, RigidBody};
+use bevy::{image::TranscodeFormat, prelude::*, window::PrimaryWindow};
 use std::f32::consts::*;
+
+use rand::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
@@ -42,14 +44,32 @@ impl FromWorld for LevelAssets {
     }
 }
 
-fn road(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) -> impl Bundle {
+fn road(
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+    mut gizmos: &mut Gizmos,
+) -> impl Bundle {
     (
         Name::new("Road"),
         Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2 { x: 100.0, y: 100.0 }))),
-        MeshMaterial3d(materials.add(Color::srgb(0.0, 0.7, 0.0))),
+        MeshMaterial3d(materials.add(Color::srgb(0.2, 0.2, 0.2))),
+        children![GizmoAsset::new().line(
+            Vec3 {
+                x: -50.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            Vec3 {
+                x: 50.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            Color::WHITE,
+        ),],
         Transform::from_xyz(0.0, -1.0, 0.0),
         RigidBody::Static,
-        Collider::cuboid(100.0, 0.5, 100.0),
+        Collider::cuboid(200.0, 1., 200.0),
+        Friction::new(0.01),
     )
 }
 
@@ -61,8 +81,8 @@ fn wall(
     (
         Name::new("Wall"),
         Mesh3d(meshes.add(Cuboid::default())),
-        MeshMaterial3d(materials.add(Color::srgb(0.7, 0.0, 0.0))),
-        Transform::from_xyz(0.0, -5.0, z).with_scale(Vec3::new(100.0, 10.0, 2.0)),
+        MeshMaterial3d(materials.add(Color::srgb(0.6, 0.6, 0.6))),
+        Transform::from_xyz(0.0, -5.0, z).with_scale(Vec3::new(100.0, 20.0, 2.0)),
         RigidBody::Static,
         Collider::cuboid(1.0, 1.0, 1.0),
     )
@@ -89,7 +109,7 @@ const CAR_VEL: Vec3 = Vec3 {
     z: 0.0,
 };
 
-const CAR_LANES: [f32; 3] = [-2.0, 0.0, 2.0];
+const CAR_LANES: [f32; 3] = [-4.0, 0.0, 4.0];
 
 /// A system that spawns the main level.
 pub fn spawn_level(
@@ -97,14 +117,56 @@ pub fn spawn_level(
     level_assets: Res<LevelAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut gizmos: Gizmos,
     car_assets: Res<CarAssets>,
 ) {
-    commands.spawn((
-        Name::new("Level"),
-        Transform::default(),
-        Visibility::default(),
-        StateScoped(Screen::Gameplay),
-        children![
+    let mut rng = rand::thread_rng();
+
+    commands
+        .spawn((
+            Name::new("Level"),
+            Transform::default(),
+            Visibility::default(),
+            StateScoped(Screen::Gameplay),
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                DirectionalLight {
+                    illuminance: 2_000.0,
+                    ..default()
+                },
+                Transform::from_rotation(Quat::from_rotation_x(-FRAC_PI_2 - 0.2)),
+            ));
+            parent.spawn(road(&mut meshes, &mut materials, &mut gizmos));
+            parent.spawn(wall(&mut meshes, &mut materials, 8.0));
+            // parent.spawn(wall(&mut meshes, &mut materials, -1.0));
+            parent.spawn(wall(&mut meshes, &mut materials, -8.0));
+            parent.spawn((
+                Name::new("Gameplay Music"),
+                music(level_assets.music.clone()),
+            ));
+
+            for x_offs in (0..60).step_by(10) {
+                for lane in CAR_LANES {
+                    let pos = Vec3 {
+                        x: x_offs as f32 + lane + rng.gen_range(-1.0..1.0),
+                        y: 0.0,
+                        z: lane,
+                    };
+                    let vel = Vec3 {
+                        x: -rng.gen_range(2.0..40.0),
+                        y: 0.,
+                        z: 0.,
+                    };
+
+                    let ent: EntityCommands<'_> = parent.spawn(car(&car_assets, pos, vel));
+
+                    dbg!(ent.id(), pos, vel);
+                }
+            }
+        });
+
+    /* children![
             (
                 DirectionalLight {
                     illuminance: 2_000.0,
@@ -112,11 +174,11 @@ pub fn spawn_level(
                 },
                 Transform::from_rotation(Quat::from_rotation_x(-FRAC_PI_2))
             ),
-            road(&mut meshes, &mut materials),
+            road(&mut meshes, &mut materials, &mut gizmos),
             car(
                 &car_assets,
                 Vec3 {
-                    x: -2.,
+                    x: -8.,
                     y: 0.,
                     z: -2.
                 },
@@ -134,7 +196,7 @@ pub fn spawn_level(
             car(
                 &car_assets,
                 Vec3 {
-                    x: 2.,
+                    x: 8.,
                     y: 0.,
                     z: 2.
                 },
@@ -147,7 +209,7 @@ pub fn spawn_level(
                 music(level_assets.music.clone())
             )
         ],
-    ));
+    )); */
 }
 
 pub fn drop_obstacle(
@@ -175,6 +237,8 @@ pub fn drop_obstacle(
 
     /* TODO: Right, because Left triggers on transition */
     if buttons.pressed(MouseButton::Right) {
+        dbg!(point);
+
         commands.spawn((
             obstacle(
                 &mut meshes,

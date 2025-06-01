@@ -12,7 +12,7 @@ mod menus;
 mod screens;
 mod theme;
 
-use avian3d::{PhysicsPlugins, prelude::Gravity};
+use avian3d::prelude::*;
 use bevy::{
     asset::AssetMetaCheck, input::mouse::AccumulatedMouseScroll, prelude::*,
     render::camera::ScalingMode, text::cosmic_text::fontdb::Query,
@@ -50,7 +50,18 @@ impl Plugin for AppPlugin {
         );
 
         // third party plugins
-        app.add_plugins(PhysicsPlugins::default());
+        app.add_plugins((
+            PhysicsPlugins::default(),
+            #[cfg(feature = "dev")]
+            PhysicsDebugPlugin::default(),
+        ))
+        .insert_gizmo_config(
+            PhysicsGizmos {
+                aabb_color: Some(Color::WHITE),
+                ..default()
+            },
+            GizmoConfig::default(),
+        );
 
         // Add other plugins.
         app.add_plugins((
@@ -136,11 +147,8 @@ fn zoom_camera(
     if let Projection::Orthographic(ref mut ortho) = *projection.into_inner() {
         if let ScalingMode::FixedVertical { viewport_height } = &mut ortho.scaling_mode {
             let autoscale_factor = 1. - (1.0 / (1. + *viewport_height));
-            dbg!(autoscale_factor, *viewport_height, delta);
-
             *viewport_height += delta * autoscale_factor;
-
-            *viewport_height = viewport_height.clamp(0.1, 32.);
+            *viewport_height = viewport_height.clamp(0.1, 128.);
         }
     }
 }

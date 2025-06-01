@@ -1,10 +1,11 @@
-use avian3d::prelude::{Collider, LinearVelocity, Mass, RigidBody};
+use avian3d::prelude::{Collider, ExternalForce, RigidBody};
 use bevy::prelude::*;
 use std::f32::consts::*;
 
 use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource};
 
 use super::movement::ScreenWrap;
+use rand::prelude::*;
 
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
@@ -17,54 +18,71 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<CarAssets>();
     app.load_resource::<CarAssets>();
 
-    app.add_systems(
-        Update,
+    /*   app.add_systems(
+        FixedUpdate,
         car_velocity
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
-    );
+    ); */
 }
 
 pub fn car(car_assets: &CarAssets, init_pos: Vec3, init_vel: Vec3) -> impl Bundle {
+    let rng = &mut rand::thread_rng();
     (
         Name::new("Car"),
         Car::default(),
-        SceneRoot(car_assets.police.clone()),
+        SceneRoot(car_assets.vehicles.choose(rng).unwrap().clone()),
         ScreenWrap,
         RigidBody::Dynamic,
         Collider::cuboid(1.0, 1.0, 1.0),
-        LinearVelocity(init_vel), /* TODO: I have no idea why this needs to be negative */
+        ExternalForce::new(init_vel).with_persistence(true), /* TODO: I have no idea why this needs to be negative */
         Transform {
             translation: init_pos,
             rotation: Quat::from_rotation_y(-FRAC_PI_2),
-            scale: Vec3::splat(1.),
+            scale: Vec3::splat(1.8),
         },
     )
 }
 
-/* TODO: This is not right, but friction with the road decreases velocity, which I dont want right now */
-pub fn car_velocity(mut cars: Query<&mut LinearVelocity, With<Car>>) {
-    for mut velocity in &mut cars {
-        *velocity = LinearVelocity(Vec3 {
-            x: -4.0,
-            y: 0.0,
-            z: 0.0,
-        });
-    }
-}
+/* pub fn car_velocity(mut cars: Query<&mut LinearVelocity, With<Car>>) {
+    // for (mut velocity) in &mut cars {
+    //     velocity = velocity + velocity;
+    // }
+} */
 
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
 pub struct CarAssets {
     #[dependency]
-    police: Handle<Scene>,
+    vehicles: Vec<Handle<Scene>>,
 }
 
 impl FromWorld for CarAssets {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
-            police: assets.load(GltfAssetLabel::Scene(0).from_asset("models/police.glb")),
+            vehicles: vec![
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/ambulance.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/delivery.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/delivery-flat.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/firetruck.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/garbage-truck.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/hatchback-sports.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/police.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/race.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/race-future.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/sedan.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/sedan-sports.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/suv.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/suv-luxury.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/taxi.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/tractor.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/tractor-police.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/tractor-shovel.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/truck.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/truck-flat.glb")),
+                assets.load(GltfAssetLabel::Scene(0).from_asset("models/van.glb")),
+            ],
         }
     }
 }

@@ -75,9 +75,11 @@ fn apply_screen_wrap_x(
     mut wrap_query: Query<&mut Transform, With<ScreenWrap>>,
 ) {
     for mut transform in &mut wrap_query {
-        if transform.translation.x > SCREEN_WRAP_THRESHOLD {
-            transform.translation.x = -SCREEN_WRAP_THRESHOLD;
-        } else if transform.translation.x < -SCREEN_WRAP_THRESHOLD {
+        // if transform.translation.x > SCREEN_WRAP_THRESHOLD {
+        //     transform.translation.x = -SCREEN_WRAP_THRESHOLD;
+        // }
+
+        if transform.translation.x < -SCREEN_WRAP_THRESHOLD {
             transform.translation.x = SCREEN_WRAP_THRESHOLD;
         }
     }
