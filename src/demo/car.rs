@@ -42,6 +42,11 @@ pub fn car(car_assets: &CarAssets, init_pos: Vec3, init_vel: Vec3) -> impl Bundl
             rotation: Quat::from_rotation_y(-FRAC_PI_2),
             scale: Vec3::splat(1.8),
         },
+        AudioPlayer::new(car_assets.engine_audio.clone()),
+        PlaybackSettings::LOOP
+            .with_spatial(true)
+            .with_volume(bevy::audio::Volume::Decibels(-12.))
+            .with_speed(rng.gen_range(0.8..1.2)),
     )
 }
 
@@ -56,6 +61,8 @@ pub fn car(car_assets: &CarAssets, init_pos: Vec3, init_vel: Vec3) -> impl Bundl
 pub struct CarAssets {
     #[dependency]
     vehicles: Vec<Handle<Scene>>,
+    #[dependency]
+    engine_audio: Handle<AudioSource>,
 }
 const CAR_MODELS: &[&str] = &[
     "ambulance",
@@ -93,6 +100,7 @@ impl FromWorld for CarAssets {
                     )
                 })
                 .collect(),
+            engine_audio: assets.load("audio/sound_effects/engine-loop.ogg"),
         }
     }
 }

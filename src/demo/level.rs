@@ -103,7 +103,6 @@ pub fn spawn_level(
     level_assets: Res<LevelAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    gizmos: Gizmos,
     car_assets: Res<CarAssets>,
 ) {
     let mut rng = rand::thread_rng();
@@ -147,7 +146,7 @@ pub fn spawn_level(
 
                     let ent: EntityCommands<'_> = parent.spawn(car(&car_assets, pos, vel));
 
-                    dbg!(ent.id(), pos, vel);
+                    // dbg!(ent.id(), pos, vel);
                 }
             }
         });
@@ -178,8 +177,6 @@ pub fn drop_obstacle(
 
     /* TODO: Right, because Left triggers on transition */
     if buttons.pressed(MouseButton::Right) {
-        dbg!(point);
-
         commands.spawn((
             obstacle(
                 &mut meshes,

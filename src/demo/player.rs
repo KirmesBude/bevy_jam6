@@ -30,6 +30,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 /// The player character.
+#[allow(dead_code)]
 pub fn player(
     max_speed: f32,
     player_assets: &PlayerAssets,
