@@ -1,7 +1,7 @@
 //! Spawn the main level.
 
 use avian3d::prelude::{Collider, Friction, RigidBody};
-use bevy::{image::TranscodeFormat, prelude::*, window::PrimaryWindow};
+use bevy::{prelude::*, window::PrimaryWindow};
 use std::f32::consts::*;
 
 use rand::prelude::*;
@@ -10,7 +10,6 @@ use crate::{
     AppSystems, PausableSystems,
     asset_tracking::LoadResource,
     audio::music,
-    demo::player::{PlayerAssets, player},
     screens::Screen,
 };
 
@@ -47,7 +46,7 @@ impl FromWorld for LevelAssets {
 fn road(
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
-    mut gizmos: &mut Gizmos,
+    gizmos: &mut Gizmos,
 ) -> impl Bundle {
     (
         Name::new("Road"),

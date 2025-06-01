@@ -2,7 +2,7 @@ use avian3d::prelude::{Collider, ExternalForce, RigidBody};
 use bevy::prelude::*;
 use std::f32::consts::*;
 
-use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource};
+use crate::asset_tracking::LoadResource;
 
 use super::movement::ScreenWrap;
 use rand::prelude::*;

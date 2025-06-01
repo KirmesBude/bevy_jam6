@@ -15,7 +15,7 @@ mod theme;
 use avian3d::prelude::*;
 use bevy::{
     asset::AssetMetaCheck, input::mouse::AccumulatedMouseScroll, prelude::*,
-    render::camera::ScalingMode, text::cosmic_text::fontdb::Query,
+    render::camera::ScalingMode,
 };
 
 const ZOOM_SCROLL_FACTOR: f32 = 16.;
@@ -134,7 +134,7 @@ fn spawn_camera(mut commands: Commands) {
 }
 
 fn zoom_camera(
-    mut projection: Single<&mut Projection>,
+    projection: Single<&mut Projection>,
     time: Res<Time>,
     input_scroll_acc: Res<AccumulatedMouseScroll>,
 ) {
