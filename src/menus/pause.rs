@@ -29,7 +29,7 @@ fn spawn_pause_menu(mut commands: Commands) {
         #[cfg(target_family = "wasm")]
         children![
             widget::header("Game paused"),
-            widget::button("Restart", restart_gamplay),
+            widget::button("Restart", restart_gameplay),
             widget::button("Continue", close_menu),
             widget::button("Settings", open_settings_menu),
             widget::button("Quit to title", quit_to_title),

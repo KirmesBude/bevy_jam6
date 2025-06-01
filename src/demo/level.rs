@@ -178,10 +178,10 @@ fn spawn_cars(
 ) {
     // dbg!(&time.elapsed().as_secs_f32() % 1.0);
 
-    if time.elapsed_secs() % 0.4 >= 0.02 {
+    if time.elapsed_secs() % 0.1 >= 0.02 {
         return;
     }
-    info!("Spawning car");
+    // info!("Spawning car");
 
     commands.spawn(car(&car_assets));
 }

@@ -56,7 +56,7 @@ pub fn car(car_assets: &CarAssets) -> impl Bundle {
         MaxLinearSpeed(speed),
         Transform {
             translation: Vec3 {
-                x: 128.0,
+                x: 64.0,
                 y: 0.,
                 z: (ALL_LANES_SPAN_FRAC_2 - (lane_idx as i32 * LANE_SPAN)) as f32,
             },
