@@ -2,6 +2,7 @@
 
 use avian3d::prelude::{Collider, RigidBody};
 use bevy::{math::VectorSpace, prelude::*, window::PrimaryWindow};
+use std::f32::consts::*;
 
 use crate::{
     AppSystems, PausableSystems,
@@ -61,7 +62,7 @@ fn wall(
         Name::new("Wall"),
         Mesh3d(meshes.add(Cuboid::default())),
         MeshMaterial3d(materials.add(Color::srgb(0.7, 0.0, 0.0))),
-        Transform::from_xyz(0.0, -5.0, z).with_scale(Vec3::new(100.0, 30.0, 2.0)),
+        Transform::from_xyz(0.0, -5.0, z).with_scale(Vec3::new(100.0, 10.0, 2.0)),
         RigidBody::Static,
         Collider::cuboid(1.0, 1.0, 1.0),
     )
@@ -74,13 +75,21 @@ fn obstacle(
 ) -> impl Bundle {
     (
         Name::new("Obstacle"),
-        Mesh3d(meshes.add(Cuboid::default())),
-        MeshMaterial3d(materials.add(Color::srgb(0.0, 0.0, 7.0))),
+        Mesh3d(meshes.add(Sphere::default())),
+        MeshMaterial3d(materials.add(Color::srgb(1.0, 0.0, 1.0))),
         Transform::from_translation(point).with_scale(Vec3::new(0.5, 0.5, 0.5)),
-        RigidBody::Static,
+        RigidBody::Dynamic,
         Collider::cuboid(1.0, 1.0, 1.0),
     )
 }
+
+const CAR_VEL: Vec3 = Vec3 {
+    x: 8.0,
+    y: 0.0,
+    z: 0.0,
+};
+
+const CAR_LANES: [f32; 3] = [-2.0, 0.0, 2.0];
 
 /// A system that spawns the main level.
 pub fn spawn_level(
@@ -96,24 +105,40 @@ pub fn spawn_level(
         Visibility::default(),
         StateScoped(Screen::Gameplay),
         children![
-            (PointLight::default(), Transform::from_xyz(0.0, 5.0, -1.0)),
-            (road(&mut meshes, &mut materials)),
-            (car(&car_assets)),
             (
-                car(&car_assets),
-                Transform::from_translation(Vec3 {
-                    x: 2.0,
-                    y: 0.0,
-                    z: -1.0
-                })
+                DirectionalLight {
+                    illuminance: 2_000.0,
+                    ..default()
+                },
+                Transform::from_rotation(Quat::from_rotation_x(-FRAC_PI_2))
             ),
-            (
-                car(&car_assets),
-                Transform::from_translation(Vec3 {
-                    x: -2.0,
-                    y: 0.0,
-                    z: 1.0
-                })
+            road(&mut meshes, &mut materials),
+            car(
+                &car_assets,
+                Vec3 {
+                    x: -2.,
+                    y: 0.,
+                    z: -2.
+                },
+                CAR_VEL
+            ),
+            car(
+                &car_assets,
+                Vec3 {
+                    x: 0.,
+                    y: 0.,
+                    z: 0.
+                },
+                CAR_VEL
+            ),
+            car(
+                &car_assets,
+                Vec3 {
+                    x: 2.,
+                    y: 0.,
+                    z: 2.
+                },
+                CAR_VEL
             ),
             (wall(&mut meshes, &mut materials, 4.0),),
             (wall(&mut meshes, &mut materials, -4.0),),
@@ -149,9 +174,17 @@ pub fn drop_obstacle(
     let point = ray.get_point(distance);
 
     /* TODO: Right, because Left triggers on transition */
-    if buttons.just_pressed(MouseButton::Right) {
+    if buttons.pressed(MouseButton::Right) {
         commands.spawn((
-            obstacle(&mut meshes, &mut materials, point),
+            obstacle(
+                &mut meshes,
+                &mut materials,
+                Vec3 {
+                    x: point.x,
+                    y: 5.,
+                    z: point.z,
+                },
+            ),
             StateScoped(Screen::Gameplay),
         ));
     }

@@ -13,7 +13,12 @@ mod screens;
 mod theme;
 
 use avian3d::{PhysicsPlugins, prelude::Gravity};
-use bevy::{asset::AssetMetaCheck, prelude::*, render::camera::ScalingMode};
+use bevy::{
+    asset::AssetMetaCheck, input::mouse::AccumulatedMouseScroll, prelude::*,
+    render::camera::ScalingMode, text::cosmic_text::fontdb::Query,
+};
+
+const ZOOM_SCROLL_FACTOR: f32 = 16.;
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -76,6 +81,7 @@ impl Plugin for AppPlugin {
 
         // Spawn the main camera.
         app.add_systems(Startup, spawn_camera);
+        app.add_systems(Update, zoom_camera);
     }
 }
 
@@ -108,10 +114,33 @@ fn spawn_camera(mut commands: Commands) {
         Projection::from(OrthographicProjection {
             // 6 world units per pixel of window height.
             scaling_mode: ScalingMode::FixedVertical {
-                viewport_height: 6.0,
+                viewport_height: 16.0,
             },
             ..OrthographicProjection::default_3d()
         }),
         Transform::from_xyz(0.0, 15.0, -3.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
+}
+
+fn zoom_camera(
+    mut projection: Single<&mut Projection>,
+    time: Res<Time>,
+    input_scroll_acc: Res<AccumulatedMouseScroll>,
+) {
+    let delta = input_scroll_acc.delta.y * ZOOM_SCROLL_FACTOR * time.delta_secs();
+
+    if delta == 0.0 {
+        return;
+    }
+
+    if let Projection::Orthographic(ref mut ortho) = *projection.into_inner() {
+        if let ScalingMode::FixedVertical { viewport_height } = &mut ortho.scaling_mode {
+            let autoscale_factor = 1. - (1.0 / (1. + *viewport_height));
+            dbg!(autoscale_factor, *viewport_height, delta);
+
+            *viewport_height += delta * autoscale_factor;
+
+            *viewport_height = viewport_height.clamp(0.1, 32.);
+        }
+    }
 }

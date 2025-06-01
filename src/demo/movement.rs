@@ -68,15 +68,17 @@ fn apply_movement(
 #[reflect(Component)]
 pub struct ScreenWrap;
 
+const SCREEN_WRAP_THRESHOLD: f32 = 32.;
+
 fn apply_screen_wrap_x(
     window: Single<&Window, With<PrimaryWindow>>,
     mut wrap_query: Query<&mut Transform, With<ScreenWrap>>,
 ) {
     for mut transform in &mut wrap_query {
-        if transform.translation.x > 7.5 {
-            transform.translation.x = -7.5;
-        } else if transform.translation.x < -7.5 {
-            transform.translation.x = 7.5;
+        if transform.translation.x > SCREEN_WRAP_THRESHOLD {
+            transform.translation.x = -SCREEN_WRAP_THRESHOLD;
+        } else if transform.translation.x < -SCREEN_WRAP_THRESHOLD {
+            transform.translation.x = SCREEN_WRAP_THRESHOLD;
         }
     }
 }
