@@ -1,8 +1,8 @@
-use avian3d::prelude::{Collider, ExternalForce, RigidBody};
-use bevy::prelude::*;
+use avian3d::prelude::{Collider, ExternalForce, LinearVelocity, MaxLinearSpeed, RigidBody};
+use bevy::{audio::SpatialScale, prelude::*};
 use std::f32::consts::*;
 
-use crate::asset_tracking::LoadResource;
+use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource};
 
 use super::movement::ScreenWrap;
 use rand::prelude::*;
@@ -10,6 +10,7 @@ use rand::prelude::*;
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
     wrecked: bool,
+    velocity: LinearVelocity,
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -18,43 +19,48 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<CarAssets>();
     app.load_resource::<CarAssets>();
 
-    /*   app.add_systems(
+    app.add_systems(
         FixedUpdate,
         car_velocity
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
-    ); */
+    );
 }
 
 pub fn car(car_assets: &CarAssets, init_pos: Vec3, init_vel: Vec3) -> impl Bundle {
     let rng = &mut rand::thread_rng();
     (
         Name::new("Car"),
-        Car::default(),
+        Car {
+            wrecked: false,
+            velocity: LinearVelocity(init_vel),
+        },
         SceneRoot(car_assets.vehicles.choose(rng).unwrap().clone()),
         ScreenWrap,
         RigidBody::Dynamic,
         Collider::cuboid(1.0, 1.0, 1.0),
-        ExternalForce::new(init_vel).with_persistence(true), /* TODO: I have no idea why this needs to be negative */
-        /* Answer: because +x is going left */
+        LinearVelocity::default(),
+        MaxLinearSpeed(init_vel.x.abs()),
         Transform {
             translation: init_pos,
             rotation: Quat::from_rotation_y(-FRAC_PI_2),
-            scale: Vec3::splat(1.8),
+            scale: Vec3::splat(0.8),
         },
         AudioPlayer::new(car_assets.engine_audio.clone()),
         PlaybackSettings::LOOP
             .with_spatial(true)
-            .with_volume(bevy::audio::Volume::Decibels(-12.))
-            .with_speed(rng.gen_range(0.8..1.2)),
+            .with_spatial_scale(SpatialScale::new(0.2))
+            .with_volume(bevy::audio::Volume::Decibels(-24.))
+            .with_speed(rng.gen_range(0.1..0.8) + (init_vel.x / 100.).abs()),
     )
 }
 
-/* pub fn car_velocity(mut cars: Query<&mut LinearVelocity, With<Car>>) {
-    // for (mut velocity) in &mut cars {
-    //     velocity = velocity + velocity;
-    // }
-} */
+pub fn car_velocity(time: Res<Time>, cars_query: Query<(&Car, &mut LinearVelocity)>) {
+    for (car, mut velocity) in cars_query {
+        velocity.x += car.velocity.x * time.delta_secs();
+        velocity.x = velocity.x.min(car.velocity.x);
+    }
+}
 
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]

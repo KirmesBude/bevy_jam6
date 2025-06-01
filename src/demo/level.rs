@@ -139,7 +139,8 @@ pub fn spawn_level(
                         z: lane,
                     };
                     let vel = Vec3 {
-                        x: -rng.gen_range(2.0..40.0),
+                        x: -rng.gen_range(20.0..25.0),
+                        // x: -40.,
                         y: 0.,
                         z: 0.,
                     };
