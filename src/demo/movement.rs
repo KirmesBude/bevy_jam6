@@ -71,7 +71,7 @@ pub struct ScreenWrap;
 const SCREEN_WRAP_THRESHOLD: f32 = 32.;
 
 fn apply_screen_wrap_x(
-    window: Single<&Window, With<PrimaryWindow>>,
+    // window: Single<&Window, With<PrimaryWindow>>,
     mut wrap_query: Query<&mut Transform, With<ScreenWrap>>,
 ) {
     for mut transform in &mut wrap_query {

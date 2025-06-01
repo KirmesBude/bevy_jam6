@@ -15,6 +15,7 @@ mod theme;
 use avian3d::prelude::*;
 use bevy::{
     asset::AssetMetaCheck,
+    dev_tools::fps_overlay::FpsOverlayPlugin,
     input::mouse::{AccumulatedMouseScroll, MouseScrollUnit},
     prelude::*,
     render::camera::ScalingMode,
@@ -50,6 +51,8 @@ impl Plugin for AppPlugin {
                     ..default()
                 }),
         );
+
+        app.add_plugins(FpsOverlayPlugin::default());
 
         // third party plugins
         app.add_plugins((
@@ -157,7 +160,7 @@ fn zoom_camera(
             *viewport_height += delta * autoscale_factor;
             *viewport_height = viewport_height.clamp(8., 128.);
 
-            info!(viewport_height, delta, scroll_y, acc_scroll.delta.y);
+            // info!(viewport_height, delta, scroll_y, acc_scroll.delta.y);
         }
     }
 }

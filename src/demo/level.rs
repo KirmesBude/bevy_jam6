@@ -7,10 +7,7 @@ use std::f32::consts::*;
 use rand::prelude::*;
 
 use crate::{
-    AppSystems, PausableSystems,
-    asset_tracking::LoadResource,
-    audio::music,
-    screens::Screen,
+    AppSystems, PausableSystems, asset_tracking::LoadResource, audio::music, screens::Screen,
 };
 
 use super::car::{CarAssets, car};
@@ -43,11 +40,7 @@ impl FromWorld for LevelAssets {
     }
 }
 
-fn road(
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
-    gizmos: &mut Gizmos,
-) -> impl Bundle {
+fn road(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) -> impl Bundle {
     (
         Name::new("Road"),
         Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2 { x: 100.0, y: 100.0 }))),
@@ -102,12 +95,6 @@ fn obstacle(
     )
 }
 
-const CAR_VEL: Vec3 = Vec3 {
-    x: 8.0,
-    y: 0.0,
-    z: 0.0,
-};
-
 const CAR_LANES: [f32; 3] = [-4.0, 0.0, 4.0];
 
 /// A system that spawns the main level.
@@ -136,7 +123,7 @@ pub fn spawn_level(
                 },
                 Transform::from_rotation(Quat::from_rotation_x(-FRAC_PI_2 - 0.2)),
             ));
-            parent.spawn(road(&mut meshes, &mut materials, &mut gizmos));
+            parent.spawn(road(&mut meshes, &mut materials));
             parent.spawn(wall(&mut meshes, &mut materials, 8.0));
             // parent.spawn(wall(&mut meshes, &mut materials, -1.0));
             parent.spawn(wall(&mut meshes, &mut materials, -8.0));
@@ -164,51 +151,6 @@ pub fn spawn_level(
                 }
             }
         });
-
-    /* children![
-            (
-                DirectionalLight {
-                    illuminance: 2_000.0,
-                    ..default()
-                },
-                Transform::from_rotation(Quat::from_rotation_x(-FRAC_PI_2))
-            ),
-            road(&mut meshes, &mut materials, &mut gizmos),
-            car(
-                &car_assets,
-                Vec3 {
-                    x: -8.,
-                    y: 0.,
-                    z: -2.
-                },
-                CAR_VEL
-            ),
-            car(
-                &car_assets,
-                Vec3 {
-                    x: 0.,
-                    y: 0.,
-                    z: 0.
-                },
-                CAR_VEL
-            ),
-            car(
-                &car_assets,
-                Vec3 {
-                    x: 8.,
-                    y: 0.,
-                    z: 2.
-                },
-                CAR_VEL
-            ),
-            (wall(&mut meshes, &mut materials, 4.0),),
-            (wall(&mut meshes, &mut materials, -4.0),),
-            (
-                Name::new("Gameplay Music"),
-                music(level_assets.music.clone())
-            )
-        ],
-    )); */
 }
 
 pub fn drop_obstacle(
