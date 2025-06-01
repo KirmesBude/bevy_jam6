@@ -42,7 +42,7 @@ fn wall(
         Name::new("Wall"),
         Mesh3d(meshes.add(Cuboid::default())),
         MeshMaterial3d(materials.add(Color::srgb(0.7, 0.0, 0.0))),
-        Transform::from_xyz(0.0, -5.0, z).with_scale(Vec3::new(100.0, 30.0, 1.0)),
+        Transform::from_xyz(0.0, -5.0, z).with_scale(Vec3::new(100.0, 30.0, 2.0)),
         RigidBody::Static,
         Collider::cuboid(1.0, 1.0, 1.0),
     )
@@ -63,6 +63,22 @@ pub fn spawn_level(
         children![
             (PointLight::default(), Transform::from_xyz(0.0, 5.0, -1.0)),
             (car(&mut meshes, &mut materials),),
+            (
+                car(&mut meshes, &mut materials),
+                Transform::from_translation(Vec3 {
+                    x: 2.0,
+                    y: 0.0,
+                    z: -1.0
+                })
+            ),
+            (
+                car(&mut meshes, &mut materials),
+                Transform::from_translation(Vec3 {
+                    x: -2.0,
+                    y: 0.0,
+                    z: 1.0
+                })
+            ),
             (wall(&mut meshes, &mut materials, 4.0),),
             (wall(&mut meshes, &mut materials, -4.0),),
             (
