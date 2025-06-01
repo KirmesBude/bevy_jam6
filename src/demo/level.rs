@@ -4,8 +4,6 @@ use avian3d::prelude::{Collider, Friction, RigidBody};
 use bevy::{diagnostic::FrameCount, prelude::*, window::PrimaryWindow};
 use std::f32::consts::*;
 
-use rand::prelude::*;
-
 use crate::{
     AppSystems, PausableSystems, asset_tracking::LoadResource, audio::music, screens::Screen,
 };
@@ -118,7 +116,7 @@ pub fn spawn_level(
     mut materials: ResMut<Assets<StandardMaterial>>,
     car_assets: Res<CarAssets>,
 ) {
-    let mut rng = rand::thread_rng();
+    let rng = rand::thread_rng();
 
     commands
         .spawn((
@@ -176,14 +174,16 @@ fn spawn_cars(
     // mut meshes: ResMut<Assets<Mesh>>,
     // mut materials: ResMut<Assets<StandardMaterial>>,
     car_assets: Res<CarAssets>,
+    time: Res<Time>,
 ) {
-    dbg!(FrameCount as u32);
-    if (FrameCount as u32 % 600) != 0 {
+    // dbg!(&time.elapsed().as_secs_f32() % 1.0);
+
+    if time.elapsed_secs() % 1.0 >= 0.02 {
         return;
     }
     info!("Spawning car");
 
-    commands.spawn(car(&car_assets));
+    commands.spawn((car(&car_assets)));
 }
 
 pub fn drop_obstacle(

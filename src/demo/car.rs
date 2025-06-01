@@ -1,13 +1,10 @@
-use avian3d::prelude::{Collider, ExternalForce, LinearVelocity, MaxLinearSpeed, RigidBody};
+use avian3d::prelude::{Collider, LinearVelocity, MaxLinearSpeed, RigidBody};
 use bevy::{audio::SpatialScale, prelude::*};
 use std::f32::consts::*;
 
 use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource};
 
-use super::{
-    level::{ALL_LANES_SPAN, ALL_LANES_SPAN_FRAC_2, LANE_NUM, LANE_SPAN},
-    movement::ScreenWrap,
-};
+use super::level::{ALL_LANES_SPAN_FRAC_2, LANE_NUM, LANE_SPAN};
 use rand::prelude::*;
 
 #[derive(Debug, Default, Component, Reflect)]
@@ -26,6 +23,13 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         FixedUpdate,
         car_velocity
+            .in_set(AppSystems::Update)
+            .in_set(PausableSystems),
+    );
+
+    app.add_systems(
+        Update,
+        despawn_cars
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
@@ -72,6 +76,15 @@ pub fn car_velocity(time: Res<Time>, cars_query: Query<(&Car, &mut LinearVelocit
     for (car, mut velocity) in cars_query {
         velocity.x += car.velocity.x * time.delta_secs();
         velocity.x = velocity.x.min(car.velocity.x);
+    }
+}
+
+pub fn despawn_cars(mut commands: Commands, cars_query: Query<(Entity, &Transform), With<Car>>) {
+    for (car, transform) in cars_query {
+        if transform.translation.x < -12.0 {
+            commands.entity(car).despawn();
+            info!("Despawning car {:?} {:?}", car, transform);
+        }
     }
 }
 
