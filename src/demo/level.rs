@@ -1,7 +1,7 @@
 //! Spawn the main level.
 
 use avian3d::prelude::{Collider, Friction, RigidBody};
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::{diagnostic::FrameCount, prelude::*, window::PrimaryWindow};
 use std::f32::consts::*;
 
 use rand::prelude::*;
@@ -22,7 +22,19 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
+
+    app.add_systems(
+        Update,
+        spawn_cars
+            .in_set(AppSystems::Update)
+            .in_set(PausableSystems),
+    );
 }
+
+pub const LANE_NUM: i32 = 8;
+pub const LANE_SPAN: i32 = 2;
+pub const ALL_LANES_SPAN: i32 = LANE_NUM * LANE_SPAN;
+pub const ALL_LANES_SPAN_FRAC_2: i32 = ALL_LANES_SPAN / 2;
 
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
@@ -30,6 +42,9 @@ pub struct LevelAssets {
     #[dependency]
     music: Handle<AudioSource>,
 }
+
+#[derive(Component)]
+pub struct Level;
 
 impl FromWorld for LevelAssets {
     fn from_world(world: &mut World) -> Self {
@@ -95,8 +110,6 @@ fn obstacle(
     )
 }
 
-const CAR_LANES: [f32; 3] = [-4.0, 0.0, 4.0];
-
 /// A system that spawns the main level.
 pub fn spawn_level(
     mut commands: Commands,
@@ -109,6 +122,7 @@ pub fn spawn_level(
 
     commands
         .spawn((
+            Level,
             Name::new("Level"),
             Transform::default(),
             Visibility::default(),
@@ -123,34 +137,53 @@ pub fn spawn_level(
                 Transform::from_rotation(Quat::from_rotation_x(-FRAC_PI_2 - 0.2)),
             ));
             parent.spawn(road(&mut meshes, &mut materials));
-            parent.spawn(wall(&mut meshes, &mut materials, 8.0));
+            parent.spawn(wall(&mut meshes, &mut materials, (ALL_LANES_SPAN) as f32));
             // parent.spawn(wall(&mut meshes, &mut materials, -1.0));
-            parent.spawn(wall(&mut meshes, &mut materials, -8.0));
+            parent.spawn(wall(
+                &mut meshes,
+                &mut materials,
+                (ALL_LANES_SPAN) as f32 * -1.,
+            ));
             parent.spawn((
                 Name::new("Gameplay Music"),
                 music(level_assets.music.clone()),
             ));
 
-            for x_offs in (0..60).step_by(10) {
-                for lane in CAR_LANES {
-                    let pos = Vec3 {
-                        x: x_offs as f32 + lane + rng.gen_range(-1.0..1.0),
-                        y: 0.0,
-                        z: lane,
-                    };
-                    let vel = Vec3 {
-                        x: -rng.gen_range(20.0..25.0),
-                        // x: -40.,
-                        y: 0.,
-                        z: 0.,
-                    };
+            // for x_offs in (0..2000).step_by(200) {
+            //     for lane in 0..LANE_NUM {
+            //         let pos = Vec3 {
+            //             x: x_offs as f32 + lane as f32 + rng.gen_range(-1.0..1.0),
+            //             y: 0.0,
+            //             z: ((ALL_LANES_SPAN / 2) - (lane * LANE_SPAN)) as f32,
+            //         };
+            //         let vel = Vec3 {
+            //             // x: -rng.gen_range(20.0..25.0),
+            //             x: -40.,
+            //             y: 0.,
+            //             z: 0.,
+            //         };
 
-                    let ent: EntityCommands<'_> = parent.spawn(car(&car_assets, pos, vel));
+            //         let ent: EntityCommands<'_> = parent.spawn(car(&car_assets, pos, vel));
 
-                    // dbg!(ent.id(), pos, vel);
-                }
-            }
+            //         // dbg!(ent.id(), pos, vel);
+            //     }
+            // }
         });
+}
+
+fn spawn_cars(
+    mut commands: Commands,
+    // mut meshes: ResMut<Assets<Mesh>>,
+    // mut materials: ResMut<Assets<StandardMaterial>>,
+    car_assets: Res<CarAssets>,
+) {
+    dbg!(FrameCount as u32);
+    if (FrameCount as u32 % 600) != 0 {
+        return;
+    }
+    info!("Spawning car");
+
+    commands.spawn(car(&car_assets));
 }
 
 pub fn drop_obstacle(

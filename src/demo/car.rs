@@ -4,13 +4,17 @@ use std::f32::consts::*;
 
 use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource};
 
-use super::movement::ScreenWrap;
+use super::{
+    level::{ALL_LANES_SPAN, ALL_LANES_SPAN_FRAC_2, LANE_NUM, LANE_SPAN},
+    movement::ScreenWrap,
+};
 use rand::prelude::*;
 
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
     wrecked: bool,
     velocity: LinearVelocity,
+    lane_id: u32,
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -27,22 +31,31 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-pub fn car(car_assets: &CarAssets, init_pos: Vec3, init_vel: Vec3) -> impl Bundle {
+pub fn car(car_assets: &CarAssets) -> impl Bundle {
     let rng = &mut rand::thread_rng();
+
+    let lane_idx: u32 = rng.gen_range(0..LANE_NUM) as u32;
+    let speed: f32 = rng.gen_range(10..20) as f32;
+
     (
         Name::new("Car"),
         Car {
             wrecked: false,
-            velocity: LinearVelocity(init_vel),
+            velocity: LinearVelocity(Vec3::new(-speed, 0., 0.)), // remember, -x goes East
+            lane_id: lane_idx,
         },
         SceneRoot(car_assets.vehicles.choose(rng).unwrap().clone()),
-        ScreenWrap,
+        // ScreenWrap,
         RigidBody::Dynamic,
         Collider::cuboid(1.0, 1.0, 1.0),
         LinearVelocity::default(),
-        MaxLinearSpeed(init_vel.x.abs()),
+        MaxLinearSpeed(speed),
         Transform {
-            translation: init_pos,
+            translation: Vec3 {
+                x: rng.gen_range(32.0..64.0),
+                y: 0.,
+                z: (ALL_LANES_SPAN_FRAC_2 - (lane_idx as i32 * LANE_SPAN)) as f32,
+            },
             rotation: Quat::from_rotation_y(-FRAC_PI_2),
             scale: Vec3::splat(0.8),
         },
@@ -51,7 +64,7 @@ pub fn car(car_assets: &CarAssets, init_pos: Vec3, init_vel: Vec3) -> impl Bundl
             .with_spatial(true)
             .with_spatial_scale(SpatialScale::new(0.2))
             .with_volume(bevy::audio::Volume::Decibels(-24.))
-            .with_speed(rng.gen_range(0.1..0.8) + (init_vel.x / 100.).abs()),
+            .with_speed(rng.gen_range(0.1..0.8) + (speed / 100.).abs()),
     )
 }
 

@@ -20,6 +20,7 @@ fn spawn_pause_menu(mut commands: Commands) {
         #[cfg(not(target_family = "wasm"))]
         children![
             widget::header("Game paused"),
+            widget::button("Restart", restart_gameplay),
             widget::button("Continue", close_menu),
             widget::button("Settings", open_settings_menu),
             widget::button("Quit to title", quit_to_title),
@@ -28,6 +29,7 @@ fn spawn_pause_menu(mut commands: Commands) {
         #[cfg(target_family = "wasm")]
         children![
             widget::header("Game paused"),
+            widget::button("Restart", restart_gamplay),
             widget::button("Continue", close_menu),
             widget::button("Settings", open_settings_menu),
             widget::button("Quit to title", quit_to_title),
@@ -45,6 +47,10 @@ fn close_menu(_: Trigger<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>
 
 fn quit_to_title(_: Trigger<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
     next_screen.set(Screen::Title);
+}
+
+fn restart_gameplay(_: Trigger<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
+    next_screen.set(Screen::Loading);
 }
 
 fn go_back(mut next_menu: ResMut<NextState<Menu>>) {

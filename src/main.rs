@@ -16,6 +16,7 @@ use avian3d::prelude::*;
 use bevy::{
     asset::AssetMetaCheck,
     dev_tools::fps_overlay::FpsOverlayPlugin,
+    diagnostic::FrameCountPlugin,
     input::mouse::{AccumulatedMouseScroll, MouseScrollUnit},
     prelude::*,
     render::camera::ScalingMode,
@@ -53,6 +54,7 @@ impl Plugin for AppPlugin {
         );
 
         app.add_plugins(FpsOverlayPlugin::default());
+        app.add_plugins(FrameCountPlugin::default());
 
         // third party plugins
         app.add_plugins((
