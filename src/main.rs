@@ -46,7 +46,6 @@ impl Plugin for AppPlugin {
 
         // third party plugins
         app.add_plugins(PhysicsPlugins::default());
-        app.insert_resource(Gravity::ZERO); /* TODO: Set Gravity to zero for now */
 
         // Add other plugins.
         app.add_plugins((

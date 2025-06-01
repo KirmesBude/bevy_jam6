@@ -1,5 +1,7 @@
-use avian3d::prelude::{Collider, LinearVelocity, RigidBody};
+use avian3d::prelude::{Collider, LinearVelocity, Mass, RigidBody};
 use bevy::prelude::*;
+
+use crate::{AppSystems, PausableSystems};
 
 use super::movement::ScreenWrap;
 
@@ -10,6 +12,13 @@ pub struct Car {
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Car>();
+
+    app.add_systems(
+        Update,
+        car_velocity
+            .in_set(AppSystems::Update)
+            .in_set(PausableSystems),
+    );
 }
 
 pub fn car(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) -> impl Bundle {
@@ -27,4 +36,15 @@ pub fn car(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) 
             z: 0.0,
         }), /* TODO: I have no idea why this needs to be negative */
     )
+}
+
+/* TODO: This is not right, but friction with the road decreases velocity, which I dont want right now */
+pub fn car_velocity(mut cars: Query<&mut LinearVelocity, With<Car>>) {
+    for mut velocity in &mut cars {
+        *velocity = LinearVelocity(Vec3 {
+            x: -4.0,
+            y: 0.0,
+            z: 0.0,
+        });
+    }
 }

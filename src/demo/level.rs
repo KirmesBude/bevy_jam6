@@ -41,6 +41,17 @@ impl FromWorld for LevelAssets {
     }
 }
 
+fn road(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) -> impl Bundle {
+    (
+        Name::new("Road"),
+        Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2 { x: 100.0, y: 100.0 }))),
+        MeshMaterial3d(materials.add(Color::srgb(0.0, 0.7, 0.0))),
+        Transform::from_xyz(0.0, -1.0, 0.0),
+        RigidBody::Static,
+        Collider::cuboid(100.0, 0.5, 100.0),
+    )
+}
+
 fn wall(
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
@@ -85,6 +96,7 @@ pub fn spawn_level(
         StateScoped(Screen::Gameplay),
         children![
             (PointLight::default(), Transform::from_xyz(0.0, 5.0, -1.0)),
+            (road(&mut meshes, &mut materials)),
             (car(&mut meshes, &mut materials),),
             (
                 car(&mut meshes, &mut materials),
