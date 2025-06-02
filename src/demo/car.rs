@@ -71,12 +71,14 @@ pub fn car(car_assets: &CarAssets) -> impl Bundle {
     let car_scene = car_assets.vehicles.choose(rng).unwrap().clone();
     info!("Spawning car {:?} in lane {}", car_scene, lane_idx);
 
-
     // TODO: Make Big vehicles sounds different
 
-    let car_pitch_mod = match car_scene.path().file_name().unwrap().to_str().unwrap() {
+    let car_pitch_mod = match car_scene.path() {
         // TODO : Make Big vehicles sounds different
-    }
+        // something like
+        // "*truck*" | "*tractor*" => -0.6,
+        _ => 0.0,
+    };
 
     (
         Name::new("Car"),
@@ -104,7 +106,7 @@ pub fn car(car_assets: &CarAssets) -> impl Bundle {
         PlaybackSettings::LOOP
             .with_spatial(true)
             .with_volume(bevy::audio::Volume::Decibels(-24.))
-            .with_speed(rng.gen_range(0.1..0.8) + (speed / 100.).abs()),
+            .with_speed(rng.gen_range(0.1..0.8) + (speed / 100.).abs() - car_pitch_mod),
     )
 }
 
