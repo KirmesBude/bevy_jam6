@@ -14,9 +14,13 @@ pub struct Car {
     lane_id: u32,
 }
 
-pub(super) fn plugin(app: &mut App) {
-    app.register_type::<Car>();
+#[derive(Component, Reflect, Debug)]
+#[reflect(Component)]
+pub struct CarSpawner {
+    pub timer: Timer,
+}
 
+pub(super) fn plugin(app: &mut App) {
     app.register_type::<CarAssets>();
     app.load_resource::<CarAssets>();
 
@@ -33,6 +37,28 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
+
+    app.add_systems(
+        Update,
+        spawn_cars
+            .in_set(AppSystems::Update)
+            .in_set(PausableSystems),
+    );
+}
+
+fn spawn_cars(
+    mut commands: Commands,
+    car_assets: Res<CarAssets>,
+    car_spawners: Query<&mut CarSpawner>,
+    time: Res<Time>,
+) {
+    for mut spawner in car_spawners {
+        spawner.timer.tick(time.delta());
+
+        if spawner.timer.finished() {
+            commands.spawn(car(&car_assets));
+        }
+    }
 }
 
 pub fn car(car_assets: &CarAssets) -> impl Bundle {

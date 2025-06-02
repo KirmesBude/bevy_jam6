@@ -8,7 +8,7 @@ use crate::{
     AppSystems, PausableSystems, asset_tracking::LoadResource, audio::music, screens::Screen,
 };
 
-use super::car::{CarAssets, car};
+use super::car::CarSpawner;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<LevelAssets>();
@@ -17,13 +17,6 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         drop_obstacle
-            .in_set(AppSystems::Update)
-            .in_set(PausableSystems),
-    );
-
-    app.add_systems(
-        Update,
-        spawn_cars
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
@@ -114,7 +107,7 @@ pub fn spawn_level(
     level_assets: Res<LevelAssets>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    car_assets: Res<CarAssets>,
+    // car_assets: Res<CarAssets>,
 ) {
     let rng = rand::thread_rng();
 
@@ -147,43 +140,10 @@ pub fn spawn_level(
                 music(level_assets.music.clone()),
             ));
 
-            // for x_offs in (0..2000).step_by(200) {
-            //     for lane in 0..LANE_NUM {
-            //         let pos = Vec3 {
-            //             x: x_offs as f32 + lane as f32 + rng.gen_range(-1.0..1.0),
-            //             y: 0.0,
-            //             z: ((ALL_LANES_SPAN / 2) - (lane * LANE_SPAN)) as f32,
-            //         };
-            //         let vel = Vec3 {
-            //             // x: -rng.gen_range(20.0..25.0),
-            //             x: -40.,
-            //             y: 0.,
-            //             z: 0.,
-            //         };
-
-            //         let ent: EntityCommands<'_> = parent.spawn(car(&car_assets, pos, vel));
-
-            //         // dbg!(ent.id(), pos, vel);
-            //     }
-            // }
+            parent.spawn(CarSpawner {
+                timer: Timer::from_seconds(0.4, TimerMode::Repeating),
+            });
         });
-}
-
-fn spawn_cars(
-    mut commands: Commands,
-    // mut meshes: ResMut<Assets<Mesh>>,
-    // mut materials: ResMut<Assets<StandardMaterial>>,
-    car_assets: Res<CarAssets>,
-    time: Res<Time>,
-) {
-    // dbg!(&time.elapsed().as_secs_f32() % 1.0);
-
-    if time.elapsed_secs() % 0.1 >= 0.02 {
-        return;
-    }
-    // info!("Spawning car");
-
-    commands.spawn(car(&car_assets));
 }
 
 pub fn drop_obstacle(
