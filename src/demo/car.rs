@@ -71,6 +71,13 @@ pub fn car(car_assets: &CarAssets) -> impl Bundle {
     let car_scene = car_assets.vehicles.choose(rng).unwrap().clone();
     info!("Spawning car {:?} in lane {}", car_scene, lane_idx);
 
+
+    // TODO: Make Big vehicles sounds different
+
+    let car_pitch_mod = match car_scene.path().file_name().unwrap().to_str().unwrap() {
+        // TODO : Make Big vehicles sounds different
+    }
+
     (
         Name::new("Car"),
         Car {
