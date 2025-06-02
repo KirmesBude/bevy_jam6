@@ -15,6 +15,7 @@ mod theme;
 use avian3d::prelude::*;
 use bevy::{
     asset::AssetMetaCheck,
+    audio::{AudioPlugin, SpatialScale},
     dev_tools::fps_overlay::FpsOverlayPlugin,
     input::mouse::{AccumulatedMouseScroll, MouseScrollUnit},
     prelude::*,
@@ -28,6 +29,8 @@ fn main() -> AppExit {
 }
 
 pub struct AppPlugin;
+
+const AUDIO_SCALE: f32 = 1. / 10.0;
 
 impl Plugin for AppPlugin {
     fn build(&self, app: &mut App) {
@@ -48,6 +51,10 @@ impl Plugin for AppPlugin {
                         ..default()
                     }
                     .into(),
+                    ..default()
+                })
+                .set(AudioPlugin {
+                    default_spatial_scale: SpatialScale::new_2d(AUDIO_SCALE),
                     ..default()
                 }),
         );

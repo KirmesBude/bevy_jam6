@@ -66,7 +66,7 @@ pub fn car(car_assets: &CarAssets) -> impl Bundle {
     let rng = &mut rand::thread_rng();
 
     let lane_idx: u32 = rng.gen_range(0..LANE_NUM) as u32;
-    let speed: f32 = rng.gen_range(10..20) as f32;
+    let speed: f32 = rng.gen_range(10..80) as f32;
 
     (
         Name::new("Car"),
@@ -93,7 +93,6 @@ pub fn car(car_assets: &CarAssets) -> impl Bundle {
         AudioPlayer::new(car_assets.engine_audio.clone()),
         PlaybackSettings::LOOP
             .with_spatial(true)
-            .with_spatial_scale(SpatialScale::new(0.2))
             .with_volume(bevy::audio::Volume::Decibels(-24.))
             .with_speed(rng.gen_range(0.1..0.8) + (speed / 100.).abs()),
     )

@@ -22,7 +22,7 @@ pub struct Music;
 pub fn music(handle: Handle<AudioSource>) -> impl Bundle {
     (
         AudioPlayer(handle),
-        PlaybackSettings::LOOP.with_volume(bevy::audio::Volume::Decibels(-24.)),
+        PlaybackSettings::LOOP.with_volume(bevy::audio::Volume::Decibels(-16.)),
         Music,
     )
 }
