@@ -22,6 +22,7 @@ pub struct CarSpawner {
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<CarAssets>();
+    app.init_resource::<CarAssets>();
     app.load_resource::<CarAssets>();
 
     app.add_systems(
