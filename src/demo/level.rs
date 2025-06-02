@@ -1,6 +1,6 @@
 //! Spawn the main level.
 
-use avian3d::prelude::{Collider, Friction, RigidBody};
+use avian3d::prelude::{Collider, ExternalForce, Friction, RigidBody};
 use bevy::{prelude::*, window::PrimaryWindow};
 use std::f32::consts::*;
 
@@ -91,6 +91,7 @@ fn obstacle(
         MeshMaterial3d(materials.add(Color::srgb(1.0, 0.0, 1.0))),
         Transform::from_translation(point).with_scale(Vec3::new(0.5, 0.5, 0.5)),
         RigidBody::Dynamic,
+        ExternalForce::default().with_persistence(false),
         Collider::cuboid(1.0, 1.0, 1.0),
     )
 }
