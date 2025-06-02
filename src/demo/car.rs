@@ -1,5 +1,5 @@
 use avian3d::prelude::{Collider, LinearVelocity, MaxLinearSpeed, RigidBody};
-use bevy::{audio::SpatialScale, prelude::*};
+use bevy::prelude::*;
 use std::f32::consts::*;
 
 use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource};
@@ -68,6 +68,9 @@ pub fn car(car_assets: &CarAssets) -> impl Bundle {
     let lane_idx: u32 = rng.gen_range(0..LANE_NUM) as u32;
     let speed: f32 = rng.gen_range(10..80) as f32;
 
+    let car_scene = car_assets.vehicles.choose(rng).unwrap().clone();
+    info!("Spawning car {:?} in lane {}", car_scene, lane_idx);
+
     (
         Name::new("Car"),
         Car {
@@ -75,7 +78,7 @@ pub fn car(car_assets: &CarAssets) -> impl Bundle {
             velocity: LinearVelocity(Vec3::new(-speed, 0., 0.)), // remember, -x goes East
             lane_id: lane_idx,
         },
-        SceneRoot(car_assets.vehicles.choose(rng).unwrap().clone()),
+        SceneRoot(car_scene.clone()),
         // ScreenWrap,
         RigidBody::Dynamic,
         Collider::cuboid(1.0, 1.0, 1.0),
