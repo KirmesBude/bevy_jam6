@@ -1,7 +1,7 @@
 use avian3d::prelude::{Collider, ExternalForce, RigidBody};
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::{screens::Screen, AppSystems, PausableSystems};
+use crate::{AppSystems, PausableSystems, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
