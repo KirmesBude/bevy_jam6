@@ -24,7 +24,7 @@ pub fn spawn_ground(
     // Create the assets every time the ground is created.
     // They are very small and should not have any perfomance impact
     // If they have, add resources saving the handles.
-    let mesh_handle = meshes.add(PlaneMeshBuilder::new(Dir3::Y, (GAMEPLANESIZEX, GAMEPLANESIZEY).into()).build());
+    let mesh_handle = meshes.add(PlaneMeshBuilder::new(Dir3::Y, (GAMEPLANESIZEX, GAMEPLANESIZEY).into()).build().translated_by(Vec3::new(0., 0.5, 0.)));
 
     let material = materials.add(StandardMaterial {
         base_color_texture: Some(images.add(uv_debug_texture())),
@@ -34,6 +34,7 @@ pub fn spawn_ground(
 
     commands.spawn((
         Ground,
+        Transform::from_xyz(0., -0.5, 0.), // have the colliding surface at y=0.
         Mesh3d(mesh_handle),
         MeshMaterial3d(material),
         RigidBody::Static,
