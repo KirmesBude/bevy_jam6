@@ -22,8 +22,30 @@ fn bottom_container() -> impl Bundle {
             width: Val::Percent(100.),
             height: Val::Percent(15.),
             position_type: PositionType::Absolute,
-            bottom: Val::Percent(0.),
+            bottom: Val::Percent(0.), /* TODO: This can be replaced if root ui is SpaceBetween */
             flex_direction: FlexDirection::Row,
+            justify_content: JustifyContent::SpaceBetween,
+            align_items: AlignItems::Center,
+            padding: UiRect::all(Val::Percent(1.)),
+            ..Default::default()
+        },
+        BackgroundColor(WHITE.into()),
+        children![
+            item_container(),
+            widget::button("crash out", |_: Trigger<Pointer<Click>>| {
+                /* TODO: Nothing for now */
+            }),
+        ],
+    )
+}
+
+fn item_container() -> impl Bundle {
+    (
+        Name::new("UI Items"),
+        Node {
+            flex_direction: FlexDirection::Row,
+            justify_content: JustifyContent::SpaceBetween,
+            align_items: AlignItems::Center,
             ..Default::default()
         },
         BackgroundColor(WHITE.into()),
@@ -40,9 +62,6 @@ fn bottom_container() -> impl Bundle {
             widget::button_small("4", |_: Trigger<Pointer<Click>>| {
                 print_item(4);
             }),
-            widget::button("crash out", |_: Trigger<Pointer<Click>>| {
-                /* TODO: Nothing for now */
-            }),
         ],
     )
 }
@@ -56,6 +75,9 @@ fn top_container() -> impl Bundle {
             position_type: PositionType::Absolute,
             top: Val::Percent(0.),
             flex_direction: FlexDirection::Row,
+            justify_content: JustifyContent::SpaceBetween,
+            align_items: AlignItems::Center,
+            padding: UiRect::all(Val::Percent(1.)),
             ..Default::default()
         },
         BackgroundColor(BLACK.into()),

@@ -48,7 +48,7 @@ pub fn car(car_assets: &CarAssets, init_pos: Vec3, init_vel: Vec3) -> impl Bundl
         RigidBody::Dynamic,
         Collider::cuboid(1.0, 1.0, 2.0),
         LinearVelocity::from(init_vel),
-        ExternalForce::default().with_persistence(false),
+        ExternalForce::default().with_persistence(true),
         Friction::new(0.5), // Transfer this to the wheels.
         // Gfx and audio
         SceneRoot(car_assets.vehicles.choose(rng).unwrap().clone()),
