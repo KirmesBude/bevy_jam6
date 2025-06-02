@@ -6,6 +6,7 @@
 mod asset_tracking;
 mod audio;
 mod demo;
+mod game;
 #[cfg(feature = "dev")]
 mod dev_tools;
 mod menus;
@@ -72,7 +73,8 @@ impl Plugin for AppPlugin {
         app.add_plugins((
             asset_tracking::plugin,
             audio::plugin,
-            demo::plugin,
+            game::plugin,
+            demo::level::plugin,
             #[cfg(feature = "dev")]
             dev_tools::plugin,
             menus::plugin,
@@ -96,8 +98,15 @@ impl Plugin for AppPlugin {
         app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
 
         // Spawn the main camera.
+        // TODO: Move camera and lighting stuff into the game folder.
         app.add_systems(Startup, spawn_camera);
         app.add_systems(Update, zoom_camera);
+        // TODO: Replace by directional light
+        app.insert_resource(AmbientLight {
+            color: Color::WHITE,
+            brightness: 800.,
+            ..default()
+        });
     }
 }
 
