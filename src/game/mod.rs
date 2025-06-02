@@ -4,11 +4,15 @@ mod camera;
 mod car;
 mod consts;
 mod world;
+mod road;
+mod pertubator;
+mod ui;
 
 pub(crate) fn plugin(app: &mut App) {
     app.add_plugins((
         car::plugin,
-        world::plugin
+        world::plugin,
+        pertubator::plugin,
     ));
 }
 
