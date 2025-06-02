@@ -109,7 +109,7 @@ pub fn despawn_cars(mut commands: Commands, cars_query: Query<(Entity, &Transfor
     for (car, transform) in cars_query {
         if transform.translation.x < -128.0 {
             commands.entity(car).despawn();
-            info!("Despawning car {:?} {:?}", car, transform);
+            // info!("Despawning car {:?} {:?}", car, transform);
         }
     }
 }
