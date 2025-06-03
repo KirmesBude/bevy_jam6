@@ -2,10 +2,13 @@ use bevy::app::App;
 
 mod car;
 mod consts;
+mod pertubator;
+mod road;
+mod ui;
 mod world;
 
 pub(crate) fn plugin(app: &mut App) {
-    app.add_plugins((car::plugin, world::plugin));
+    app.add_plugins((car::plugin, world::plugin, pertubator::plugin));
 }
 
 // TODO in this folder: Make everything scoped or despawn manually.
