@@ -4,7 +4,7 @@ mod car;
 mod consts;
 mod pertubator;
 mod road;
-mod ui;
+pub mod ui;
 mod world;
 
 pub(crate) fn plugin(app: &mut App) {
