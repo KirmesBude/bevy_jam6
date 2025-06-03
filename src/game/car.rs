@@ -73,7 +73,7 @@ pub fn air_friction(time: Res<Time>, cars_query: Query<(&LinearVelocity, &mut Ex
     }
 }
 
-#[derive(Resource, Asset, Clone, Reflect)]
+#[derive(Debug, Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
 pub struct CarAssets {
     #[dependency]
@@ -81,6 +81,13 @@ pub struct CarAssets {
     #[dependency]
     engine_audio: Handle<AudioSource>,
 }
+
+impl CarAssets {
+    pub fn get_scenes(&self) -> &Vec<Handle<Scene>> {
+        return &self.vehicles;
+    }
+}
+
 const CAR_MODELS: &[&str] = &[
     "ambulance",
     "delivery",
