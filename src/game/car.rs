@@ -1,11 +1,11 @@
 use avian3d::prelude::*;
 use bevy::{audio::SpatialScale, prelude::*};
-use rand::{Rng, seq::SliceRandom};
+use rand::Rng;
 use std::f32::consts::*;
 
 use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource, screens::Screen};
 
-use super::consts::AIRFRICTIONCOEFFICIENT;
+use super::{car_colliders::AllCarColliders, consts::{AIRFRICTIONCOEFFICIENT, CARBODYFRICTION}};
 
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
@@ -27,15 +27,29 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     app.add_systems(
-        OnEnter(Screen::Gameplay),
-        |mut commands: Commands, car_assets: Res<CarAssets>| {
-            commands.spawn(car(&car_assets, Vec3::Y, 3. * Vec3::X));
-        },
+        Update,
+        spawn_test_car
+        .run_if(in_state(Screen::Gameplay))
+        .in_set(AppSystems::Update)
+        .in_set(PausableSystems),
     );
 }
 
-pub fn car(car_assets: &CarAssets, init_pos: Vec3, init_vel: Vec3) -> impl Bundle {
+fn spawn_test_car(mut commands: Commands, car_assets: Res<CarAssets>, all_car_colliders: Option<Res<AllCarColliders>>, mut finished: Local<bool>) {
+    if !*finished {
+        if let Some(all_car_colliders) = all_car_colliders {
+            commands.spawn(car(&car_assets, &all_car_colliders, Vec3::Y, 3. * Vec3::X));
+            *finished = true;
+        }
+    }
+}
+
+pub fn car(car_assets: &CarAssets, all_car_colliders: &AllCarColliders, init_pos: Vec3, init_vel: Vec3) -> impl Bundle {
     let rng = &mut rand::thread_rng();
+    let car_index = rng.gen_range(0..car_assets.get_scenes().len());
+    let scene_handle = car_assets.vehicles[car_index].clone();
+    let colliders = &all_car_colliders[car_index];
+
     (
         Name::new("Car"),
         Car { wrecked: false },
@@ -46,12 +60,18 @@ pub fn car(car_assets: &CarAssets, init_pos: Vec3, init_vel: Vec3) -> impl Bundl
             scale: Vec3::splat(0.8),
         },
         RigidBody::Dynamic,
-        Collider::cuboid(1.0, 1.0, 2.0),
+        colliders.body.clone(),
+        children![
+            colliders.get_wheel_bl_bundle(),
+            colliders.get_wheel_br_bundle(),
+            colliders.get_wheel_fl_bundle(),
+            colliders.get_wheel_fr_bundle(),
+        ],
         LinearVelocity::from(init_vel),
         ExternalForce::default().with_persistence(false),
-        Friction::new(0.5), // Transfer this to the wheels.
+        Friction::new(CARBODYFRICTION),
         // Gfx and audio
-        SceneRoot(car_assets.vehicles.choose(rng).unwrap().clone()),
+        SceneRoot(scene_handle),
         AudioPlayer::new(car_assets.engine_audio.clone()),
         PlaybackSettings::LOOP
             .with_spatial(true)
