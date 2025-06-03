@@ -6,7 +6,7 @@ use bevy::{color::palettes::css::RED, prelude::*, window::PrimaryWindow};
 
 use crate::{AppSystems, PausableSystems, screens::Screen};
 
-use super::car::Car;
+use super::{car::Car, util::Lifetime};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -93,6 +93,7 @@ fn spring(
         Collider::cylinder(1.0, 1.0),
         Sensor,
         CollisionEventsEnabled,
+        Lifetime::new(5.),
     )
 }
 
@@ -108,7 +109,7 @@ pub fn spawn_spring(
         let spring = trigger.target(); /* TODO: Extract normal from spring for some shenanigans */
         let other_entity = trigger.collider;
         if let Ok(mut impulse) = cars.get_mut(other_entity) {
-            println!("Car {} triggered spring {}", other_entity, spring);
+            dbg!("Car {} triggered spring {}", other_entity, spring);
             impulse.y = 10.0;
         }
     });
