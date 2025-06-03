@@ -1,11 +1,10 @@
 use bevy::{
+    input::mouse::{AccumulatedMouseScroll, MouseScrollUnit},
     prelude::*,
-    input::mouse::{AccumulatedMouseScroll, MouseScrollUnit}, 
-    render::camera::ScalingMode
+    render::camera::ScalingMode,
 };
 
 use crate::screens::Screen;
-
 
 const ZOOM_SCROLL_FACTOR: f32 = 256.;
 
@@ -14,8 +13,6 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Startup, spawn_camera);
     app.add_systems(Update, zoom_camera.run_if(in_state(Screen::Gameplay)));
 }
-
-
 
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((

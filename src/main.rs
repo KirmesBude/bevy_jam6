@@ -7,19 +7,15 @@ mod asset_tracking;
 mod audio;
 mod camera;
 mod demo;
-mod game;
 #[cfg(feature = "dev")]
 mod dev_tools;
+mod game;
 mod menus;
 mod screens;
 mod theme;
 
 use avian3d::prelude::*;
-use bevy::{
-    asset::AssetMetaCheck,
-    dev_tools::fps_overlay::FpsOverlayPlugin,
-    prelude::*
-};
+use bevy::{asset::AssetMetaCheck, dev_tools::fps_overlay::FpsOverlayPlugin, prelude::*};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
