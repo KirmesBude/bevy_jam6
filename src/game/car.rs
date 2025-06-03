@@ -1,9 +1,9 @@
 use avian3d::prelude::*;
 use bevy::{audio::SpatialScale, prelude::*};
-use rand::{seq::SliceRandom, Rng};
+use rand::{Rng, seq::SliceRandom};
 use std::f32::consts::*;
 
-use crate::{asset_tracking::LoadResource, screens::Screen, AppSystems, PausableSystems};
+use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource, screens::Screen};
 
 use super::consts::AIRFRICTIONCOEFFICIENT;
 
@@ -26,19 +26,19 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(PausableSystems),
     );
 
-    app.add_systems(OnEnter(Screen::Gameplay),
-    |mut commands: Commands, car_assets: Res<CarAssets>| {
-        commands.spawn(car(&car_assets, Vec3::Y, 3.*Vec3::X));
-    });
+    app.add_systems(
+        OnEnter(Screen::Gameplay),
+        |mut commands: Commands, car_assets: Res<CarAssets>| {
+            commands.spawn(car(&car_assets, Vec3::Y, 3. * Vec3::X));
+        },
+    );
 }
 
 pub fn car(car_assets: &CarAssets, init_pos: Vec3, init_vel: Vec3) -> impl Bundle {
     let rng = &mut rand::thread_rng();
     (
         Name::new("Car"),
-        Car {
-            wrecked: false,
-        },
+        Car { wrecked: false },
         // Physics
         Transform {
             translation: init_pos,
@@ -67,7 +67,8 @@ pub fn air_friction(time: Res<Time>, cars_query: Query<(&LinearVelocity, &mut Ex
         // This force is proportional to the square of the velocity with the given factor.
         // It has to be weighted with the time step. (If changing the physics clock, this needs a look again).
         // The force is cleared by avian every frame.
-        let new_force = applied_force.force() - AIRFRICTIONCOEFFICIENT * velocity.0.length() * velocity.0 * time.delta_secs();
+        let new_force = applied_force.force()
+            - AIRFRICTIONCOEFFICIENT * velocity.0.length() * velocity.0 * time.delta_secs();
         applied_force.set_force(new_force);
     }
 }

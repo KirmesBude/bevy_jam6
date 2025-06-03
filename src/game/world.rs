@@ -1,5 +1,5 @@
-use bevy::{prelude::*, render::mesh::PlaneMeshBuilder};
 use avian3d::prelude::*;
+use bevy::{prelude::*, render::mesh::PlaneMeshBuilder};
 
 use crate::screens::Screen;
 
@@ -9,28 +9,29 @@ pub fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_ground);
 }
 
-
 // TODO: Add the missing derives
 #[derive(Component)]
 pub struct Ground;
-
 
 pub fn spawn_ground(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     // Create the assets every time the ground is created.
     // They are very small and should not have any perfomance impact
     // If they have, add resources saving the handles.
-    let mesh_handle = meshes.add(PlaneMeshBuilder::new(Dir3::Y, (GAMEPLANESIZEX, GAMEPLANESIZEY).into()).build().translated_by(Vec3::new(0., 0.5, 0.)));
+    let mesh_handle = meshes.add(
+        PlaneMeshBuilder::new(Dir3::Y, (GAMEPLANESIZEX, GAMEPLANESIZEY).into())
+            .build()
+            .translated_by(Vec3::new(0., 0.5, 0.)),
+    );
 
     let material = materials.add(StandardMaterial {
         base_color_texture: Some(images.add(uv_debug_texture())),
         ..default()
     });
-
 
     commands.spawn((
         Ground,
@@ -40,7 +41,6 @@ pub fn spawn_ground(
         RigidBody::Static,
         Collider::cuboid(GAMEPLANESIZEX, 1., GAMEPLANESIZEY),
         Friction::new(0.01),
-        
     ));
 }
 
