@@ -7,6 +7,27 @@ use super::consts::{GAMEPLANESIZEX, GAMEPLANESIZEY};
 
 pub fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_ground);
+    
+
+    app.add_systems(OnEnter(Screen::Gameplay), spawn_light);
+}
+
+fn spawn_light(mut commands: Commands) {
+    commands.insert_resource(AmbientLight {
+        color: Color::WHITE,
+        brightness: 600.,
+        ..default()
+    });
+    commands.spawn((
+        DirectionalLight {
+            color: Color::linear_rgb(1., 1., 0.8),
+            illuminance: 2_500.,
+            shadows_enabled: true,
+            ..default()
+        },
+        StateScoped(Screen::Gameplay),
+        Transform::from_xyz(1., 6., 0.).looking_at(Vec3::ZERO, Vec3::Y)
+    ));
 }
 
 

@@ -1,6 +1,5 @@
 use bevy::app::App;
 
-mod camera;
 mod car;
 mod consts;
 mod world;
