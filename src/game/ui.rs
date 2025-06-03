@@ -76,7 +76,11 @@ fn top_container() -> impl Bundle {
             ..Default::default()
         },
         //BackgroundColor(BLACK.into()),
-        children![widget::label("High Score"), widget::label("Current Combo?"),],
+        children![
+            widget::label("High Score"),
+            widget::label("Current Combo?"),
+            widget::label("Achievements")
+        ],
     )
 }
 
