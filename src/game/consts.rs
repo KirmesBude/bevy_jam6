@@ -1,8 +1,5 @@
 use std::f32::consts::{FRAC_PI_2, PI};
 
-pub const GAMEPLANESIZEX: f32 = 30.;
-pub const GAMEPLANESIZEY: f32 = 10.;
-
 pub const INITIALCARMODELROTATION: f32 = FRAC_PI_2;
 
 // TODO: Make it different for different cars and obstacles

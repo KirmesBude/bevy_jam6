@@ -1,7 +1,7 @@
 use avian3d::prelude::Collider;
 use bevy::prelude::*;
 
-use crate::{asset_tracking::LoadResource, screens::Screen};
+use crate::{asset_tracking::LoadResource, game::pertubator::spawn_pertubator, screens::Screen};
 
 #[derive(Debug, Reflect)]
 enum LaneType {
@@ -91,15 +91,17 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
                 {
                     // info!("Spawning road: {:?} at {}", lane_type, pos);
 
-                    parent.spawn((
-                        Road,
-                        Name::new("Road"),
-                        StateScoped(Screen::Gameplay),
-                        Transform::from_translation(pos + Vec3::new(0.0, 0.0, z_offset))
-                            .with_scale(Vec3::splat(4.)),
-                        SceneRoot(road_asset.clone()),
-                        Collider::cuboid(1., 0.4, 1.),
-                    ));
+                    parent
+                        .spawn((
+                            Road,
+                            Name::new("Road"),
+                            StateScoped(Screen::Gameplay),
+                            Transform::from_translation(pos + Vec3::new(0.0, 0.0, z_offset))
+                                .with_scale(Vec3::splat(4.)),
+                            SceneRoot(road_asset.clone()),
+                            Collider::cuboid(1., 1., 1.),
+                        ))
+                        .observe(spawn_pertubator);
 
                     pos += conf.pos_inc_primary;
                 }
