@@ -46,6 +46,7 @@ impl Plugin for AppPlugin {
         );
 
         app.add_plugins(FpsOverlayPlugin::default());
+        app.add_plugins(MeshPickingPlugin);
 
         // third party plugins
         app.add_plugins((

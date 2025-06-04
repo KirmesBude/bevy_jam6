@@ -52,15 +52,22 @@ pub fn spawn_ground(
         ..default()
     });
 
-    commands.spawn((
-        Ground,
-        Transform::from_xyz(0., -0.5, 0.), // have the colliding surface at y=0.
-        Mesh3d(mesh_handle),
-        MeshMaterial3d(material),
-        RigidBody::Static,
-        Collider::cuboid(GAMEPLANESIZEX, 1., GAMEPLANESIZEY),
-        Friction::new(0.01),
-    ));
+    commands
+        .spawn((
+            Ground,
+            Transform::from_xyz(0., -0.5, 0.), // have the colliding surface at y=0.
+            Mesh3d(mesh_handle),
+            MeshMaterial3d(material),
+            RigidBody::Static,
+            Collider::cuboid(GAMEPLANESIZEX, 1., GAMEPLANESIZEY),
+            Friction::new(0.01),
+        ))
+        .observe(|trigger: Trigger<Pointer<Pressed>>| {
+            let hit = &trigger.hit;
+            let pos = hit.position.unwrap();
+
+            dbg!("Spawn something on the road at {}", pos);
+        });
 }
 
 // Only for prototyping
