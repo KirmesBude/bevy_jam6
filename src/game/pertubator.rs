@@ -1,7 +1,10 @@
 use avian3d::prelude::*;
 use bevy::{platform::collections::HashMap, prelude::*, window::PrimaryWindow};
 
-use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource, screens::Screen};
+use crate::{
+    AppSystems, PausableSystems, asset_tracking::LoadResource, game::car_colliders::WheelCollider,
+    screens::Screen,
+};
 
 use super::{car::Car, util::Lifetime};
 
