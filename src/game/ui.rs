@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
-use crate::{screens::Screen, theme::widget};
+use crate::{
+    game::pertubator::{ActivePertubator, Pertubator},
+    screens::Screen,
+    theme::widget,
+};
 
 pub fn spawn_game_ui(mut commands: Commands) {
     commands.spawn((
@@ -45,9 +49,7 @@ fn item_container() -> impl Bundle {
         },
         //BackgroundColor(RED.into()),
         children![
-            widget::button_small("1", |_: Trigger<Pointer<Click>>| {
-                print_item(1);
-            }),
+            widget::button(Pertubator::Spring.name(), update_active_pertubator_spring),
             widget::button_small("2", |_: Trigger<Pointer<Click>>| {
                 print_item(2);
             }),
@@ -86,4 +88,12 @@ fn top_container() -> impl Bundle {
 
 fn print_item(index: u8) {
     dbg!("{}", index);
+}
+
+/// This is stupid, but I dont know how to do this generically on an enum member
+fn update_active_pertubator_spring(
+    _: Trigger<Pointer<Click>>,
+    mut active_pertubator: ResMut<ActivePertubator>,
+) {
+    active_pertubator.0 = Some(Pertubator::Spring);
 }

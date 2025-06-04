@@ -23,14 +23,6 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
-
-    /* TODO: Remove when proper selection */
-    app.add_systems(
-        OnEnter(Screen::Gameplay),
-        |mut active_pertubator: ResMut<ActivePertubator>| {
-            active_pertubator.0 = Some(Pertubator::Spring);
-        },
-    );
 }
 
 fn obstacle(
@@ -135,7 +127,7 @@ pub enum Pertubator {
 }
 
 impl Pertubator {
-    fn name(&self) -> &'static str {
+    pub fn name(&self) -> &'static str {
         match self {
             Pertubator::Spring => "Spring",
         }
@@ -176,7 +168,7 @@ impl Pertubator {
 /// This hold the currently active Pertubator as determined by ui selection
 #[derive(Debug, Default, Resource, Reflect)]
 #[reflect(Resource)]
-pub struct ActivePertubator(Option<Pertubator>);
+pub struct ActivePertubator(pub Option<Pertubator>);
 
 /// Insert this on a picking enabled entity
 /// e.g. road
