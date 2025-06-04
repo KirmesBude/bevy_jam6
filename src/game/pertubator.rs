@@ -1,7 +1,4 @@
-use avian3d::prelude::{
-    Collider, CollisionEventsEnabled, ExternalForce, ExternalImpulse, OnCollisionStart, RigidBody,
-    Sensor,
-};
+use avian3d::prelude::*;
 use bevy::{color::palettes::css::RED, prelude::*, window::PrimaryWindow};
 
 use crate::{AppSystems, PausableSystems, screens::Screen};
@@ -18,6 +15,12 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_systems(OnEnter(Screen::Gameplay), spawn_spring);
 }
+
+#[derive(Debug, Default, Clone, Component, Reflect)]
+pub struct Soaped;
+
+#[derive(Debug, Default, Clone, Component, Reflect)]
+pub struct Nailed;
 
 fn obstacle(
     meshes: &mut Assets<Mesh>,
