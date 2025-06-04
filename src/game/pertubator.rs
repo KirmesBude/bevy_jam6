@@ -12,15 +12,11 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-
-
 #[derive(Debug, Default, Clone, Component, Reflect)]
 pub struct Soaped;
 
 #[derive(Debug, Default, Clone, Component, Reflect)]
 pub struct Nailed;
-
-
 
 fn obstacle(
     meshes: &mut Assets<Mesh>,
