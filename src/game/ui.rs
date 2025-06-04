@@ -49,7 +49,7 @@ fn item_container() -> impl Bundle {
         },
         //BackgroundColor(RED.into()),
         children![
-            widget::button(Pertubator::Spring.name(), update_active_pertubator_spring),
+            pertubator_button(Pertubator::Spring),
             widget::button_small("2", |_: Trigger<Pointer<Click>>| {
                 print_item(2);
             }),
@@ -90,10 +90,11 @@ fn print_item(index: u8) {
     dbg!("{}", index);
 }
 
-/// This is stupid, but I dont know how to do this generically on an enum member
-fn update_active_pertubator_spring(
-    _: Trigger<Pointer<Click>>,
-    mut active_pertubator: ResMut<ActivePertubator>,
-) {
-    active_pertubator.0 = Some(Pertubator::Spring);
+fn pertubator_button(pertubator: Pertubator) -> impl Bundle {
+    widget::button(
+        pertubator.name(),
+        move |_: Trigger<Pointer<Click>>, mut active_pertubator: ResMut<ActivePertubator>| {
+            active_pertubator.0 = Some(pertubator);
+        },
+    )
 }
