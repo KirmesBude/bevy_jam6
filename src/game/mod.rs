@@ -9,7 +9,13 @@ mod util;
 mod world;
 
 pub(crate) fn plugin(app: &mut App) {
-    app.add_plugins((car::plugin, world::plugin, pertubator::plugin, util::plugin));
+    app.add_plugins((
+        road::plugin,
+        car::plugin,
+        world::plugin,
+        pertubator::plugin,
+        util::plugin,
+    ));
 }
 
 // TODO in this folder: Make everything scoped or despawn manually.
