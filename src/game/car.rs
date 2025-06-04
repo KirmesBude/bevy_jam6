@@ -10,6 +10,8 @@ use super::{car_colliders::AllCarColliders, consts::{AIRFRICTIONCOEFFICIENT, CAR
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
     wrecked: bool,
+    forward_force: f32,
+    driving_direction: Vec3, // This has to be a normalized vector!
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -21,7 +23,8 @@ pub(super) fn plugin(app: &mut App) {
     // TODO: Put this in the right schedule
     app.add_systems(
         Update,
-        air_friction
+        // TODO: Apply a weak torque correction of the avian instabilities when not wrecked.
+        (air_friction, accelerate_cars)
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
@@ -38,7 +41,7 @@ pub(super) fn plugin(app: &mut App) {
 fn spawn_test_car(mut commands: Commands, car_assets: Res<CarAssets>, all_car_colliders: Option<Res<AllCarColliders>>, mut finished: Local<bool>) {
     if !*finished {
         if let Some(all_car_colliders) = all_car_colliders {
-            commands.spawn(car(&car_assets, &all_car_colliders, Vec3::Y, 3. * Vec3::X));
+            commands.spawn(car(&car_assets, &all_car_colliders, Vec3::new(-10., 0.01, 0.), 3. * Vec3::X));
             *finished = true;
         }
     }
@@ -46,13 +49,14 @@ fn spawn_test_car(mut commands: Commands, car_assets: Res<CarAssets>, all_car_co
 
 pub fn car(car_assets: &CarAssets, all_car_colliders: &AllCarColliders, init_pos: Vec3, init_vel: Vec3) -> impl Bundle {
     let rng = &mut rand::thread_rng();
+
     let car_index = rng.gen_range(0..car_assets.get_scenes().len());
     let scene_handle = car_assets.vehicles[car_index].clone();
     let colliders = &all_car_colliders[car_index];
-
+    let forward_force = 380.;
     (
         Name::new("Car"),
-        Car { wrecked: false },
+        Car { wrecked: false, forward_force, driving_direction: Vec3::X },
         // Physics
         Transform {
             translation: init_pos,
@@ -81,8 +85,9 @@ pub fn car(car_assets: &CarAssets, all_car_colliders: &AllCarColliders, init_pos
     )
 }
 
-pub fn air_friction(time: Res<Time>, cars_query: Query<(&LinearVelocity, &mut ExternalForce)>) {
-    for (velocity, mut applied_force) in cars_query {
+// TODO: Stop applying this below a certain treshold velocity.
+fn air_friction(time: Res<Time>, mut cars_query: Query<(&LinearVelocity, &mut ExternalForce)>) {
+    for (velocity, mut applied_force) in cars_query.iter_mut() {
         // Apply a force in the opposite direction of the velocity.
         // This force is proportional to the square of the velocity with the given factor.
         // It has to be weighted with the time step. (If changing the physics clock, this needs a look again).
@@ -92,6 +97,17 @@ pub fn air_friction(time: Res<Time>, cars_query: Query<(&LinearVelocity, &mut Ex
         applied_force.set_force(new_force);
     }
 }
+
+fn accelerate_cars(time: Res<Time>, mut cars: Query<(&Car, &mut ExternalForce)>) {
+    for (car, mut applied_force) in cars.iter_mut() {
+        if !car.wrecked {
+            // Let the car accelerate in the forward direction of the velocity
+            let new_force = applied_force.force() + car.driving_direction * car.forward_force * time.delta_secs();
+            applied_force.set_force(new_force);
+        }
+    }
+}
+
 
 #[derive(Debug, Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
