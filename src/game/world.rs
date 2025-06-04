@@ -1,7 +1,7 @@
 use avian3d::prelude::*;
 use bevy::{color::palettes::css::GREEN, prelude::*, render::mesh::PlaneMeshBuilder};
 
-use crate::screens::Screen;
+use crate::{game::pertubator::spawn_pertubator, screens::Screen};
 
 use super::consts::{GAMEPLANESIZEX, GAMEPLANESIZEY};
 
@@ -62,12 +62,7 @@ pub fn spawn_ground(
             Collider::cuboid(GAMEPLANESIZEX, 1., GAMEPLANESIZEY),
             Friction::new(0.01),
         ))
-        .observe(|trigger: Trigger<Pointer<Pressed>>| {
-            let hit = &trigger.hit;
-            let pos = hit.position.unwrap();
-
-            dbg!("Spawn something on the road at {}", pos);
-        });
+        .observe(spawn_pertubator);
 }
 
 // Only for prototyping
