@@ -190,7 +190,7 @@ fn correct_car_torque(
             - INITIALCARMODELROTATION;
 
         if angle_offset < -PI {
-            angle_offset = 2. * PI + angle_offset;
+            angle_offset += 2. * PI;
         }
 
         // Do not rotate if the car is in the tolerated range.
@@ -264,7 +264,7 @@ pub struct CarAssets {
 
 impl CarAssets {
     pub fn get_scenes(&self) -> &Vec<Handle<Scene>> {
-        return &self.vehicles;
+        &self.vehicles
     }
 }
 

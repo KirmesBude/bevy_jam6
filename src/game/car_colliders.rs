@@ -175,11 +175,11 @@ fn collider_from_car_scene(
         }
     }
 
-    if set_parts.iter().all(|b| *b == true) {
+    if set_parts.iter().all(|b| *b) {
         return Some(colliders);
     }
 
-    return None;
+    None
 }
 
 fn get_collider_for_wheel(mesh: &Mesh, wheel_mesh_transform: &Transform) -> (Collider, Transform) {
@@ -189,5 +189,5 @@ fn get_collider_for_wheel(mesh: &Mesh, wheel_mesh_transform: &Transform) -> (Col
         .with_translation(wheel_mesh_transform.translation + Vec3::from(aabb.center))
         .with_rotation(Quat::from_rotation_z(PI / 2.));
 
-    return (cylinder, transform);
+    (cylinder, transform)
 }
