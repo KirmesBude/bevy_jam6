@@ -1,10 +1,10 @@
-use avian3d::prelude::{
-    Collider, CollisionEventsEnabled, ExternalForce, ExternalImpulse, OnCollisionStart, RigidBody,
-    Sensor,
-};
+use avian3d::prelude::*;
 use bevy::{platform::collections::HashMap, prelude::*, window::PrimaryWindow};
 
-use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource, screens::Screen};
+use crate::{
+    AppSystems, PausableSystems, asset_tracking::LoadResource, game::car_colliders::WheelCollider,
+    screens::Screen,
+};
 
 use super::{car::Car, util::Lifetime};
 
@@ -24,6 +24,12 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(PausableSystems),
     );
 }
+
+#[derive(Debug, Default, Clone, Component, Reflect)]
+pub struct Soaped;
+
+#[derive(Debug, Default, Clone, Component, Reflect)]
+pub struct Nailed;
 
 fn obstacle(
     meshes: &mut Assets<Mesh>,
