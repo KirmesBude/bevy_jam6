@@ -14,7 +14,7 @@ pub fn plugin(app: &mut App) {
 }
 
 /// This component identifies an `Entity` with a `Collider` representing a car wheel.
-/// 
+///
 /// Those entities are children of a car root entity with the `Car`-component.
 #[derive(Debug, Default, Component, Reflect)]
 pub struct WheelCollider;
@@ -87,7 +87,7 @@ impl CarColliders {
 }
 
 /// System calculating all the car colliders for the loaded car models.
-/// 
+///
 /// Use after all `CarAssets` are loaded, it depends on the loaded meshs.
 fn calculate_car_colliders(
     mut commands: Commands,

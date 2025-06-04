@@ -1,12 +1,12 @@
 use bevy::app::App;
 
-mod camera;
 mod car;
 mod car_colliders;
 mod consts;
 mod pertubator;
 mod road;
-mod ui;
+pub mod ui;
+mod util;
 mod world;
 
 pub(crate) fn plugin(app: &mut App) {
@@ -15,6 +15,7 @@ pub(crate) fn plugin(app: &mut App) {
         car_colliders::plugin,
         world::plugin,
         pertubator::plugin,
+        util::plugin,
     ));
 }
 
