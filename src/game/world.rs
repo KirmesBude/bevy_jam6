@@ -54,6 +54,7 @@ pub fn spawn_ground(
 
     commands.spawn((
         Ground,
+        StateScoped(Screen::Gameplay),
         Transform::from_xyz(0., -0.5, 0.), // have the colliding surface at y=0.
         Mesh3d(mesh_handle),
         MeshMaterial3d(material),

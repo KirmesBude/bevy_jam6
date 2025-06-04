@@ -11,6 +11,7 @@ mod world;
 
 pub(crate) fn plugin(app: &mut App) {
     app.add_plugins((
+        road::plugin,
         car::plugin,
         car_colliders::plugin,
         world::plugin,
