@@ -50,12 +50,8 @@ fn item_container() -> impl Bundle {
         //BackgroundColor(RED.into()),
         children![
             pertubator_button(Pertubator::Spring),
-            widget::button_small("2", |_: Trigger<Pointer<Click>>| {
-                print_item(2);
-            }),
-            widget::button_small("3", |_: Trigger<Pointer<Click>>| {
-                print_item(3);
-            }),
+            pertubator_button(Pertubator::Nails),
+            pertubator_button(Pertubator::Soap),
             widget::button_small("4", |_: Trigger<Pointer<Click>>| {
                 print_item(4);
             }),

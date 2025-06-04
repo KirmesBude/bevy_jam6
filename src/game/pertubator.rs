@@ -89,7 +89,11 @@ pub fn drop_obstacle(
 pub struct PertubatorAssets(HashMap<Pertubator, PertubatorAsset>);
 
 impl PertubatorAssets {
-    const SOURCE: [(Pertubator, &'static str); 1] = [(Pertubator::Spring, "")];
+    const SOURCE: [(Pertubator, &'static str); 3] = [
+        (Pertubator::Spring, ""),
+        (Pertubator::Nails, ""),
+        (Pertubator::Soap, ""),
+    ];
 }
 
 impl FromWorld for PertubatorAssets {
@@ -124,12 +128,16 @@ pub struct PertubatorAsset {
 #[reflect(Component)]
 pub enum Pertubator {
     Spring,
+    Nails,
+    Soap,
 }
 
 impl Pertubator {
     pub fn name(&self) -> &'static str {
         match self {
             Pertubator::Spring => "Spring",
+            Pertubator::Nails => "Nails",
+            Pertubator::Soap => "Soap",
         }
     }
 
@@ -142,24 +150,76 @@ impl Pertubator {
         match self {
             Pertubator::Spring => {
                 entity_commands.insert(
-        (
-                    Name::new(self.name()),
-                    *self,
-                    SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
-                    Transform::from_translation(position),
-                    RigidBody::Static,
-                    Collider::cylinder(1.0, 1.0),
-                    Sensor,
-                    CollisionEventsEnabled,
-                    Lifetime::new(5.),
-                )).observe(|trigger: Trigger<OnCollisionStart>, mut cars: Query<&mut ExternalImpulse, With<Car>>| {
-                    let spring = trigger.target(); /* TODO: Extract normal from spring for some shenanigans */
-                    let other_entity = trigger.collider;
-                    if let Ok(mut impulse) = cars.get_mut(other_entity) {
-                        dbg!("Car {} triggered spring {}", other_entity, spring);
-                        impulse.y = 10.0;
-                    }
-                });
+                (
+                            Name::new(self.name()),
+                            *self,
+                            SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
+                            Transform::from_translation(position),
+                            RigidBody::Static,
+                            Collider::cylinder(1.0, 1.0),
+                            Sensor,
+                            CollisionEventsEnabled,
+                            Lifetime::new(5.),
+                        )).observe(|trigger: Trigger<OnCollisionStart>, mut cars: Query<&mut ExternalImpulse, With<Car>>| {
+                            let spring = trigger.target(); /* TODO: Extract normal from spring for some shenanigans */
+                            let other_entity = trigger.collider;
+                            if let Ok(mut impulse) = cars.get_mut(other_entity) {
+                                dbg!("Car {} triggered spring {}", other_entity, spring);
+                                impulse.y = 10.0;
+                            }
+                        });
+            }
+            Pertubator::Nails => {
+                entity_commands
+                    .insert((
+                        Name::new(self.name()),
+                        *self,
+                        SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
+                        Transform::from_translation(position),
+                        RigidBody::Static,
+                        Collider::cylinder(1.0, 1.0),
+                        Sensor,
+                        CollisionEventsEnabled,
+                        Lifetime::new(5.),
+                    ))
+                    .observe(
+                        |trigger: Trigger<OnCollisionStart>,
+                         mut commands: Commands,
+                         wheels: Query<Entity, With<WheelCollider>>| {
+                            let nails = trigger.target();
+                            let other_entity = trigger.collider;
+                            if wheels.contains(other_entity) {
+                                commands.entity(other_entity).insert(Nailed);
+                                dbg!("Car {} triggered nails {}", other_entity, nails);
+                            }
+                        },
+                    );
+            }
+            Pertubator::Soap => {
+                entity_commands
+                    .insert((
+                        Name::new(self.name()),
+                        *self,
+                        SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
+                        Transform::from_translation(position),
+                        RigidBody::Static,
+                        Collider::cylinder(1.0, 1.0),
+                        Sensor,
+                        CollisionEventsEnabled,
+                        Lifetime::new(5.),
+                    ))
+                    .observe(
+                        |trigger: Trigger<OnCollisionStart>,
+                         mut commands: Commands,
+                         wheels: Query<Entity, With<WheelCollider>>| {
+                            let soap = trigger.target();
+                            let other_entity = trigger.collider;
+                            if wheels.contains(other_entity) {
+                                commands.entity(other_entity).insert(Soaped);
+                                dbg!("Car {} triggered soap {}", other_entity, soap);
+                            }
+                        },
+                    );
             }
         }
     }
