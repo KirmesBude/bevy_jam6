@@ -54,7 +54,8 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
         .spawn((
             RoadsOrigin,
             StateScoped(Screen::Gameplay),
-            Transform::from_translation(Vec3::ZERO),
+            Transform::default(),
+            Visibility::default(),
         ))
         .with_children(|parent| {
             for lane_type in road_config.types.iter() {
