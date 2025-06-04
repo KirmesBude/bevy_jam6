@@ -5,7 +5,7 @@ use std::f32::consts::*;
 
 use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource, screens::Screen};
 
-use super::{car_colliders::AllCarColliders, consts::{AIRFRICTIONCOEFFICIENT, CARBODYFRICTION}};
+use super::{car_colliders::AllCarColliders, consts::{AIRFRICTIONCOEFFICIENT, CARBODYFRICTION, MINIMALVELOCITYFORAIRFRICTION}};
 
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
@@ -85,9 +85,12 @@ pub fn car(car_assets: &CarAssets, all_car_colliders: &AllCarColliders, init_pos
     )
 }
 
-// TODO: Stop applying this below a certain treshold velocity.
 fn air_friction(time: Res<Time>, mut cars_query: Query<(&LinearVelocity, &mut ExternalForce)>) {
     for (velocity, mut applied_force) in cars_query.iter_mut() {
+        // Only apply this friction to high enough velocities to avoid vibrations when standing still
+        if velocity.length() < MINIMALVELOCITYFORAIRFRICTION {
+            continue;
+        }
         // Apply a force in the opposite direction of the velocity.
         // This force is proportional to the square of the velocity with the given factor.
         // It has to be weighted with the time step. (If changing the physics clock, this needs a look again).
