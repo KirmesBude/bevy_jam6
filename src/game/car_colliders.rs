@@ -13,6 +13,9 @@ pub fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), calculate_car_colliders);
 }
 
+/// This component identifies an `Entity` with a `Collider` representing a car wheel.
+/// 
+/// Those entities are children of a car root entity with the `Car`-component.
 #[derive(Debug, Default, Component, Reflect)]
 pub struct WheelCollider;
 
@@ -83,6 +86,9 @@ impl CarColliders {
     }
 }
 
+/// System calculating all the car colliders for the loaded car models.
+/// 
+/// Use after all `CarAssets` are loaded, it depends on the loaded meshs.
 fn calculate_car_colliders(
     mut commands: Commands,
     scenes: Res<Assets<Scene>>,
@@ -101,6 +107,7 @@ fn calculate_car_colliders(
     commands.insert_resource(all_colliders);
 }
 
+/// Uses the scene representing a car to calculate the colliders.
 fn collider_from_car_scene(
     scene_handle: &Handle<Scene>,
     scenes: &Assets<Scene>,

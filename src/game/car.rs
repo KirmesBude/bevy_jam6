@@ -74,6 +74,7 @@ fn spawn_test_car(
     }
 }
 
+/// Returns a bundle representing a car.
 pub fn car(
     car_assets: &CarAssets,
     all_car_colliders: &AllCarColliders,
@@ -122,8 +123,12 @@ pub fn car(
     )
 }
 
-fn air_friction(mut cars_query: Query<(&LinearVelocity, &mut ExternalForce)>) {
-    for (velocity, mut applied_force) in cars_query.iter_mut() {
+/// Applies air friction to the moving objects.
+///
+/// Objects are typically cars, car parts or obstacles.
+/// If they are standing still, they are skipped.
+fn air_friction(mut moving_objects: Query<(&LinearVelocity, &mut ExternalForce)>) {
+    for (velocity, mut applied_force) in moving_objects.iter_mut() {
         // Only apply this friction to high enough velocities to avoid vibrations when standing still
         if velocity.length() < MINIMALVELOCITYFORAIRFRICTION {
             continue;
@@ -138,6 +143,7 @@ fn air_friction(mut cars_query: Query<(&LinearVelocity, &mut ExternalForce)>) {
     }
 }
 
+/// Applies the driving force to the cars being not wrecked.
 fn accelerate_cars(mut cars: Query<(&Car, &mut ExternalForce)>) {
     for (car, mut applied_force) in cars.iter_mut() {
         if car.wrecked {
@@ -149,6 +155,10 @@ fn accelerate_cars(mut cars: Query<(&Car, &mut ExternalForce)>) {
     }
 }
 
+/// The physics simulation is not perfect and even the symmetric cars are
+/// rotating randomly.
+///
+/// This system tries to minimize the effect of rotation for non-wrecked cars.
 fn correct_car_torque(
     mut cars: Query<(
         &Car,
@@ -198,6 +208,9 @@ fn correct_car_torque(
     }
 }
 
+/// This system updates objects affected by a friction changing effect.
+///
+/// At the moment, only the `Soaped` and the `Nailed` tags exist and are handled.
 fn update_friction_changes(
     mut changed_objects: Query<
         (
