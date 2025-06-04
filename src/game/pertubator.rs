@@ -1,4 +1,4 @@
-use avian3d::prelude::{Collider, ExternalForce, RigidBody};
+use avian3d::prelude::*;
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::{AppSystems, PausableSystems, screens::Screen};
@@ -11,6 +11,16 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(PausableSystems),
     );
 }
+
+
+
+#[derive(Debug, Default, Clone, Component, Reflect)]
+pub struct Soaped;
+
+#[derive(Debug, Default, Clone, Component, Reflect)]
+pub struct Nailed;
+
+
 
 fn obstacle(
     meshes: &mut Assets<Mesh>,

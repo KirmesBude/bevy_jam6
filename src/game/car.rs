@@ -6,11 +6,11 @@ use rand::Rng;
 
 use crate::{asset_tracking::LoadResource, game::consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, screens::Screen, AppSystems, PausableSystems};
 
-use super::{car_colliders::AllCarColliders, consts::{AIRFRICTIONCOEFFICIENT, CARBODYFRICTION, INITIALCARMODELROTATION, MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION, MINIMALANGLEOFFSETFORTORQUECORRECTION, MINIMALVELOCITYFORAIRFRICTION}};
+use super::{car_colliders::{AllCarColliders, WheelCollider}, consts::{AIRFRICTIONCOEFFICIENT, CARBODYFRICTION, INITIALCARMODELROTATION, MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION, MINIMALANGLEOFFSETFORTORQUECORRECTION, MINIMALVELOCITYFORAIRFRICTION, WHEELFRICTIONNAILED, WHEELFRICTIONSOAPED, WHEELFRICTIONSOAPEDANDNAILED}, pertubator::{Nailed, Soaped}};
 
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
-    wrecked: bool,
+    wrecked: bool, // TODO: Mabye make this a tag component.
     forward_force: f32,
     driving_direction: Vec3, // This has to be a normalized vector!
 }
@@ -24,9 +24,14 @@ pub(super) fn plugin(app: &mut App) {
     // TODO: Put this in the right schedule
     app.add_systems(
         Update,
-        (air_friction, accelerate_cars, correct_car_torque)
-            .in_set(AppSystems::Update)
-            .in_set(PausableSystems),
+        (
+            air_friction,
+            accelerate_cars,
+            correct_car_torque,
+            update_friction_changes
+        )
+        .in_set(AppSystems::Update)
+        .in_set(PausableSystems),
     );
 
     app.add_systems(
@@ -151,6 +156,44 @@ fn correct_car_torque(mut cars: Query<(&Car, &AngularVelocity, &ComputedAngularI
 
     }
 }
+
+
+fn update_friction_changes(
+    mut changed_objects: Query<
+        (&mut Friction, Option<&ChildOf>, Has<WheelCollider>, Has<Soaped>, Has<Nailed>),
+        Or<(Added<Soaped>, Added<Nailed>)>>,
+    mut cars: Query<&mut Car>,
+) {
+    
+    for (mut friction, possible_parent, is_wheel, is_soaped, is_nailed) in changed_objects.iter_mut() {
+        let mut set_friction = |val| {
+            friction.dynamic_coefficient = val;
+            friction.static_coefficient = val;
+        };
+
+        if is_soaped && is_nailed {
+            set_friction(WHEELFRICTIONSOAPEDANDNAILED);
+        }
+        else if is_soaped {
+            set_friction(WHEELFRICTIONSOAPED);
+        }
+        else { // Has to be nailed, if Added<Nailed> and not Added<Soaped>
+            set_friction(WHEELFRICTIONNAILED);
+        }
+        
+        // Part of a car -> mark it as wrecked.
+        if is_wheel && possible_parent.is_some() {
+            let mut parent_car = cars.get_mut(possible_parent.unwrap().0).unwrap();
+
+            // Mark the car as wrecked (-> make the car stop) if anything of this happened.
+            // No effect, if the car is already wrecked
+            parent_car.wrecked = true;
+        }
+    }
+}
+
+
+
 
 #[derive(Debug, Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
