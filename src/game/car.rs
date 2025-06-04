@@ -1,11 +1,12 @@
+use std::f32::consts::PI;
+
 use avian3d::prelude::*;
 use bevy::{audio::SpatialScale, prelude::*};
 use rand::Rng;
-use std::f32::consts::*;
 
-use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource, screens::Screen};
+use crate::{asset_tracking::LoadResource, game::consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, screens::Screen, AppSystems, PausableSystems};
 
-use super::{car_colliders::AllCarColliders, consts::{AIRFRICTIONCOEFFICIENT, CARBODYFRICTION, MINIMALVELOCITYFORAIRFRICTION}};
+use super::{car_colliders::AllCarColliders, consts::{AIRFRICTIONCOEFFICIENT, CARBODYFRICTION, INITIALCARMODELROTATION, MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION, MINIMALANGLEOFFSETFORTORQUECORRECTION, MINIMALVELOCITYFORAIRFRICTION}};
 
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
@@ -23,8 +24,7 @@ pub(super) fn plugin(app: &mut App) {
     // TODO: Put this in the right schedule
     app.add_systems(
         Update,
-        // TODO: Apply a weak torque correction of the avian instabilities when not wrecked.
-        (air_friction, accelerate_cars)
+        (air_friction, accelerate_cars, correct_car_torque)
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
@@ -53,14 +53,14 @@ pub fn car(car_assets: &CarAssets, all_car_colliders: &AllCarColliders, init_pos
     let car_index = rng.gen_range(0..car_assets.get_scenes().len());
     let scene_handle = car_assets.vehicles[car_index].clone();
     let colliders = &all_car_colliders[car_index];
-    let forward_force = 380.;
+    let forward_force = 1.;
     (
         Name::new("Car"),
         Car { wrecked: false, forward_force, driving_direction: Vec3::X },
         // Physics
         Transform {
             translation: init_pos,
-            rotation: Quat::from_rotation_y(FRAC_PI_2),
+            rotation: Quat::from_rotation_y(INITIALCARMODELROTATION),
             scale: Vec3::splat(0.8),
         },
         RigidBody::Dynamic,
@@ -73,6 +73,7 @@ pub fn car(car_assets: &CarAssets, all_car_colliders: &AllCarColliders, init_pos
         ],
         LinearVelocity::from(init_vel),
         ExternalForce::default().with_persistence(false),
+        ExternalTorque::new(Vec3::ZERO).with_persistence(false),
         Friction::new(CARBODYFRICTION),
         // Gfx and audio
         SceneRoot(scene_handle),
@@ -85,7 +86,7 @@ pub fn car(car_assets: &CarAssets, all_car_colliders: &AllCarColliders, init_pos
     )
 }
 
-fn air_friction(time: Res<Time>, mut cars_query: Query<(&LinearVelocity, &mut ExternalForce)>) {
+fn air_friction(mut cars_query: Query<(&LinearVelocity, &mut ExternalForce)>) {
     for (velocity, mut applied_force) in cars_query.iter_mut() {
         // Only apply this friction to high enough velocities to avoid vibrations when standing still
         if velocity.length() < MINIMALVELOCITYFORAIRFRICTION {
@@ -93,24 +94,63 @@ fn air_friction(time: Res<Time>, mut cars_query: Query<(&LinearVelocity, &mut Ex
         }
         // Apply a force in the opposite direction of the velocity.
         // This force is proportional to the square of the velocity with the given factor.
-        // It has to be weighted with the time step. (If changing the physics clock, this needs a look again).
+        // It has to be weighted with the time step.
         // The force is cleared by avian every frame.
         let new_force = applied_force.force()
-            - AIRFRICTIONCOEFFICIENT * velocity.0.length() * velocity.0 * time.delta_secs();
+            - AIRFRICTIONCOEFFICIENT * velocity.0.length() * velocity.0;
         applied_force.set_force(new_force);
     }
 }
 
-fn accelerate_cars(time: Res<Time>, mut cars: Query<(&Car, &mut ExternalForce)>) {
+fn accelerate_cars(mut cars: Query<(&Car, &mut ExternalForce)>) {
     for (car, mut applied_force) in cars.iter_mut() {
-        if !car.wrecked {
-            // Let the car accelerate in the forward direction of the velocity
-            let new_force = applied_force.force() + car.driving_direction * car.forward_force * time.delta_secs();
-            applied_force.set_force(new_force);
+        if car.wrecked {
+            continue;
         }
+        // Let the car accelerate in the trageted direction.
+        let new_force = applied_force.force() + car.driving_direction * car.forward_force;
+        applied_force.set_force(new_force);
     }
 }
 
+fn correct_car_torque(mut cars: Query<(&Car, &AngularVelocity, &ComputedAngularInertia, &Transform, &mut ExternalTorque)>) {
+    for (car, angular_velocity, inertia, transform, mut torque) in cars.iter_mut() {
+        if car.wrecked {
+            continue;
+        }
+        
+        // Do not correct the Y-axis rotation of the car, if the car is too tilted.
+        let y_angle_of_transform = transform.rotation.mul_vec3(Vec3::Y).angle_between(Vec3::Y);
+        if y_angle_of_transform > MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION {
+            continue;
+        }
+
+        // Get the angle with sign between the car rotation and the planned driving direction.
+        // The calculated angle is corrensponding to a rotation around - Vec3::Y, because of the use of xz() instead of something like {x}{-z}()
+        // This is why we use the minus to bring it into our 3D-space. Afterwards the initial rotation of the entity to fit the model on to the object is subtracted.
+        let mut angle_offset = -transform.rotation.mul_vec3(car.driving_direction).xz().angle_to(car.driving_direction.xz()) - INITIALCARMODELROTATION;
+        
+        if angle_offset < -PI {
+            angle_offset = 2. * PI + angle_offset;
+        }
+
+        // Do not rotate if the car is in the tolerated range.
+        if angle_offset.abs() < MINIMALANGLEOFFSETFORTORQUECORRECTION {
+            continue;
+        }
+
+        // Do not add additional torque if the car has reached a high angular velocity.
+        // This also blocks if the angular velocity is high in the apposite direction.
+        // Then "The driver has no influence on the spinning car".
+        if angular_velocity.y.abs() > MAXIMALANGULARVELOCITYFORTORQUECORRECTION {
+            continue;
+        }
+        torque.y -= angle_offset * inertia.value().y_axis.y * 0.5;
+
+        
+
+    }
+}
 
 #[derive(Debug, Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
