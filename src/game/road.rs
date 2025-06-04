@@ -1,7 +1,7 @@
 use avian3d::prelude::Collider;
-use bevy::{ecs::world, prelude::*, text::cosmic_text::ttf_parser::colr::RadialGradient};
+use bevy::prelude::*;
 
-use crate::{AppSystems, PausableSystems, asset_tracking::LoadResource, screens::Screen};
+use crate::{asset_tracking::LoadResource, screens::Screen};
 
 #[derive(Debug, Reflect)]
 enum LaneType {
@@ -33,7 +33,7 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<RoadAssets>();
     app.load_resource::<RoadAssets>();
 
-    app.add_systems(OnEnter(Screen::Gameplay), (spawn_roads));
+    app.add_systems(OnEnter(Screen::Gameplay), spawn_roads);
 }
 
 pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
