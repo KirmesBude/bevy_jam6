@@ -1,3 +1,5 @@
+use std::f32::consts::FRAC_PI_2;
+
 use bevy::{
     input::mouse::{AccumulatedMouseScroll, MouseScrollUnit},
     prelude::*,
@@ -26,6 +28,14 @@ fn spawn_camera(mut commands: Commands) {
             ..OrthographicProjection::default_3d()
         }),
         Transform::from_xyz(0.0, 15.0, 4.0).looking_at(Vec3::ZERO, Vec3::Y),
+    ));
+
+    commands.spawn((
+        DirectionalLight {
+            illuminance: 2000.0,
+            ..default()
+        },
+        Transform::from_rotation(Quat::from_rotation_x(-FRAC_PI_2)),
     ));
 }
 

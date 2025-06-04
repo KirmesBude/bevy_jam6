@@ -6,7 +6,7 @@ use crate::screens::Screen;
 use super::consts::{GAMEPLANESIZEX, GAMEPLANESIZEY};
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(Screen::Gameplay), (spawn_grass, spawn_ground));
+    app.add_systems(OnEnter(Screen::Gameplay), (spawn_grass /* spawn_ground */,));
 }
 
 // TODO: Add the missing derives
