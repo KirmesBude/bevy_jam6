@@ -42,11 +42,19 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
             LaneType::Border,
             LaneType::LeftToRight,
             LaneType::LeftToRight,
-            LaneType::LeftToRight,
-            LaneType::LeftToRight,
+            LaneType::Border,
             LaneType::Separator,
+            LaneType::Border,
+            LaneType::LeftToRight,
+            LaneType::LeftToRight,
+            LaneType::Border,
+            LaneType::Separator,
+            LaneType::Border,
             LaneType::RightToLeft,
             LaneType::RightToLeft,
+            LaneType::Border,
+            LaneType::Separator,
+            LaneType::Border,
             LaneType::RightToLeft,
             LaneType::RightToLeft,
             LaneType::Border,
@@ -67,7 +75,7 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
         ))
         .with_children(|parent| {
             let mut z_offset: f32 =
-                -((conf.types.len() / 2) as f32) * (conf.pos_inc_secondary.length() / 2.);
+                -(conf.types.len() as f32 / 2.0) * (conf.pos_inc_secondary.length() / 2.);
 
             for lane_type in conf.types.iter() {
                 let mut pos: Vec3 = conf.pos_start.with_z(z_offset);
@@ -78,7 +86,9 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
                     _ => &road_assets.road_straight,
                 };
 
-                while conf.pos_end.with_z(z_offset).distance(pos) >= conf.pos_inc_primary.length() {
+                while conf.pos_end.with_z(z_offset).distance(pos)
+                    >= conf.pos_inc_primary.length() / 2.
+                {
                     // info!("Spawning road: {:?} at {}", lane_type, pos);
 
                     parent.spawn((
