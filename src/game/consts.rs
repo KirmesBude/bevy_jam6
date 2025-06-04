@@ -1,4 +1,3 @@
-
 use std::f32::consts::{FRAC_PI_2, PI};
 
 pub const GAMEPLANESIZEX: f32 = 30.;
