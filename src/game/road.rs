@@ -1,4 +1,4 @@
-use avian3d::prelude::Collider;
+use avian3d::prelude::{Collider, Friction, RigidBody};
 use bevy::prelude::*;
 
 use crate::{asset_tracking::LoadResource, game::pertubator::spawn_pertubator, screens::Screen};
@@ -45,16 +45,6 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
             LaneType::Border,
             LaneType::Separator,
             LaneType::Border,
-            LaneType::LeftToRight,
-            LaneType::LeftToRight,
-            LaneType::Border,
-            LaneType::Separator,
-            LaneType::Border,
-            LaneType::RightToLeft,
-            LaneType::RightToLeft,
-            LaneType::Border,
-            LaneType::Separator,
-            LaneType::Border,
             LaneType::RightToLeft,
             LaneType::RightToLeft,
             LaneType::Border,
@@ -77,6 +67,18 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
             let mut z_offset: f32 =
                 -(conf.types.len() as f32 / 2.0) * (conf.pos_inc_secondary.length() / 2.);
 
+            parent.spawn((
+                Road,
+                Name::new("RoadCollider"),
+                RigidBody::Static,
+                Collider::cuboid(
+                    conf.pos_end.x - conf.pos_start.x,
+                    4.0,
+                    conf.types.len() as f32 * 4.0,
+                ),
+                Friction::new(0.01),
+            ));
+
             for lane_type in conf.types.iter() {
                 let mut pos: Vec3 = conf.pos_start.with_z(z_offset);
 
@@ -91,17 +93,14 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
                 {
                     // info!("Spawning road: {:?} at {}", lane_type, pos);
 
-                    parent
-                        .spawn((
-                            Road,
-                            Name::new("Road"),
-                            StateScoped(Screen::Gameplay),
-                            Transform::from_translation(pos + Vec3::new(0.0, 0.0, z_offset))
-                                .with_scale(Vec3::splat(4.)),
-                            SceneRoot(road_asset.clone()),
-                            Collider::cuboid(1., 1., 1.),
-                        ))
-                        .observe(spawn_pertubator);
+                    parent.spawn((
+                        Road,
+                        Name::new("Road"),
+                        StateScoped(Screen::Gameplay),
+                        Transform::from_translation(pos + Vec3::new(0.0, 0.0, z_offset))
+                            .with_scale(Vec3::splat(4.)),
+                        SceneRoot(road_asset.clone()),
+                    ));
 
                     pos += conf.pos_inc_primary;
                 }
