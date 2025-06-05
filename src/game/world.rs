@@ -1,5 +1,7 @@
+use std::f32::consts::PI;
+
 use avian3d::prelude::*;
-use bevy::{color::palettes::css::GREEN, prelude::*};
+use bevy::{color::palettes::css::GREEN, pbr::CascadeShadowConfigBuilder, prelude::*};
 
 use crate::screens::Screen;
 
@@ -9,20 +11,20 @@ pub fn plugin(app: &mut App) {
 }
 
 fn spawn_light(mut commands: Commands) {
-    commands.insert_resource(AmbientLight {
-        color: Color::WHITE,
-        brightness: 600.,
-        ..default()
-    });
     commands.spawn((
+        StateScoped(Screen::Gameplay),
         DirectionalLight {
-            color: Color::linear_rgb(1., 1., 0.8),
-            illuminance: 2_500.,
+            illuminance: light_consts::lux::OVERCAST_DAY,
             shadows_enabled: true,
             ..default()
         },
-        StateScoped(Screen::Gameplay),
-        Transform::from_xyz(1., 6., 0.).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_rotation(Quat::from_euler(EulerRot::ZYX, 0.0, PI / 2., -PI / 4.)),
+        CascadeShadowConfigBuilder {
+            first_cascade_far_bound: 7.0,
+            maximum_distance: 25.0,
+            ..default()
+        }
+        .build(),
     ));
 }
 

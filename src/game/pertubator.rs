@@ -162,13 +162,14 @@ impl Pertubator {
                             SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
                             Transform::from_translation(position),
                             RigidBody::Kinematic,
-                            Collider::cylinder(1.0, 5.0),
+                            Collider::cylinder(1.0, 1.0),
                             CollisionEventsEnabled,
                             Lifetime::new(5.),
-                        )).observe(|trigger: Trigger<OnCollisionStart>, mut velocity: Query<&mut LinearVelocity>| {
+                        )).observe(|trigger: Trigger<OnCollisionStart>, mut velocity: Query<&mut LinearVelocity>, cars: Query<Entity, With<Car>>,| {
                             let spring = trigger.target(); /* TODO: Extract normal from spring for some shenanigans */
                             let other_entity = trigger.collider;
-                            if let Ok(mut velocity) = velocity.get_mut(spring) {
+                            if cars.contains(other_entity) {
+                                let mut velocity = velocity.get_mut(spring).unwrap(); /* Unwrap is safe here */
                                 dbg!("Car {} triggered spring {}", other_entity, spring);
                                 velocity.y = 10.0;
                             }
@@ -185,7 +186,7 @@ impl Pertubator {
                         Collider::cylinder(1.0, 1.0),
                         Sensor,
                         CollisionEventsEnabled,
-                        Lifetime::new(5.),
+                        //Lifetime::new(5.),
                     ))
                     .observe(
                         |trigger: Trigger<OnCollisionStart>,

@@ -27,16 +27,8 @@ fn spawn_camera(mut commands: Commands) {
             },
             ..OrthographicProjection::default_3d()
         }),
-        Transform::from_xyz(0.0, 15.0, 4.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_xyz(0.0, 180.0, 70.0).looking_at(Vec3::ZERO, Vec3::Y),
         MeshPickingCamera,
-    ));
-
-    commands.spawn((
-        DirectionalLight {
-            illuminance: 2000.0,
-            ..default()
-        },
-        Transform::from_rotation(Quat::from_rotation_x(-FRAC_PI_2)),
     ));
 }
 

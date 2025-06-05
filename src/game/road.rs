@@ -92,7 +92,7 @@ pub fn spawn_roads(
                                 ),
                             )
                             .build()
-                            .translated_by(Vec3::new(0.0, 4.1, 0.0)),
+                            .translated_by(Vec3::new(0.0, 2.0, 0.0)),
                         ),
                     ),
                     Pickable::default(),
