@@ -1,11 +1,11 @@
 use std::f32::consts::{FRAC_PI_2, PI};
 
 /// VERY important TODO: Make the road generation code depend on this!
-pub const LANEWIDTH: f32 = 4.; 
+pub const LANEWIDTH: f32 = 4.;
 pub const ROADLENGTH: f32 = 100.;
 
 /// This is from the car origin to the screen border.
-pub const DISTANCEUNTILCARSREACHTHEROAD: f32 = 15.;
+pub const DISTANCEUNTILCARSREACHTHEROAD: f32 = -2.;
 
 // Choose a volume that is definitely larger than the largest car.
 pub const MAXCARWIDTH: f32 = LANEWIDTH;
