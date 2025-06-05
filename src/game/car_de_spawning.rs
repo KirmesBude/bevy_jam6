@@ -85,7 +85,7 @@ pub fn update_car_spawners(
         }
 
         // Spawn car otherwise
-        let car_to_spawn = create_car(&car_assets, &all_car_colliders, transform.translation, spawner.forward_force);
+        let car_to_spawn = create_car(&car_assets, &all_car_colliders, transform.translation.with_y(0.01), spawner.forward_force);
 
         commands.spawn(car_to_spawn);
     }
