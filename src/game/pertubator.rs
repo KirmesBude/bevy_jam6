@@ -161,17 +161,16 @@ impl Pertubator {
                             *self,
                             SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
                             Transform::from_translation(position),
-                            RigidBody::Static,
-                            Collider::cylinder(1.0, 1.0),
-                            Sensor,
+                            RigidBody::Kinematic,
+                            Collider::cylinder(1.0, 5.0),
                             CollisionEventsEnabled,
                             Lifetime::new(5.),
-                        )).observe(|trigger: Trigger<OnCollisionStart>, mut cars: Query<&mut ExternalImpulse, With<Car>>| {
+                        )).observe(|trigger: Trigger<OnCollisionStart>, mut velocity: Query<&mut LinearVelocity>| {
                             let spring = trigger.target(); /* TODO: Extract normal from spring for some shenanigans */
                             let other_entity = trigger.collider;
-                            if let Ok(mut impulse) = cars.get_mut(other_entity) {
+                            if let Ok(mut velocity) = velocity.get_mut(spring) {
                                 dbg!("Car {} triggered spring {}", other_entity, spring);
-                                impulse.y = 10.0;
+                                velocity.y = 10.0;
                             }
                         });
             }
