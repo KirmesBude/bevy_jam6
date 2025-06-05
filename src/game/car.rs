@@ -12,10 +12,7 @@ use crate::{
 use super::{
     car_colliders::{AllCarColliders, WheelCollider},
     consts::{
-        AIRFRICTIONCOEFFICIENT, CARBODYFRICTION, INITIALCARMODELROTATION,
-        MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION, MINIMALANGLEOFFSETFORTORQUECORRECTION,
-        MINIMALVELOCITYFORAIRFRICTION, WHEELFRICTIONNAILED, WHEELFRICTIONSOAPED,
-        WHEELFRICTIONSOAPEDANDNAILED,
+        AIRFRICTIONCOEFFICIENT, CARBODYFRICTION, CARFORWARDFORCE, INITIALCARMODELROTATION, MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION, MINIMALANGLEOFFSETFORTORQUECORRECTION, MINIMALVELOCITYFORAIRFRICTION, WHEELFRICTIONNAILED, WHEELFRICTIONSOAPED, WHEELFRICTIONSOAPEDANDNAILED
     },
     pertubator::{Nailed, Soaped},
 };
@@ -23,7 +20,7 @@ use super::{
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
     wrecked: bool, // TODO: Mabye make this a tag component.
-    forward_force: f32,
+    target_velocity: f32,
     driving_direction: Vec3, // This has to be a normalized vector!
 }
 
@@ -79,7 +76,7 @@ pub fn create_car(
     car_assets: &CarAssets,
     all_car_colliders: &AllCarColliders,
     init_pos: Vec3,
-    forward_force: f32,
+    target_velocity: f32,
 ) -> impl Bundle {
     let rng = &mut rand::thread_rng();
 
@@ -91,7 +88,7 @@ pub fn create_car(
         Name::new("Car"),
         Car {
             wrecked: false,
-            forward_force,
+            target_velocity,
             driving_direction: Vec3::X,
         },
         StateScoped(Screen::Gameplay),
@@ -145,13 +142,13 @@ fn air_friction(mut moving_objects: Query<(&LinearVelocity, &mut ExternalForce)>
 }
 
 /// Applies the driving force to the cars being not wrecked.
-fn accelerate_cars(mut cars: Query<(&Car, &mut ExternalForce)>) {
-    for (car, mut applied_force) in cars.iter_mut() {
-        if car.wrecked {
+fn accelerate_cars(mut cars: Query<(&Car, &LinearVelocity, &mut ExternalForce)>) {
+    for (car, velocity, mut applied_force) in cars.iter_mut() {
+        if car.wrecked || velocity.length() > car.target_velocity {
             continue;
         }
         // Let the car accelerate in the trageted direction.
-        let new_force = applied_force.force() + car.driving_direction * car.forward_force;
+        let new_force = applied_force.force() + car.driving_direction * CARFORWARDFORCE;
         applied_force.set_force(new_force);
     }
 }

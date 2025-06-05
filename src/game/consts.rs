@@ -18,6 +18,8 @@ pub const MAXCARHEIGHT: f32 = 4.;
 
 pub const INITIALCARMODELROTATION: f32 = FRAC_PI_2;
 
+pub const CARFORWARDFORCE: f32 = 15.;
+
 // TODO: Make it different for different cars and obstacles
 pub const AIRFRICTIONCOEFFICIENT: f32 = 0.1;
 pub const MINIMALVELOCITYFORAIRFRICTION: f32 = 0.1;

@@ -8,6 +8,8 @@ use crate::screens::Screen;
 use super::{car::CarAssets, consts::WHEELFRICTIONNORMAL};
 
 pub fn plugin(app: &mut App) {
+    app.register_type::<WheelCollider>();
+
     // Important! Use OnEnter Gameplay instead of anything Loading screen related!
     // The loading screen is only used, if the assets are not loaded before.
     app.add_systems(OnEnter(Screen::Gameplay), calculate_car_colliders);
