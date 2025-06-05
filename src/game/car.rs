@@ -63,11 +63,11 @@ fn spawn_test_car(
 ) {
     if !*finished {
         if let Some(all_car_colliders) = all_car_colliders {
-            commands.spawn(car(
+            commands.spawn(create_car(
                 &car_assets,
                 &all_car_colliders,
                 Vec3::new(-10., 2.1, 4.0),
-                3. * Vec3::X,
+                1.
             ));
             *finished = true;
         }
@@ -75,18 +75,18 @@ fn spawn_test_car(
 }
 
 /// Returns a bundle representing a car.
-pub fn car(
+pub fn create_car(
     car_assets: &CarAssets,
     all_car_colliders: &AllCarColliders,
     init_pos: Vec3,
-    init_vel: Vec3,
+    forward_force: f32,
 ) -> impl Bundle {
     let rng = &mut rand::thread_rng();
 
     let car_index = rng.gen_range(0..car_assets.get_scenes().len());
     let scene_handle = car_assets.vehicles[car_index].clone();
     let colliders = &all_car_colliders[car_index];
-    let forward_force = 1.;
+    
     (
         Name::new("Car"),
         Car {
@@ -94,6 +94,7 @@ pub fn car(
             forward_force,
             driving_direction: Vec3::X,
         },
+        StateScoped(Screen::Gameplay),
         // Physics
         Transform {
             translation: init_pos,
@@ -108,7 +109,7 @@ pub fn car(
             colliders.get_wheel_fl_bundle(),
             colliders.get_wheel_fr_bundle(),
         ],
-        LinearVelocity::from(init_vel),
+        LinearVelocity::default(),
         ExternalForce::default().with_persistence(false),
         ExternalTorque::new(Vec3::ZERO).with_persistence(false),
         Friction::new(CARBODYFRICTION),
@@ -119,7 +120,7 @@ pub fn car(
             .with_spatial(true)
             .with_spatial_scale(SpatialScale::new(0.2))
             .with_volume(bevy::audio::Volume::Decibels(-24.))
-            .with_speed(rng.gen_range(0.1..0.8) + (init_vel.x / 100.).abs()),
+            .with_speed(rng.gen_range(0.1..0.8)),
     )
 }
 

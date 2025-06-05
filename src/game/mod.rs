@@ -2,6 +2,7 @@ use bevy::app::App;
 
 mod car;
 mod car_colliders;
+mod car_de_spawning;
 mod consts;
 mod pertubator;
 mod road;
@@ -14,6 +15,7 @@ pub(crate) fn plugin(app: &mut App) {
         road::plugin,
         car::plugin,
         car_colliders::plugin,
+        car_de_spawning::plugin,
         world::plugin,
         pertubator::plugin,
         util::plugin,
