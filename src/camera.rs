@@ -1,5 +1,3 @@
-use std::f32::consts::FRAC_PI_2;
-
 use bevy::{
     input::mouse::{AccumulatedMouseScroll, MouseScrollUnit},
     prelude::*,
