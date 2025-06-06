@@ -3,7 +3,7 @@ use bevy::prelude::*;
 
 use crate::{game::consts::{DISTANCEUNTILCARSREACHTHEROAD, ROADLENGTH}, screens::Screen, AppSystems, PausableSystems};
 
-use super::{car::{create_car, CarAssets}, car_colliders::AllCarColliders, consts::{MAXCARHEIGHT, MAXCARLENGTH, MAXCARWIDTH}};
+use super::{car::{create_car, Car, CarAssets}, car_colliders::AllCarColliders, consts::{MAXCARHEIGHT, MAXCARLENGTH, MAXCARWIDTH}};
 
 
 
@@ -94,7 +94,7 @@ pub fn update_car_spawners(
     }
 }
 
-pub fn despawn_cars(mut commands: Commands, cars: Query<(Entity, &Transform)>) {
+pub fn despawn_cars(mut commands: Commands, cars: Query<(Entity, &Transform), With<Car>>) {
     for (entity, transform) in cars.iter() {
         if transform.translation.xz().length() > 2. * ROADLENGTH || transform.translation.y < -10. {
             commands.entity(entity).despawn();
