@@ -1,8 +1,5 @@
 use std::f32::consts::{FRAC_PI_2, PI};
 
-pub const GAMEPLANESIZEX: f32 = 30.;
-pub const GAMEPLANESIZEY: f32 = 10.;
-
 /// VERY important TODO: Make the road generation code depend on this!
 pub const LANEWIDTH: f32 = 4.;
 pub const ROADLENGTH: f32 = 100.;

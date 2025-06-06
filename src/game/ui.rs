@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
-use crate::{screens::Screen, theme::widget};
+use crate::{
+    game::pertubator::{ActivePertubator, Pertubator},
+    screens::Screen,
+    theme::widget,
+};
 
 pub fn spawn_game_ui(mut commands: Commands) {
     commands.spawn((
@@ -45,15 +49,9 @@ fn item_container() -> impl Bundle {
         },
         //BackgroundColor(RED.into()),
         children![
-            widget::button_small("1", |_: Trigger<Pointer<Click>>| {
-                print_item(1);
-            }),
-            widget::button_small("2", |_: Trigger<Pointer<Click>>| {
-                print_item(2);
-            }),
-            widget::button_small("3", |_: Trigger<Pointer<Click>>| {
-                print_item(3);
-            }),
+            pertubator_button(Pertubator::Spring),
+            pertubator_button(Pertubator::Nails),
+            pertubator_button(Pertubator::Soap),
             widget::button_small("4", |_: Trigger<Pointer<Click>>| {
                 print_item(4);
             }),
@@ -86,4 +84,13 @@ fn top_container() -> impl Bundle {
 
 fn print_item(index: u8) {
     dbg!("{}", index);
+}
+
+fn pertubator_button(pertubator: Pertubator) -> impl Bundle {
+    widget::button(
+        pertubator.name(),
+        move |_: Trigger<Pointer<Click>>, mut active_pertubator: ResMut<ActivePertubator>| {
+            active_pertubator.0 = Some(pertubator);
+        },
+    )
 }

@@ -1,4 +1,3 @@
-use avian3d::prelude::Collider;
 use bevy::prelude::*;
 
 use crate::{asset_tracking::LoadResource, screens::Screen};
@@ -36,22 +35,15 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_roads);
 }
 
-pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
+pub fn spawn_roads(
+    mut commands: Commands,
+    road_assets: Res<RoadAssets>,
+) {
     let conf: RoadConfig = RoadConfig {
         types: vec![
             LaneType::Border,
             LaneType::LeftToRight,
             LaneType::LeftToRight,
-            LaneType::Border,
-            LaneType::Separator,
-            LaneType::Border,
-            LaneType::LeftToRight,
-            LaneType::LeftToRight,
-            LaneType::Border,
-            LaneType::Separator,
-            LaneType::Border,
-            LaneType::RightToLeft,
-            LaneType::RightToLeft,
             LaneType::Border,
             LaneType::Separator,
             LaneType::Border,
@@ -98,7 +90,6 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
                         Transform::from_translation(pos + Vec3::new(0.0, 0.0, z_offset))
                             .with_scale(Vec3::splat(4.)),
                         SceneRoot(road_asset.clone()),
-                        Collider::cuboid(1., 0.4, 1.),
                     ));
 
                     pos += conf.pos_inc_primary;
