@@ -52,6 +52,7 @@ impl CarSpawner {
     }
 }
 
+/// Returns a `Bundle` representing a car spawner entity.
 pub fn create_car_spawner(
     mid_of_lane_coord_z: f32,
     driving_direction: Vec3,
@@ -71,7 +72,8 @@ pub fn create_car_spawner(
     )
 }
 
-pub fn update_car_spawners(
+/// Update all car spawners to create cars, if possible.
+fn update_car_spawners(
     mut commands: Commands,
     spawners: Query<(&CarSpawner, &Transform)>,
     all_rigid_bodies: Query<&RigidBody>,
@@ -112,7 +114,8 @@ pub fn update_car_spawners(
     }
 }
 
-pub fn despawn_cars(mut commands: Commands, cars: Query<(Entity, &Transform), With<Car>>) {
+// System for despawning cars that are outside of the visible area.
+fn despawn_cars(mut commands: Commands, cars: Query<(Entity, &Transform), With<Car>>) {
     for (entity, transform) in cars.iter() {
         if transform.translation.xz().length() > 2. * ROADLENGTH || transform.translation.y < -10. {
             commands.entity(entity).despawn();
