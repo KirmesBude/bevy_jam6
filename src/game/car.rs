@@ -12,7 +12,10 @@ use crate::{
 use super::{
     car_colliders::{AllCarColliders, WheelCollider},
     consts::{
-        AIRFRICTIONCOEFFICIENT, CARBODYFRICTION, CARFORWARDFORCE, INITIALCARMODELROTATION, MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION, MINIMALANGLEOFFSETFORTORQUECORRECTION, MINIMALVELOCITYFORAIRFRICTION, WHEELFRICTIONNAILED, WHEELFRICTIONSOAPED, WHEELFRICTIONSOAPEDANDNAILED
+        AIRFRICTIONCOEFFICIENT, CARBODYFRICTION, CARFORWARDFORCE, INITIALCARMODELROTATION,
+        MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION, MINIMALANGLEOFFSETFORTORQUECORRECTION,
+        MINIMALVELOCITYFORAIRFRICTION, WHEELFRICTIONNAILED, WHEELFRICTIONSOAPED,
+        WHEELFRICTIONSOAPEDANDNAILED,
     },
     pertubator::{Nailed, Soaped},
 };
@@ -64,7 +67,7 @@ fn spawn_test_car(
                 &car_assets,
                 &all_car_colliders,
                 Vec3::new(-10., 0.01, 0.),
-                1.
+                1.,
             ));
             *finished = true;
         }
@@ -83,7 +86,7 @@ pub fn create_car(
     let car_index = rng.gen_range(0..car_assets.get_scenes().len());
     let scene_handle = car_assets.vehicles[car_index].clone();
     let colliders = &all_car_colliders[car_index];
-    
+
     (
         Name::new("Car"),
         Car {
