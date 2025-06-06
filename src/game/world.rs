@@ -34,7 +34,6 @@ fn spawn_light(mut commands: Commands) {
 #[derive(Component)]
 pub struct Ground;
 
-
 const GRASS_SIZE: Vec2 = Vec2::new(150., 100.);
 
 fn grass(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) -> impl Bundle {
@@ -56,8 +55,10 @@ pub fn spawn_grass(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn((
-        StateScoped(Screen::Gameplay),
-        grass(&mut meshes, &mut materials),
-    )).observe(spawn_pertubator);
+    commands
+        .spawn((
+            StateScoped(Screen::Gameplay),
+            grass(&mut meshes, &mut materials),
+        ))
+        .observe(spawn_pertubator);
 }

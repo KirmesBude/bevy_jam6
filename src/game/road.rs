@@ -35,10 +35,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_roads);
 }
 
-pub fn spawn_roads(
-    mut commands: Commands,
-    road_assets: Res<RoadAssets>,
-) {
+pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
     let conf: RoadConfig = RoadConfig {
         types: vec![
             LaneType::Border,
