@@ -14,7 +14,7 @@ mod screens;
 mod theme;
 
 use avian3d::prelude::*;
-use bevy::{asset::AssetMetaCheck, dev_tools::fps_overlay::FpsOverlayPlugin, prelude::*};
+use bevy::{asset::AssetMetaCheck, prelude::*};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -45,21 +45,14 @@ impl Plugin for AppPlugin {
                 }),
         );
 
-        app.add_plugins(FpsOverlayPlugin::default());
+        app.add_plugins(MeshPickingPlugin);
+        app.insert_resource(MeshPickingSettings {
+            require_markers: true,
+            ..Default::default()
+        });
 
         // third party plugins
-        app.add_plugins((
-            PhysicsPlugins::default(),
-            #[cfg(feature = "dev")]
-            PhysicsDebugPlugin::default(),
-        ))
-        .insert_gizmo_config(
-            PhysicsGizmos {
-                aabb_color: Some(Color::WHITE),
-                ..default()
-            },
-            GizmoConfig::default(),
-        );
+        app.add_plugins((PhysicsPlugins::default(),));
 
         // Add other plugins.
         app.add_plugins((

@@ -66,7 +66,7 @@ fn spawn_test_car(
             commands.spawn(car(
                 &car_assets,
                 &all_car_colliders,
-                Vec3::new(-10., 0.01, 0.),
+                Vec3::new(-10., 2.1, 4.0),
                 3. * Vec3::X,
             ));
             *finished = true;
