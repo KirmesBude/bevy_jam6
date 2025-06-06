@@ -5,6 +5,8 @@ use bevy::{color::palettes::css::GREEN, pbr::CascadeShadowConfigBuilder, prelude
 
 use crate::screens::Screen;
 
+use super::pertubator::spawn_pertubator;
+
 pub fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_grass);
     app.add_systems(OnEnter(Screen::Gameplay), spawn_light);
@@ -32,18 +34,19 @@ fn spawn_light(mut commands: Commands) {
 #[derive(Component)]
 pub struct Ground;
 
-const GRASS_SIZE: Vec2 = Vec2::new(1000., 1000.);
+const GRASS_SIZE: Vec2 = Vec2::new(150., 100.);
 
 fn grass(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) -> impl Bundle {
     (
         Name::new("Grass"),
         Ground,
-        Transform::from_xyz(0., -1., 0.),
+        Transform::from_xyz(0., -0.1, 0.),
         Mesh3d(meshes.add(Plane3d::new(Vec3::Y, GRASS_SIZE).mesh())),
         MeshMaterial3d(materials.add(Color::from(GREEN))),
         RigidBody::Static,
-        Collider::cuboid(GRASS_SIZE.x, 1., GRASS_SIZE.y),
+        Collider::half_space(Vec3::Y),
         Friction::new(0.05),
+        Pickable::default(),
     )
 }
 
@@ -52,8 +55,10 @@ pub fn spawn_grass(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn((
-        StateScoped(Screen::Gameplay),
-        grass(&mut meshes, &mut materials),
-    ));
+    commands
+        .spawn((
+            StateScoped(Screen::Gameplay),
+            grass(&mut meshes, &mut materials),
+        ))
+        .observe(spawn_pertubator);
 }

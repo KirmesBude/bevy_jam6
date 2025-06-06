@@ -12,7 +12,7 @@ use crate::{
 use super::{
     car_colliders::{AllCarColliders, WheelCollider},
     consts::{
-        AIRFRICTIONCOEFFICIENT, CARBODYFRICTION, INITIALCARMODELROTATION,
+        AIRFRICTIONCOEFFICIENT, CARBODYFRICTION, CARFORWARDFORCE, INITIALCARMODELROTATION,
         MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION, MINIMALANGLEOFFSETFORTORQUECORRECTION,
         MINIMALVELOCITYFORAIRFRICTION, WHEELFRICTIONNAILED, WHEELFRICTIONSOAPED,
         WHEELFRICTIONSOAPEDANDNAILED,
@@ -23,7 +23,7 @@ use super::{
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
     wrecked: bool, // TODO: Mabye make this a tag component.
-    forward_force: f32,
+    target_velocity: f32,
     driving_direction: Vec3, // This has to be a normalized vector!
 }
 
@@ -63,11 +63,11 @@ fn spawn_test_car(
 ) {
     if !*finished {
         if let Some(all_car_colliders) = all_car_colliders {
-            commands.spawn(car(
+            commands.spawn(create_car(
                 &car_assets,
                 &all_car_colliders,
-                Vec3::new(-10., 2.1, 4.0),
-                3. * Vec3::X,
+                Vec3::new(-10., 0.01, 0.),
+                1.,
             ));
             *finished = true;
         }
@@ -75,25 +75,26 @@ fn spawn_test_car(
 }
 
 /// Returns a bundle representing a car.
-pub fn car(
+pub fn create_car(
     car_assets: &CarAssets,
     all_car_colliders: &AllCarColliders,
     init_pos: Vec3,
-    init_vel: Vec3,
+    target_velocity: f32,
 ) -> impl Bundle {
     let rng = &mut rand::thread_rng();
 
     let car_index = rng.gen_range(0..car_assets.get_scenes().len());
     let scene_handle = car_assets.vehicles[car_index].clone();
     let colliders = &all_car_colliders[car_index];
-    let forward_force = 1.;
+
     (
         Name::new("Car"),
         Car {
             wrecked: false,
-            forward_force,
+            target_velocity,
             driving_direction: Vec3::X,
         },
+        StateScoped(Screen::Gameplay),
         // Physics
         Transform {
             translation: init_pos,
@@ -108,7 +109,7 @@ pub fn car(
             colliders.get_wheel_fl_bundle(),
             colliders.get_wheel_fr_bundle(),
         ],
-        LinearVelocity::from(init_vel),
+        LinearVelocity::default(),
         ExternalForce::default().with_persistence(false),
         ExternalTorque::new(Vec3::ZERO).with_persistence(false),
         Friction::new(CARBODYFRICTION),
@@ -119,7 +120,7 @@ pub fn car(
             .with_spatial(true)
             .with_spatial_scale(SpatialScale::new(0.2))
             .with_volume(bevy::audio::Volume::Decibels(-24.))
-            .with_speed(rng.gen_range(0.1..0.8) + (init_vel.x / 100.).abs()),
+            .with_speed(rng.gen_range(0.1..0.8)),
     )
 }
 
@@ -144,13 +145,13 @@ fn air_friction(mut moving_objects: Query<(&LinearVelocity, &mut ExternalForce)>
 }
 
 /// Applies the driving force to the cars being not wrecked.
-fn accelerate_cars(mut cars: Query<(&Car, &mut ExternalForce)>) {
-    for (car, mut applied_force) in cars.iter_mut() {
-        if car.wrecked {
+fn accelerate_cars(mut cars: Query<(&Car, &LinearVelocity, &mut ExternalForce)>) {
+    for (car, velocity, mut applied_force) in cars.iter_mut() {
+        if car.wrecked || velocity.length() > car.target_velocity {
             continue;
         }
         // Let the car accelerate in the trageted direction.
-        let new_force = applied_force.force() + car.driving_direction * car.forward_force;
+        let new_force = applied_force.force() + car.driving_direction * CARFORWARDFORCE;
         applied_force.set_force(new_force);
     }
 }
