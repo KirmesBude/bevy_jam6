@@ -1,7 +1,9 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
-use crate::{asset_tracking::LoadResource, screens::Screen};
+use crate::{
+    asset_tracking::LoadResource, game::car_de_spawning::create_car_spawner, screens::Screen,
+};
 
 use super::consts::{LANEWIDTH, ROADLENGTH};
 
@@ -49,6 +51,8 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
     let start_x = -ROADLENGTH / 2. + LANEWIDTH / 2.;
     let start_z = -total_span_z / 2. + LANEWIDTH / 2.;
 
+    let mut car_spawner_info = vec![];
+
     commands
         .spawn((
             RoadsOrigin,
@@ -87,8 +91,29 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
                         segment.insert((RigidBody::Static, Collider::cuboid(1.0, 0.75, 0.8)));
                     }
                 }
+
+                if *lane == LaneType::LeftToRight || *lane == LaneType::RightToLeft {
+                    let direction = if *lane == LaneType::LeftToRight {
+                        Vec3::X
+                    } else {
+                        Vec3::NEG_X
+                    };
+
+                    car_spawner_info.push((
+                        direction,
+                        start_z + lane_index as f32 * LANEWIDTH + LANEWIDTH / 2.0,
+                    ));
+                }
             }
         });
+
+    for car_spawner_info in car_spawner_info.iter() {
+        commands.spawn(create_car_spawner(
+            car_spawner_info.1,
+            car_spawner_info.0,
+            4.,
+        ));
+    }
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]

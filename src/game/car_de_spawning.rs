@@ -23,13 +23,6 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
-
-    // Testing
-    app.add_systems(OnEnter(Screen::Gameplay), spawn_test_car_spawner);
-}
-
-fn spawn_test_car_spawner(mut commands: Commands) {
-    commands.spawn(create_car_spawner(-10., Vec3::X, 4.));
 }
 
 /// The car spawner is located `DISTANCEUNTILCARSREACHTHEROAD` units away from the beginning of the road.
@@ -108,6 +101,7 @@ fn update_car_spawners(
             &all_car_colliders,
             transform.translation.with_y(0.01),
             spawner.target_velocity,
+            spawner.driving_direction,
         );
 
         commands.spawn(car_to_spawn);
