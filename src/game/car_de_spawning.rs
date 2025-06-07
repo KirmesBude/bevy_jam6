@@ -3,12 +3,15 @@ use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
-    game::consts::{DISTANCEUNTILCARSREACHTHEROAD, ROADLENGTH},
+    game::{
+        car::spawn_car,
+        consts::{DISTANCEUNTILCARSREACHTHEROAD, ROADLENGTH},
+    },
     screens::Screen,
 };
 
 use super::{
-    car::{Car, CarAssets, create_car},
+    car::{Car, CarAssets},
     car_colliders::AllCarColliders,
     consts::{MAXCARHEIGHT, MAXCARLENGTH, MAXCARWIDTH},
 };
@@ -17,7 +20,7 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<CarSpawner>();
 
     app.add_systems(
-        Update,
+        FixedUpdate,
         (update_car_spawners, despawn_cars)
             .run_if(in_state(Screen::Gameplay))
             .in_set(AppSystems::Update)
@@ -102,15 +105,14 @@ fn update_car_spawners(
             continue;
         }
 
-        // Spawn car otherwise
-        let car_to_spawn = create_car(
+        let mut entity_commands = commands.spawn_empty();
+        spawn_car(
+            &mut entity_commands,
             &car_assets,
             &all_car_colliders,
             transform.translation.with_y(0.01),
             spawner.target_velocity,
         );
-
-        commands.spawn(car_to_spawn);
     }
 }
 
