@@ -92,8 +92,26 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
                     }
                 }
 
-                if *lane == LaneType::LeftToRight || *lane == LaneType::RightToLeft {
-                    let direction = if *lane == LaneType::LeftToRight {
+                if *lane == LaneType::LeftToRight
+                    || *lane == LaneType::RightToLeft
+                    || *lane == LaneType::Border
+                {
+                    /* Hackery because a segment does not equal to a lane */
+                    let mut current_lane = *lane;
+                    if *lane == LaneType::Border {
+                        if let Some(next_segment) = lanes.get(lane_index + 1) {
+                            if *next_segment == LaneType::LeftToRight || *next_segment == LaneType::RightToLeft {
+                                current_lane = *next_segment;
+                            }
+                        }
+
+                        /* If it did not change it is a "border segment", we dont care about spawning a spawner in */
+                        if current_lane == *lane {
+                            continue;
+                        }
+                    }
+
+                    let direction = if current_lane == LaneType::LeftToRight {
                         Vec3::X
                     } else {
                         Vec3::NEG_X
