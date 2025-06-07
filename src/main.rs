@@ -52,7 +52,7 @@ impl Plugin for AppPlugin {
         });
 
         // third party plugins
-        app.add_plugins((PhysicsPlugins::default(),));
+        app.add_plugins((PhysicsPlugins::default()));
 
         // Add other plugins.
         app.add_plugins((

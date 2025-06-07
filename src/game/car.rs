@@ -46,13 +46,13 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(PausableSystems),
     );
 
-    app.add_systems(
-        Update,
-        spawn_test_car
-            .run_if(in_state(Screen::Gameplay))
-            .in_set(AppSystems::Update)
-            .in_set(PausableSystems),
-    );
+    // app.add_systems(
+    //     Update,
+    //     spawn_test_car
+    //         .run_if(in_state(Screen::Gameplay))
+    //         .in_set(AppSystems::Update)
+    //         .in_set(PausableSystems),
+    // );
 }
 
 fn spawn_test_car(

@@ -1,5 +1,7 @@
-use avian3d::prelude::*;
-use bevy::prelude::*;
+use std::f32::consts::FRAC_PI_4;
+
+use avian3d::{math::FRAC_PI_2, prelude::*};
+use bevy::{gizmos, prelude::*};
 
 use crate::{
     AppSystems, PausableSystems,
@@ -60,14 +62,24 @@ pub fn create_car_spawner(
 ) -> impl Bundle {
     assert!(driving_direction == Vec3::X || driving_direction == Vec3::NEG_X);
 
+    let driving_direction_sign = if driving_direction == Vec3::X {
+        1.
+    } else {
+        -1.
+    };
+
     (
         Name::new("CarSpawner"),
-        Transform::from_xyz(
-            -driving_direction.x * (ROADLENGTH / 2. + DISTANCEUNTILCARSREACHTHEROAD),
-            MAXCARHEIGHT / 2.,
-            mid_of_lane_coord_z,
-        ),
-        CarSpawner::new(target_velocity, driving_direction),
+        Transform {
+            translation: Vec3::new(
+                -driving_direction.x * (ROADLENGTH / 2. + DISTANCEUNTILCARSREACHTHEROAD),
+                MAXCARHEIGHT / 2.,
+                mid_of_lane_coord_z,
+            ),
+            rotation: Quat::from_rotation_y(driving_direction_sign * FRAC_PI_4),
+            ..default()
+        },
+        CarSpawner::new(target_velocity, driving_direction * driving_direction_sign),
         StateScoped(Screen::Gameplay),
     )
 }

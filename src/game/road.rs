@@ -1,8 +1,12 @@
 use bevy::prelude::*;
 
-use crate::{asset_tracking::LoadResource, screens::Screen};
+use crate::{
+    asset_tracking::LoadResource,
+    game::{car_de_spawning::create_car_spawner, consts::CAR_SPAWN_TARGET_VELOCITY},
+    screens::Screen,
+};
 
-#[derive(Debug, Reflect)]
+#[derive(Debug, Reflect, Eq, PartialEq, Hash, Clone, Copy)]
 enum LaneType {
     Border,
     LeftToRight,
@@ -63,21 +67,42 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
             Visibility::default(),
         ))
         .with_children(|parent| {
+            // compute the z_offset aka the lane placement
             let mut z_offset: f32 =
                 -(conf.types.len() as f32 / 2.0) * (conf.pos_inc_secondary.length() / 2.);
 
             for lane_type in conf.types.iter() {
-                let mut pos: Vec3 = conf.pos_start.with_z(z_offset);
+                let mut pos: Vec3 = conf.pos_start.with_z(z_offset); // apply lane position to temp pos
 
+                // Match asset to LaneType
                 let road_asset: &Handle<Scene> = match lane_type {
                     LaneType::Border => &road_assets.road_border,
                     LaneType::Separator => &road_assets.road_separator,
                     _ => &road_assets.road_straight,
                 };
 
+                // Spawn Spawners at start of lane based on LaneType
+                let half_lane_z_offset = z_offset - conf.pos_inc_secondary.length() / 2.;
+                info!(half_lane_z_offset, z_offset);
+                if *lane_type == LaneType::LeftToRight {
+                    parent.spawn(create_car_spawner(
+                        half_lane_z_offset,
+                        Vec3::X,
+                        CAR_SPAWN_TARGET_VELOCITY,
+                    ));
+                } else if *lane_type == LaneType::RightToLeft {
+                    parent.spawn(create_car_spawner(
+                        half_lane_z_offset,
+                        Vec3::NEG_X,
+                        CAR_SPAWN_TARGET_VELOCITY,
+                    ));
+                }
+
+                // Spawn road until distance between pos and pos_end is less than half the primary increment
                 while conf.pos_end.with_z(z_offset).distance(pos)
                     >= conf.pos_inc_primary.length() / 2.
                 {
+                    // debugging
                     // info!("Spawning road: {:?} at {}", lane_type, pos);
 
                     parent.spawn((

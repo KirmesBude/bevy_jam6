@@ -50,7 +50,7 @@ fn zoom_camera(
         if let ScalingMode::FixedVertical { viewport_height } = &mut ortho.scaling_mode {
             let autoscale_factor = 1. - (1.0 / (1. + *viewport_height));
             *viewport_height += delta * autoscale_factor;
-            *viewport_height = viewport_height.clamp(8., 128.);
+            *viewport_height = viewport_height.clamp(8., 256.);
 
             // info!(viewport_height, delta, scroll_y, acc_scroll.delta.y);
         }
