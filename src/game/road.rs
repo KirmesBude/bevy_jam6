@@ -39,6 +39,7 @@ pub(super) fn plugin(app: &mut App) {
 pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
     let conf: RoadConfig = RoadConfig {
         types: vec![
+            LaneType::Separator,
             LaneType::Border,
             LaneType::LeftToRight,
             LaneType::LeftToRight,
@@ -48,6 +49,7 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
             LaneType::RightToLeft,
             LaneType::RightToLeft,
             LaneType::Border,
+            LaneType::Separator,
         ],
         pos_start: Vec3::new(-50.0, 0.0, 0.0),
         pos_end: Vec3::new(50.0, 0.0, 0.0),
@@ -90,8 +92,8 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
                         SceneRoot(road_asset.clone()),
                     ));
 
-                    if *lane_type == LaneType::Border {
-                        segment.insert((RigidBody::Static, Collider::cuboid(4.0, 2.0, 1.0)));
+                    if *lane_type == LaneType::Separator {
+                        segment.insert((RigidBody::Static, Collider::cuboid(1.0, 0.75, 0.8)));
                     }
 
                     pos += conf.pos_inc_primary;
