@@ -101,9 +101,9 @@ pub struct PertubatorAssets(HashMap<Pertubator, PertubatorAsset>);
 
 impl PertubatorAssets {
     const SOURCE: [(Pertubator, &'static str); 3] = [
-        (Pertubator::Spring, ""),
-        (Pertubator::Nails, ""),
-        (Pertubator::Soap, ""),
+        (Pertubator::Spring, "models/survival/barrel.glb"), /* TODO: Temporary */
+        (Pertubator::Nails, "models/mini-dungeon/trap.glb"),
+        (Pertubator::Soap, "models/survival/patch-grass.glb"),
     ];
 }
 
@@ -139,8 +139,8 @@ pub struct PertubatorAsset {
 #[reflect(Component)]
 pub enum Pertubator {
     Spring,
-    Nails,
-    Soap,
+    Nails, /* "Trap" */
+    Soap,  /* "Sludge" */
 }
 
 impl Pertubator {
@@ -275,6 +275,7 @@ fn spawn_preview(mut commands: Commands) {
 }
 
 /// A system that draws active pertubator preview at hit location
+/// TODO: Transparency
 fn preview_pertubator(
     pointers: Query<&PointerInteraction>,
     active_pertubator: Res<ActivePertubator>,
@@ -306,6 +307,7 @@ fn preview_pertubator(
         .filter_map(|interaction| interaction.get_nearest_hit())
         .filter_map(|(_entity, hit)| hit.position)
     {
+        dbg!("{}", point);
         transform.translation = point;
         *visiblity = Visibility::Inherited;
     }

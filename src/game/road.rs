@@ -1,6 +1,6 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::mesh::CuboidMeshBuilder};
 
-use crate::{asset_tracking::LoadResource, screens::Screen};
+use crate::{asset_tracking::LoadResource, game::pertubator::spawn_pertubator, screens::Screen};
 
 #[derive(Debug, Reflect)]
 enum LaneType {
@@ -35,7 +35,11 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_roads);
 }
 
-pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
+pub fn spawn_roads(
+    mut commands: Commands,
+    road_assets: Res<RoadAssets>,
+    mut meshes: ResMut<Assets<Mesh>>,
+) {
     let conf: RoadConfig = RoadConfig {
         types: vec![
             LaneType::Border,
@@ -61,7 +65,21 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
             StateScoped(Screen::Gameplay),
             Transform::default(),
             Visibility::default(),
+            Mesh3d(
+                meshes.add(
+                    CuboidMeshBuilder::default()
+                        .build()
+                        .scaled_by(Vec3::new(
+                            conf.pos_start.x - conf.pos_end.x,
+                            4.0,
+                            conf.types.len() as f32 * 4.0,
+                        ))
+                        .translated_by(Vec3::new(0., 2.25, 0.)),
+                ), /* I dont like this */
+            ),
+            Pickable::default(),
         ))
+        .observe(spawn_pertubator)
         .with_children(|parent| {
             let mut z_offset: f32 =
                 -(conf.types.len() as f32 / 2.0) * (conf.pos_inc_secondary.length() / 2.);

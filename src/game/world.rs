@@ -5,8 +5,6 @@ use bevy::{color::palettes::css::GREEN, pbr::CascadeShadowConfigBuilder, prelude
 
 use crate::screens::Screen;
 
-use super::pertubator::spawn_pertubator;
-
 pub fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_grass);
     app.add_systems(OnEnter(Screen::Gameplay), spawn_light);
@@ -46,7 +44,6 @@ fn grass(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) ->
         RigidBody::Static,
         Collider::half_space(Vec3::Y),
         Friction::new(0.05),
-        Pickable::default(),
     )
 }
 
@@ -55,10 +52,8 @@ pub fn spawn_grass(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands
-        .spawn((
-            StateScoped(Screen::Gameplay),
-            grass(&mut meshes, &mut materials),
-        ))
-        .observe(spawn_pertubator);
+    commands.spawn((
+        StateScoped(Screen::Gameplay),
+        grass(&mut meshes, &mut materials),
+    ));
 }
