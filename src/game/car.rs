@@ -301,7 +301,7 @@ impl FromWorld for CarAssets {
                 .map(|model| {
                     assets.load(
                         GltfAssetLabel::Scene(0)
-                            .from_asset(format!("models/car_kit/vehicles/{}.glb", model)),
+                            .from_asset(format!("models/vehicles/{}.glb", model)),
                     )
                 })
                 .collect(),
