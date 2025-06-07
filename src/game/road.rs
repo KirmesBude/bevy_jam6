@@ -28,7 +28,8 @@ pub(super) fn plugin(app: &mut App) {
 
 /// Spawn the visuals and the collider of the road.
 pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
-    let lanes = [LaneType::Border,
+    let lanes = [
+        LaneType::Border,
         LaneType::LeftToRight,
         LaneType::LeftToRight,
         LaneType::Border,
@@ -36,7 +37,8 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
         LaneType::Border,
         LaneType::RightToLeft,
         LaneType::RightToLeft,
-        LaneType::Border];
+        LaneType::Border,
+    ];
 
     let tiles_per_lane = (ROADLENGTH / LANEWIDTH).round() as u32;
 
