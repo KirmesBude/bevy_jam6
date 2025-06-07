@@ -94,6 +94,7 @@ pub fn spawn_car(
             init_pos,
             target_velocity,
         ))
+        .insert(CollisionEventsEnabled)
         .observe(car_observer_update_highscore);
 }
 
@@ -132,7 +133,6 @@ pub fn create_car(
             colliders.get_wheel_fl_bundle(),
             colliders.get_wheel_fr_bundle(),
         ],
-        CollisionEventsEnabled,
         LinearVelocity::default(),
         ExternalForce::default().with_persistence(false),
         ExternalTorque::new(Vec3::ZERO).with_persistence(false),
