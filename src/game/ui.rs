@@ -5,7 +5,7 @@ use crate::{
         pertubator::{ActivePertubator, Pertubator, PertubatorAssets},
         points::HighScore,
     },
-    screens::Screen,
+    screens::{Screen, shop::Cash},
     theme::{
         palette::{BUTTON_BACKGROUND, BUTTON_HOVERED_BACKGROUND, BUTTON_PRESSED_BACKGROUND},
         prelude::InteractionPalette,
@@ -44,9 +44,20 @@ fn bottom_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
         //BackgroundColor(WHITE.into()),
         children![
             item_container(pertubator_assets),
-            widget::button("crash out", |_: Trigger<Pointer<Click>>| {
-                /* TODO: Nothing for now */
-            }),
+            widget::button(
+                "crash out",
+                |_: Trigger<Pointer<Click>>,
+                 mut cash: ResMut<Cash>,
+                 highscore: Res<HighScore>,
+                 mut next_screen: ResMut<NextState<Screen>>| {
+                    /* Update cash */
+                    *cash += Cash::from(*highscore);
+
+                    /* Exit to title screen */
+                    /* TODO: Maybe go to shop instead? */
+                    next_screen.set(Screen::Title);
+                }
+            ),
         ],
     )
 }

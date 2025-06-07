@@ -11,7 +11,7 @@ pub(super) fn plugin(app: &mut App) {
 const CAR_COLLISION_MULTIPLIER: f32 = 100.;
 
 /// HighScore in f32
-#[derive(Debug, Default, Resource, Reflect)]
+#[derive(Debug, Default, Resource, Reflect, Clone, Copy)]
 #[reflect(Resource)]
 pub struct HighScore(f32);
 
