@@ -1,12 +1,16 @@
-use bevy::{color::palettes::css::GOLD, prelude::*};
+use bevy::{color::palettes::css::GOLD, ecs::spawn::SpawnWith, prelude::*};
 
 use crate::{
     game::{
-        pertubator::{ActivePertubator, Pertubator},
+        pertubator::{ActivePertubator, Pertubator, PertubatorAssets},
         points::HighScore,
     },
     screens::Screen,
-    theme::widget,
+    theme::{
+        palette::{BUTTON_BACKGROUND, BUTTON_HOVERED_BACKGROUND, BUTTON_PRESSED_BACKGROUND},
+        prelude::InteractionPalette,
+        widget,
+    },
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -15,15 +19,15 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, update_highscore);
 }
 
-pub fn spawn_game_ui(mut commands: Commands) {
+pub fn spawn_game_ui(mut commands: Commands, pertubator_assets: Res<PertubatorAssets>) {
     commands.spawn((
         widget::ui_root("UI Root"),
         StateScoped(Screen::Gameplay),
-        children![top_container(), bottom_container(),],
+        children![top_container(), bottom_container(&pertubator_assets),],
     ));
 }
 
-fn bottom_container() -> impl Bundle {
+fn bottom_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
     (
         Name::new("UI Bottom"),
         Node {
@@ -39,7 +43,7 @@ fn bottom_container() -> impl Bundle {
         },
         //BackgroundColor(WHITE.into()),
         children![
-            item_container(),
+            item_container(pertubator_assets),
             widget::button("crash out", |_: Trigger<Pointer<Click>>| {
                 /* TODO: Nothing for now */
             }),
@@ -47,7 +51,7 @@ fn bottom_container() -> impl Bundle {
     )
 }
 
-fn item_container() -> impl Bundle {
+fn item_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
     (
         Name::new("UI Items"),
         Node {
@@ -58,9 +62,9 @@ fn item_container() -> impl Bundle {
         },
         //BackgroundColor(RED.into()),
         children![
-            pertubator_button(Pertubator::Spring),
-            pertubator_button(Pertubator::Nails),
-            pertubator_button(Pertubator::Soap),
+            pertubator_button(Pertubator::Spring, pertubator_assets),
+            pertubator_button(Pertubator::Nails, pertubator_assets),
+            pertubator_button(Pertubator::Soap, pertubator_assets),
             widget::button_small("4", |_: Trigger<Pointer<Click>>| {
                 print_item(4);
             }),
@@ -95,12 +99,41 @@ fn print_item(index: u8) {
     dbg!("{}", index);
 }
 
-fn pertubator_button(pertubator: Pertubator) -> impl Bundle {
-    widget::button(
-        pertubator.name(),
-        move |_: Trigger<Pointer<Click>>, mut active_pertubator: ResMut<ActivePertubator>| {
-            active_pertubator.0 = Some(pertubator);
-        },
+fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAssets) -> impl Bundle {
+    let image = pertubator_assets.get(&pertubator).unwrap().image().clone();
+
+    (
+        Name::new(pertubator.name()),
+        Node::default(),
+        Children::spawn(SpawnWith(move |parent: &mut ChildSpawner| {
+            parent
+                .spawn((
+                    Name::new("Button Inner"),
+                    Button,
+                    Node::default(),
+                    BackgroundColor(BUTTON_BACKGROUND),
+                    InteractionPalette {
+                        none: BUTTON_BACKGROUND,
+                        hovered: BUTTON_HOVERED_BACKGROUND,
+                        pressed: BUTTON_PRESSED_BACKGROUND,
+                    },
+                    children![(
+                        Name::new("Button Image"),
+                        ImageNode {
+                            image,
+                            ..Default::default()
+                        },
+                        // Don't bubble picking events from the text up to the button.
+                        Pickable::IGNORE,
+                    )],
+                ))
+                .observe(
+                    move |_: Trigger<Pointer<Click>>,
+                          mut active_pertubator: ResMut<ActivePertubator>| {
+                        active_pertubator.0 = Some(pertubator);
+                    },
+                );
+        })),
     )
 }
 

@@ -1,7 +1,7 @@
 use avian3d::prelude::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, render::mesh::CuboidMeshBuilder};
 
-use crate::{asset_tracking::LoadResource, screens::Screen};
+use crate::{asset_tracking::LoadResource, game::pertubator::spawn_pertubator, screens::Screen};
 
 use super::consts::{LANEWIDTH, ROADLENGTH};
 
@@ -14,7 +14,7 @@ enum LaneType {
 }
 
 #[derive(Debug, Default, Component, Reflect)]
-struct RoadsOrigin;
+pub struct RoadsOrigin;
 
 #[derive(Debug, Default, Component, Reflect)]
 struct Road;
@@ -27,7 +27,11 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 /// Spawn the visuals and the collider of the road.
-pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
+pub fn spawn_roads(
+    mut commands: Commands,
+    road_assets: Res<RoadAssets>,
+    mut meshes: ResMut<Assets<Mesh>>,
+) {
     let lanes = [
         LaneType::Border,
         LaneType::LeftToRight,
@@ -57,7 +61,16 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
             RigidBody::Static,
             Collider::half_space(Vec3::Y),
             Friction::new(0.05),
+            Mesh3d(
+                meshes.add(CuboidMeshBuilder::default().build().scaled_by(Vec3::new(
+                    ROADLENGTH,
+                    0.1,
+                    total_span_z,
+                ))), /* I dont like this */
+            ),
+            Pickable::default(),
         ))
+        .observe(spawn_pertubator)
         .with_children(|parent| {
             for (lane_index, lane) in lanes.iter().enumerate() {
                 let lane_asset: &Handle<Scene> = match lane {
