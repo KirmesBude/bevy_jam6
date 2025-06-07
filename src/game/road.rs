@@ -1,8 +1,9 @@
+use avian3d::prelude::{Collider, RigidBody};
 use bevy::prelude::*;
 
 use crate::{asset_tracking::LoadResource, screens::Screen};
 
-#[derive(Debug, Reflect)]
+#[derive(Debug, Reflect, PartialEq, Eq, Clone, Copy)]
 enum LaneType {
     Border,
     LeftToRight,
@@ -80,7 +81,7 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
                 {
                     // info!("Spawning road: {:?} at {}", lane_type, pos);
 
-                    parent.spawn((
+                    let mut segment = parent.spawn((
                         Road,
                         Name::new("Road"),
                         StateScoped(Screen::Gameplay),
@@ -88,6 +89,10 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
                             .with_scale(Vec3::splat(4.)),
                         SceneRoot(road_asset.clone()),
                     ));
+
+                    if *lane_type == LaneType::Border {
+                        segment.insert((RigidBody::Static, Collider::cuboid(4.0, 2.0, 1.0)));
+                    }
 
                     pos += conf.pos_inc_primary;
                 }
