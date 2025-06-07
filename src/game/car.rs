@@ -35,7 +35,7 @@ pub(super) fn plugin(app: &mut App) {
 
     // TODO: Put this in the right schedule
     app.add_systems(
-        Update,
+        FixedUpdate,
         (
             air_friction,
             accelerate_cars,
@@ -113,6 +113,7 @@ pub fn create_car(
         ExternalForce::default().with_persistence(false),
         ExternalTorque::new(Vec3::ZERO).with_persistence(false),
         Friction::new(CARBODYFRICTION),
+        MaxAngularSpeed(4. * 2. * PI),
         // Gfx and audio
         SceneRoot(scene_handle),
         AudioPlayer::new(car_assets.engine_audio.clone()),
@@ -301,7 +302,7 @@ impl FromWorld for CarAssets {
                 .map(|model| {
                     assets.load(
                         GltfAssetLabel::Scene(0)
-                            .from_asset(format!("models/car_kit/vehicles/{}.glb", model)),
+                            .from_asset(format!("models/vehicles/{}.glb", model)),
                     )
                 })
                 .collect(),
