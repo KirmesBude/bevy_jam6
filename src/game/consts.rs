@@ -1,8 +1,8 @@
 use std::f32::consts::{FRAC_PI_2, PI};
 
-/// VERY important TODO: Make the road generation code depend on this!
+/// Width of a lane. Also the sidelength of a road tile.
 pub const LANEWIDTH: f32 = 4.;
-pub const ROADLENGTH: f32 = 100.;
+pub const ROADLENGTH: f32 = 25. * LANEWIDTH;
 
 /// This is from the car origin to the screen border.
 pub const DISTANCEUNTILCARSREACHTHEROAD: f32 = 15.;

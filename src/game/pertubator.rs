@@ -1,8 +1,18 @@
 use avian3d::prelude::*;
-use bevy::{platform::collections::HashMap, prelude::*, window::PrimaryWindow};
+use bevy::{
+    math::ops::{exp, sin},
+    pbr::NotShadowCaster,
+    picking::pointer::PointerInteraction,
+    platform::collections::HashMap,
+    prelude::*,
+    scene::SceneInstanceReady,
+    window::PrimaryWindow,
+};
 
 use crate::{
-    AppSystems, PausableSystems, asset_tracking::LoadResource, game::car_colliders::WheelCollider,
+    AppSystems, PausableSystems,
+    asset_tracking::LoadResource,
+    game::{car_colliders::WheelCollider, road::RoadsOrigin},
     screens::Screen,
 };
 
@@ -16,10 +26,20 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<PertubatorAsset>();
     app.register_type::<Pertubator>();
     app.register_type::<ActivePertubator>();
+    app.register_type::<PertubatorPreview>();
 
+    app.add_systems(OnEnter(Screen::Gameplay), spawn_preview);
     app.add_systems(
         Update,
-        drop_obstacle
+        (drop_obstacle, preview_pertubator)
+            .in_set(AppSystems::Update)
+            .in_set(PausableSystems),
+    );
+    app.add_observer(preview_pertubator_material_transparency);
+
+    app.add_systems(
+        FixedUpdate,
+        update_springs
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
@@ -95,10 +115,10 @@ pub fn drop_obstacle(
 pub struct PertubatorAssets(HashMap<Pertubator, PertubatorAsset>);
 
 impl PertubatorAssets {
-    const SOURCE: [(Pertubator, &'static str); 3] = [
-        (Pertubator::Spring, ""),
-        (Pertubator::Nails, ""),
-        (Pertubator::Soap, ""),
+    const SOURCE: [(Pertubator, (&'static str, &'static str)); 3] = [
+        (Pertubator::Spring, ("spring", "images/barrel.png")), /* TODO: Temporary */
+        (Pertubator::Nails, ("trap", "images/trap.png")),
+        (Pertubator::Soap, ("patch-grass", "images/patch-grass.png")),
     ];
 }
 
@@ -109,11 +129,15 @@ impl FromWorld for PertubatorAssets {
         Self(
             Self::SOURCE
                 .iter()
-                .map(|(pertubator, scene)| {
+                .map(|(pertubator, (scene, image))| {
                     (
                         *pertubator,
                         PertubatorAsset {
-                            scene: assets.load(GltfAssetLabel::Scene(0).from_asset(*scene)),
+                            scene: assets.load(
+                                GltfAssetLabel::Scene(0)
+                                    .from_asset(format!("models/perturbators/{}.glb", scene)),
+                            ),
+                            image: assets.load(*image),
                         },
                     )
                 })
@@ -122,10 +146,27 @@ impl FromWorld for PertubatorAssets {
     }
 }
 
+impl PertubatorAssets {
+    pub fn get(&self, pertubator: &Pertubator) -> Option<&PertubatorAsset> {
+        self.0.get(pertubator)
+    }
+}
+
 /// Assets corresponding to a specific kind of pertubator
 #[derive(Debug, Clone, Reflect)]
 pub struct PertubatorAsset {
     scene: Handle<Scene>,
+    image: Handle<Image>,
+}
+
+impl PertubatorAsset {
+    pub fn scene(&self) -> &Handle<Scene> {
+        &self.scene
+    }
+
+    pub fn image(&self) -> &Handle<Image> {
+        &self.image
+    }
 }
 
 /// This defines every Pertubator we have
@@ -134,8 +175,8 @@ pub struct PertubatorAsset {
 #[reflect(Component)]
 pub enum Pertubator {
     Spring,
-    Nails,
-    Soap,
+    Nails, /* "Trap" */
+    Soap,  /* "Sludge" */
 }
 
 impl Pertubator {
@@ -153,34 +194,61 @@ impl Pertubator {
         position: Vec3,
         pertubator_assets: &PertubatorAssets,
     ) {
+        let scene = pertubator_assets.get(self).unwrap().scene().clone();
         match self {
             Pertubator::Spring => {
-                entity_commands.insert(
-                (
-                            Name::new(self.name()),
-                            *self,
-                            SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
-                            Transform::from_translation(position),
-                            RigidBody::Kinematic,
-                            Collider::cylinder(1.0, 1.0),
-                            CollisionEventsEnabled,
-                            Lifetime::new(5.),
-                        )).observe(|trigger: Trigger<OnCollisionStart>, mut velocity: Query<&mut LinearVelocity>, cars: Query<Entity, With<Car>>,| {
-                            let spring = trigger.target(); /* TODO: Extract normal from spring for some shenanigans */
-                            let other_entity = trigger.collider;
-                            if cars.contains(other_entity) {
-                                let mut velocity = velocity.get_mut(spring).unwrap(); /* Unwrap is safe here */
-                                dbg!("Car {} triggered spring {}", other_entity, spring);
-                                velocity.y = 10.0;
-                            }
-                        });
+                // Kinematic object for pushing with an activation sensor and a scene as children.
+                entity_commands
+                    .insert((
+                        Name::new(self.name()),
+                        Spring { active_time: 0. },
+                        *self,
+                        Transform::from_translation(position.with_y(spring_y_position(0.))),
+                        RigidBody::Kinematic,
+                        Collider::cylinder(1.0, 4.0),
+                        Visibility::Visible,
+                    ))
+                    .with_children(|parent| {
+                        parent
+                            .spawn((
+                                Name::new("SpringSensor"),
+                                RigidBody::Static,
+                                Sensor,
+                                Collider::sphere(0.4),
+                                CollisionEventsEnabled,
+                                Transform::from_xyz(0., 2., 0.),
+                            ))
+                            .observe(
+                                |trigger: Trigger<OnCollisionStart>,
+                                 mut commands: Commands,
+                                 possible_spring_sensors: Query<&ChildOf, With<Sensor>>,
+                                 cars: Query<Entity, With<Car>>| {
+                                    let spring_sensor = trigger.target();
+                                    let spring =
+                                        possible_spring_sensors.get(spring_sensor).unwrap().0;
+                                    let other_entity = trigger.collider;
+                                    if cars.contains(other_entity) {
+                                        commands.entity(spring).insert(Lifetime::new(2.));
+                                        commands
+                                            .entity(spring_sensor)
+                                            .remove::<CollisionEventsEnabled>();
+                                    }
+                                },
+                            );
+
+                        parent.spawn((
+                            Name::new("SpringScene"),
+                            SceneRoot(scene),
+                            Transform::from_xyz(0., 2., 0.),
+                        ));
+                    });
             }
             Pertubator::Nails => {
                 entity_commands
                     .insert((
                         Name::new(self.name()),
                         *self,
-                        SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
+                        SceneRoot(scene),
                         Transform::from_translation(position),
                         RigidBody::Static,
                         Collider::cylinder(1.0, 1.0),
@@ -206,7 +274,7 @@ impl Pertubator {
                     .insert((
                         Name::new(self.name()),
                         *self,
-                        SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
+                        SceneRoot(scene),
                         Transform::from_translation(position),
                         RigidBody::Static,
                         Collider::cylinder(1.0, 1.0),
@@ -231,6 +299,39 @@ impl Pertubator {
     }
 }
 
+#[derive(Clone, Component, Debug, Reflect)]
+struct Spring {
+    active_time: f32,
+}
+
+/// Function for moving springs.
+///
+/// It starts slightly below zero to avoid contacts with the cars before activating.
+fn spring_y_position(active_time: f32) -> f32 {
+    // Scale the time to fit well in the function.
+    let x = 5. * active_time - 7.3;
+
+    (exp(-x) * sin(2. * x) + 1322.) / 400. - 2. // -2. because of the offset of the collider
+}
+
+/// Updates the position of all active springs.
+///
+/// A spring is activated through adding the Lifetime-component.
+fn update_springs(
+    springs: Query<(&mut Spring, &Transform, &mut LinearVelocity), With<Lifetime>>,
+    time: Res<Time<Physics>>,
+) {
+    for (mut spring, transform, mut velocity) in springs {
+        let time_step = time.delta_secs();
+
+        spring.active_time += time_step;
+
+        let target_position = spring_y_position(spring.active_time);
+
+        velocity.y = (target_position - transform.translation.y) / time_step;
+    }
+}
+
 /// This hold the currently active Pertubator as determined by ui selection
 #[derive(Debug, Default, Resource, Reflect)]
 #[reflect(Resource)]
@@ -250,6 +351,98 @@ pub fn spawn_pertubator(
             pertubator.spawn(&mut entity_commands, position, &pertubator_assets);
 
             dbg!("Spawn {} at {}!", pertubator.name(), position);
+        }
+    }
+}
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct PertubatorPreview;
+
+fn spawn_preview(mut commands: Commands) {
+    commands.spawn((
+        StateScoped(Screen::Gameplay),
+        Name::new("Pertuabtor Preview"),
+        PertubatorPreview,
+        Transform::default(),
+        Visibility::Hidden,
+        SceneRoot::default(),
+        NotShadowCaster,
+    ));
+}
+
+/// A system that draws active pertubator preview at hit location
+fn preview_pertubator(
+    pointers: Query<&PointerInteraction>,
+    active_pertubator: Res<ActivePertubator>,
+    pertubator_assets: Option<Res<PertubatorAssets>>,
+    preview: Single<(&mut Visibility, &mut Transform, &mut SceneRoot), With<PertubatorPreview>>,
+    road_origins: Query<Entity, With<RoadsOrigin>>,
+) {
+    let _ = road_origins;
+    /* Wait on asset load; There is probably a better way */
+    let Some(pertubator_assets) = pertubator_assets else {
+        return;
+    };
+    let (mut visiblity, mut transform, mut scene) = preview.into_inner();
+
+    /* Hide the preview in case we do not have a hit or no active pertubator selected*/
+    *visiblity = Visibility::Hidden;
+
+    if let Some(pertubator) = active_pertubator.0 {
+        /* Update visuals based on pertubator */
+        if active_pertubator.is_changed() {
+            scene.0 = pertubator_assets.0.get(&pertubator).unwrap().scene.clone();
+        }
+    } else {
+        /* Nothing to do if no active pertubator */
+        return;
+    }
+
+    /* Update position and visibility */
+    for (entity, hit) in pointers
+        .iter()
+        .filter_map(|interaction| interaction.get_nearest_hit())
+    {
+        if road_origins.contains(*entity) {
+            if let Some(point) = hit.position {
+                transform.translation = point;
+                *visiblity = Visibility::Inherited;
+            }
+        }
+    }
+}
+
+fn preview_pertubator_material_transparency(
+    trigger: Trigger<SceneInstanceReady>,
+    mut commands: Commands,
+    children: Query<&Children>,
+    pertubator_preview: Single<Entity, With<PertubatorPreview>>,
+    mesh_materials: Query<&MeshMaterial3d<StandardMaterial>>,
+    mut asset_materials: ResMut<Assets<StandardMaterial>>,
+) {
+    if *pertubator_preview != trigger.target() {
+        return;
+    }
+
+    // Iterate over all children recursively
+    for descendants in children.iter_descendants(trigger.target()) {
+        // Get the material of the descendant
+        if let Some(material) = mesh_materials
+            .get(descendants)
+            .ok()
+            .and_then(|id| asset_materials.get_mut(id.id()))
+        {
+            // Create a copy of the material and override alpha
+            // Potentially expensive, but probably fine
+            let mut new_material = material.clone();
+            new_material.alpha_mode = AlphaMode::Blend;
+            new_material.base_color.set_alpha(0.66);
+
+            // Override `MeshMaterial3d` with new material
+            commands
+                .entity(descendants)
+                .insert(MeshMaterial3d(asset_materials.add(new_material)));
         }
     }
 }

@@ -48,6 +48,8 @@ fn assets() -> impl Bundle {
             "Music, SFX and 3d models made or apadted during the jam",
         ],
         ["Car Kit (2.0)", "CC0 by Kenney (www.kenney.nl)"],
+        ["Mini Dungeon (1.5)", "CC0 by Kenney (www.kenney.nl)"],
+        ["Survival Kit (2.0)", "CC0 by Kenney (www.kenney.nl)"],
         [
             "Car Engine Loop 96kHz, 4s",
             "CC BY 3.0 by qubodup (opengameart.org)",

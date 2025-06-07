@@ -5,8 +5,12 @@ use bevy::{audio::SpatialScale, prelude::*};
 use rand::Rng;
 
 use crate::{
-    AppSystems, PausableSystems, asset_tracking::LoadResource,
-    game::consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, screens::Screen,
+    AppSystems, PausableSystems,
+    asset_tracking::LoadResource,
+    game::{
+        consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, points::car_observer_update_highscore,
+    },
+    screens::Screen,
 };
 
 use super::{
@@ -35,7 +39,7 @@ pub(super) fn plugin(app: &mut App) {
 
     // TODO: Put this in the right schedule
     app.add_systems(
-        Update,
+        FixedUpdate,
         (
             air_friction,
             accelerate_cars,
@@ -45,7 +49,7 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
-
+  
     // app.add_systems(
     //     Update,
     //     spawn_test_car
@@ -53,25 +57,27 @@ pub(super) fn plugin(app: &mut App) {
     //         .in_set(AppSystems::Update)
     //         .in_set(PausableSystems),
     // );
+
 }
 
-fn spawn_test_car(
-    mut commands: Commands,
-    car_assets: Res<CarAssets>,
-    all_car_colliders: Option<Res<AllCarColliders>>,
-    mut finished: Local<bool>,
+pub fn spawn_car(
+    entity_commands: &mut EntityCommands,
+    car_assets: &CarAssets,
+    all_car_colliders: &AllCarColliders,
+    init_pos: Vec3,
+    target_velocity: f32,
+    driving_direction: Vec3,
 ) {
-    if !*finished {
-        if let Some(all_car_colliders) = all_car_colliders {
-            commands.spawn(create_car(
-                &car_assets,
-                &all_car_colliders,
-                Vec3::new(-10., 0.01, 0.),
-                1.,
-            ));
-            *finished = true;
-        }
-    }
+    entity_commands
+        .insert(create_car(
+            car_assets,
+            all_car_colliders,
+            init_pos,
+            target_velocity,
+            driving_direction,
+        ))
+        .insert(CollisionEventsEnabled)
+        .observe(car_observer_update_highscore);
 }
 
 /// Returns a bundle representing a car.
@@ -80,25 +86,32 @@ pub fn create_car(
     all_car_colliders: &AllCarColliders,
     init_pos: Vec3,
     target_velocity: f32,
+    driving_direction: Vec3,
 ) -> impl Bundle {
     let rng = &mut rand::thread_rng();
 
     let car_index = rng.gen_range(0..car_assets.get_scenes().len());
     let scene_handle = car_assets.vehicles[car_index].clone();
     let colliders = &all_car_colliders[car_index];
+    /* TODO: This does not work correctly? */
+    let rotation = if driving_direction == Vec3::X {
+        INITIALCARMODELROTATION
+    } else {
+        INITIALCARMODELROTATION + PI
+    };
 
     (
         Name::new("Car"),
         Car {
             wrecked: false,
             target_velocity,
-            driving_direction: Vec3::X,
+            driving_direction,
         },
         StateScoped(Screen::Gameplay),
         // Physics
         Transform {
             translation: init_pos,
-            rotation: Quat::from_rotation_y(INITIALCARMODELROTATION),
+            rotation: Quat::from_rotation_y(rotation),
             scale: Vec3::splat(0.8),
         },
         RigidBody::Dynamic,
@@ -113,6 +126,7 @@ pub fn create_car(
         ExternalForce::default().with_persistence(false),
         ExternalTorque::new(Vec3::ZERO).with_persistence(false),
         Friction::new(CARBODYFRICTION),
+        MaxAngularSpeed(4. * 2. * PI),
         // Gfx and audio
         SceneRoot(scene_handle),
         AudioPlayer::new(car_assets.engine_audio.clone()),
@@ -301,7 +315,7 @@ impl FromWorld for CarAssets {
                 .map(|model| {
                     assets.load(
                         GltfAssetLabel::Scene(0)
-                            .from_asset(format!("models/car_kit/vehicles/{}.glb", model)),
+                            .from_asset(format!("models/vehicles/{}.glb", model)),
                     )
                 })
                 .collect(),

@@ -5,12 +5,15 @@ use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
-    game::consts::{DISTANCEUNTILCARSREACHTHEROAD, ROADLENGTH},
+    game::{
+        car::spawn_car,
+        consts::{DISTANCEUNTILCARSREACHTHEROAD, ROADLENGTH},
+    },
     screens::Screen,
 };
 
 use super::{
-    car::{Car, CarAssets, create_car},
+    car::{Car, CarAssets},
     car_colliders::AllCarColliders,
     consts::{MAXCARHEIGHT, MAXCARLENGTH, MAXCARWIDTH},
 };
@@ -19,19 +22,12 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<CarSpawner>();
 
     app.add_systems(
-        Update,
+        FixedUpdate,
         (update_car_spawners, despawn_cars)
             .run_if(in_state(Screen::Gameplay))
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
-
-    // Testing
-    app.add_systems(OnEnter(Screen::Gameplay), spawn_test_car_spawner);
-}
-
-fn spawn_test_car_spawner(mut commands: Commands) {
-    commands.spawn(create_car_spawner(-10., Vec3::X, 4.));
 }
 
 /// The car spawner is located `DISTANCEUNTILCARSREACHTHEROAD` units away from the beginning of the road.
@@ -114,22 +110,22 @@ fn update_car_spawners(
             continue;
         }
 
-        // Spawn car otherwise
-        let car_to_spawn = create_car(
+        let mut entity_commands = commands.spawn_empty();
+        spawn_car(
+            &mut entity_commands,
             &car_assets,
             &all_car_colliders,
             transform.translation.with_y(0.01),
             spawner.target_velocity,
+            spawner.driving_direction,
         );
-
-        commands.spawn(car_to_spawn);
     }
 }
 
 // System for despawning cars that are outside of the visible area.
 fn despawn_cars(mut commands: Commands, cars: Query<(Entity, &Transform), With<Car>>) {
     for (entity, transform) in cars.iter() {
-        if transform.translation.xz().length() > 2. * ROADLENGTH || transform.translation.y < -10. {
+        if transform.translation.xz().length() > ROADLENGTH || transform.translation.y < -10. {
             commands.entity(entity).despawn();
         }
     }

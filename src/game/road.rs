@@ -1,12 +1,17 @@
-use bevy::prelude::*;
+use avian3d::prelude::*;
+use bevy::{prelude::*, render::mesh::CuboidMeshBuilder};
 
 use crate::{
     asset_tracking::LoadResource,
-    game::{car_de_spawning::create_car_spawner, consts::CAR_SPAWN_TARGET_VELOCITY},
+
+    game::{car_de_spawning::create_car_spawner, pertubator::spawn_pertubator},
     screens::Screen,
 };
 
-#[derive(Debug, Reflect, Eq, PartialEq, Hash, Clone, Copy)]
+use super::consts::{LANEWIDTH, ROADLENGTH};
+
+#[derive(Debug, Reflect, PartialEq, Eq, Clone, Copy)]
+
 enum LaneType {
     Border,
     LeftToRight,
@@ -15,112 +20,139 @@ enum LaneType {
 }
 
 #[derive(Debug, Default, Component, Reflect)]
-struct RoadsOrigin;
+pub struct RoadsOrigin;
 
 #[derive(Debug, Default, Component, Reflect)]
-pub struct RoadConfig {
-    types: Vec<LaneType>,
-    pos_start: Vec3,
-    pos_end: Vec3,
-    pos_inc_primary: Vec3,
-    pos_inc_secondary: Vec3,
-}
-
-#[derive(Debug, Default, Component, Reflect)]
-
 struct Road;
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<RoadConfig>();
-
     app.register_type::<RoadAssets>();
     app.load_resource::<RoadAssets>();
 
     app.add_systems(OnEnter(Screen::Gameplay), spawn_roads);
 }
 
-pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
-    let conf: RoadConfig = RoadConfig {
-        types: vec![
-            LaneType::Border,
-            LaneType::LeftToRight,
-            LaneType::LeftToRight,
-            LaneType::Border,
-            LaneType::Separator,
-            LaneType::Border,
-            LaneType::RightToLeft,
-            LaneType::RightToLeft,
-            LaneType::Border,
-        ],
-        pos_start: Vec3::new(-50.0, 0.0, 0.0),
-        pos_end: Vec3::new(50.0, 0.0, 0.0),
-        pos_inc_primary: Vec3::new(4.0, 0.0, 0.0),
-        pos_inc_secondary: Vec3::new(0.0, 0.0, 4.0),
-    };
+/// Spawn the visuals and the collider of the road.
+pub fn spawn_roads(
+    mut commands: Commands,
+    road_assets: Res<RoadAssets>,
+    mut meshes: ResMut<Assets<Mesh>>,
+) {
+    let lanes = [
+        LaneType::Separator,
+        LaneType::Border,
+        LaneType::LeftToRight,
+        LaneType::LeftToRight,
+        LaneType::Border,
+        LaneType::Separator,
+        LaneType::Border,
+        LaneType::RightToLeft,
+        LaneType::RightToLeft,
+        LaneType::Border,
+        LaneType::Separator,
+    ];
+
+    let tiles_per_lane = (ROADLENGTH / LANEWIDTH).round() as u32;
+
+    let total_span_z = lanes.len() as f32 * LANEWIDTH;
+    // Start in the neg-neg-quadrant direction. + half lanewidth due to centered meshes.
+    let start_x = -ROADLENGTH / 2. + LANEWIDTH / 2.;
+    let start_z = -total_span_z / 2. + LANEWIDTH / 2.;
+
+    let mut car_spawner_info = vec![];
 
     commands
         .spawn((
             RoadsOrigin,
-            Name::new("Roads Origin"),
+            Name::new("RoadOrigin"),
             StateScoped(Screen::Gameplay),
             Transform::default(),
             Visibility::default(),
+            RigidBody::Static,
+            Collider::half_space(Vec3::Y),
+            Friction::new(0.05),
+            Mesh3d(
+                meshes.add(CuboidMeshBuilder::default().build().scaled_by(Vec3::new(
+                    ROADLENGTH,
+                    0.1,
+                    total_span_z,
+                ))), /* I dont like this */
+            ),
+            Pickable::default(),
         ))
+        .observe(spawn_pertubator)
         .with_children(|parent| {
-            // compute the z_offset aka the lane placement
-            let mut z_offset: f32 =
-                -(conf.types.len() as f32 / 2.0) * (conf.pos_inc_secondary.length() / 2.);
 
-            for lane_type in conf.types.iter() {
-                let mut pos: Vec3 = conf.pos_start.with_z(z_offset); // apply lane position to temp pos
+            for (lane_index, lane) in lanes.iter().enumerate() {
+                let lane_asset: &Handle<Scene> = match lane {
 
-                // Match asset to LaneType
-                let road_asset: &Handle<Scene> = match lane_type {
                     LaneType::Border => &road_assets.road_border,
                     LaneType::Separator => &road_assets.road_separator,
                     _ => &road_assets.road_straight,
                 };
 
-                // Spawn Spawners at start of lane based on LaneType
-                let half_lane_z_offset = z_offset - conf.pos_inc_secondary.length();
-                info!(half_lane_z_offset, z_offset);
-                if *lane_type == LaneType::LeftToRight {
-                    parent.spawn(create_car_spawner(
-                        half_lane_z_offset,
-                        Vec3::X,
-                        CAR_SPAWN_TARGET_VELOCITY,
-                    ));
-                } else if *lane_type == LaneType::RightToLeft {
-                    parent.spawn(create_car_spawner(
-                        half_lane_z_offset,
-                        Vec3::NEG_X,
-                        CAR_SPAWN_TARGET_VELOCITY,
-                    ));
-                }
 
-                // Spawn road until distance between pos and pos_end is less than half the primary increment
-                while conf.pos_end.with_z(z_offset).distance(pos)
-                    >= conf.pos_inc_primary.length() / 2.
-                {
-                    // debugging
-                    // info!("Spawning road: {:?} at {}", lane_type, pos);
+                for tile_index in 0..tiles_per_lane {
+                    let pos: Vec3 = Vec3::new(
+                        start_x + tile_index as f32 * LANEWIDTH,
+                        0.,
+                        start_z + lane_index as f32 * LANEWIDTH,
+                    );
 
-                    parent.spawn((
+
+                    let mut segment = parent.spawn((
                         Road,
                         Name::new("Road"),
                         StateScoped(Screen::Gameplay),
-                        Transform::from_translation(pos + Vec3::new(0.0, 0.0, z_offset))
-                            .with_scale(Vec3::splat(4.)),
-                        SceneRoot(road_asset.clone()),
+                        Transform::from_translation(pos).with_scale(Vec3::splat(4.)),
+                        SceneRoot(lane_asset.clone()),
                     ));
 
-                    pos += conf.pos_inc_primary;
+                    if *lane == LaneType::Separator {
+                        segment.insert((RigidBody::Static, Collider::cuboid(1.0, 0.75, 0.8)));
+                    }
                 }
 
-                pos += conf.pos_inc_secondary;
-                z_offset += conf.pos_inc_secondary.length() / 2.;
+                if *lane == LaneType::LeftToRight
+                    || *lane == LaneType::RightToLeft
+                    || *lane == LaneType::Border
+                {
+                    /* Hackery because a segment does not equal to a lane */
+                    let mut current_lane = *lane;
+                    if *lane == LaneType::Border {
+                        if let Some(next_segment) = lanes.get(lane_index + 1) {
+                            if *next_segment == LaneType::LeftToRight || *next_segment == LaneType::RightToLeft {
+                                current_lane = *next_segment;
+                            }
+                        }
+
+                        /* If it did not change it is a "border segment", we dont care about spawning a spawner in */
+                        if current_lane == *lane {
+                            continue;
+                        }
+                    }
+
+                    let direction = if current_lane == LaneType::LeftToRight {
+                        Vec3::X
+                    } else {
+                        Vec3::NEG_X
+                    };
+
+                    car_spawner_info.push((
+                        direction,
+                        start_z + lane_index as f32 * LANEWIDTH + LANEWIDTH / 2.0,
+                    ));
+                }
             }
         });
+
+    for car_spawner_info in car_spawner_info.iter() {
+        commands.spawn(create_car_spawner(
+            car_spawner_info.1,
+            car_spawner_info.0,
+            4.,
+        ));
+    }
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
