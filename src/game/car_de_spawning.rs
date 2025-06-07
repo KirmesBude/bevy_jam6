@@ -17,7 +17,7 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<CarSpawner>();
 
     app.add_systems(
-        Update,
+        FixedUpdate,
         (update_car_spawners, despawn_cars)
             .run_if(in_state(Screen::Gameplay))
             .in_set(AppSystems::Update)
