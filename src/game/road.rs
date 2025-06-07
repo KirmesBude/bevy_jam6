@@ -82,7 +82,7 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
                 };
 
                 // Spawn Spawners at start of lane based on LaneType
-                let half_lane_z_offset = z_offset - conf.pos_inc_secondary.length() / 2.;
+                let half_lane_z_offset = z_offset - conf.pos_inc_secondary.length();
                 info!(half_lane_z_offset, z_offset);
                 if *lane_type == LaneType::LeftToRight {
                     parent.spawn(create_car_spawner(
