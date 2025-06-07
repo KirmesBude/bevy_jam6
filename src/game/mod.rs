@@ -21,6 +21,7 @@ pub(crate) fn plugin(app: &mut App) {
         pertubator::plugin,
         util::plugin,
         points::plugin,
+        ui::plugin,
     ));
 }
 

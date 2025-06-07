@@ -15,6 +15,12 @@ const CAR_COLLISION_MULTIPLIER: f32 = 100.;
 #[reflect(Resource)]
 pub struct HighScore(f32);
 
+impl HighScore {
+    pub fn get(&self) -> f32 {
+        self.0
+    }
+}
+
 /// To be added to a car entity
 /// Will observer all car related collisions and update score based on total collision impulse
 pub fn car_observer_update_highscore(
