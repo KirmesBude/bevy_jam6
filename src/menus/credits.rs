@@ -43,14 +43,16 @@ fn created_by() -> impl Bundle {
 
 fn assets() -> impl Bundle {
     grid(vec![
+        [
+            "FreakyWaves",
+            "Music, SFX and 3d models made or apadted during the jam",
+        ],
         ["Car Kit (2.0)", "CC0 by Kenney (www.kenney.nl)"],
         [
             "Car Engine Loop 96kHz, 4s",
             "CC BY 3.0 by qubodup (opengameart.org)",
         ],
-        ["Ducky sprite", "CC0 by Caz Creates Games"],
         ["Button SFX", "CC0 by Jaszunio15"],
-        ["Music", "CC BY 3.0 by Kevin MacLeod"],
         [
             "Bevy logo",
             "All rights reserved by the Bevy Foundation, permission granted for splash screen use when unmodified",
