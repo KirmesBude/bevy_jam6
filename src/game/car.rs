@@ -5,8 +5,12 @@ use bevy::{audio::SpatialScale, prelude::*};
 use rand::Rng;
 
 use crate::{
-    AppSystems, PausableSystems, asset_tracking::LoadResource,
-    game::consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, screens::Screen,
+    AppSystems, PausableSystems,
+    asset_tracking::LoadResource,
+    game::{
+        consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, points::car_observer_update_highscore,
+    },
+    screens::Screen,
 };
 
 use super::{
@@ -63,15 +67,34 @@ fn spawn_test_car(
 ) {
     if !*finished {
         if let Some(all_car_colliders) = all_car_colliders {
-            commands.spawn(create_car(
+            let mut entity_commands = commands.spawn_empty();
+            spawn_car(
+                &mut entity_commands,
                 &car_assets,
                 &all_car_colliders,
                 Vec3::new(-10., 0.01, 0.),
                 1.,
-            ));
+            );
             *finished = true;
         }
     }
+}
+
+pub fn spawn_car(
+    entity_commands: &mut EntityCommands,
+    car_assets: &CarAssets,
+    all_car_colliders: &AllCarColliders,
+    init_pos: Vec3,
+    target_velocity: f32,
+) {
+    entity_commands
+        .insert(create_car(
+            car_assets,
+            all_car_colliders,
+            init_pos,
+            target_velocity,
+        ))
+        .observe(car_observer_update_highscore);
 }
 
 /// Returns a bundle representing a car.
@@ -109,6 +132,7 @@ pub fn create_car(
             colliders.get_wheel_fl_bundle(),
             colliders.get_wheel_fr_bundle(),
         ],
+        CollisionEventsEnabled,
         LinearVelocity::default(),
         ExternalForce::default().with_persistence(false),
         ExternalTorque::new(Vec3::ZERO).with_persistence(false),
