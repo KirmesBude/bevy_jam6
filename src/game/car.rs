@@ -35,7 +35,7 @@ pub(super) fn plugin(app: &mut App) {
 
     // TODO: Put this in the right schedule
     app.add_systems(
-        Update,
+        FixedUpdate,
         (
             air_friction,
             accelerate_cars,
