@@ -137,6 +137,7 @@ pub fn create_car(
         ExternalForce::default().with_persistence(false),
         ExternalTorque::new(Vec3::ZERO).with_persistence(false),
         Friction::new(CARBODYFRICTION),
+        MaxAngularSpeed(4. * 2. * PI),
         // Gfx and audio
         SceneRoot(scene_handle),
         AudioPlayer::new(car_assets.engine_audio.clone()),
