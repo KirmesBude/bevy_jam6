@@ -28,8 +28,7 @@ pub(super) fn plugin(app: &mut App) {
 
 /// Spawn the visuals and the collider of the road.
 pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
-    let lanes = vec![
-        LaneType::Border,
+    let lanes = [LaneType::Border,
         LaneType::LeftToRight,
         LaneType::LeftToRight,
         LaneType::Border,
@@ -37,8 +36,7 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
         LaneType::Border,
         LaneType::RightToLeft,
         LaneType::RightToLeft,
-        LaneType::Border,
-    ];
+        LaneType::Border];
 
     let tiles_per_lane = (ROADLENGTH / LANEWIDTH).round() as u32;
 
@@ -59,8 +57,8 @@ pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
             Friction::new(0.05),
         ))
         .with_children(|parent| {
-            for lane_index in 0..lanes.len() {
-                let lane_asset: &Handle<Scene> = match lanes[lane_index] {
+            for (lane_index, lane) in lanes.iter().enumerate() {
+                let lane_asset: &Handle<Scene> = match lane {
                     LaneType::Border => &road_assets.road_border,
                     LaneType::Separator => &road_assets.road_separator,
                     _ => &road_assets.road_straight,
