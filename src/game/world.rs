@@ -40,7 +40,7 @@ fn grass(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) ->
     (
         Name::new("Grass"),
         Ground,
-        Transform::from_xyz(0., -0.1, 0.),
+        Transform::from_xyz(0., 0., 0.),
         Mesh3d(meshes.add(Plane3d::new(Vec3::Y, GRASS_SIZE).mesh())),
         MeshMaterial3d(materials.add(Color::from(GREEN))),
         RigidBody::Static,
