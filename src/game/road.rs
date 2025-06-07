@@ -1,11 +1,15 @@
 use avian3d::prelude::*;
 use bevy::{prelude::*, render::mesh::CuboidMeshBuilder};
 
-use crate::{asset_tracking::LoadResource, game::pertubator::spawn_pertubator, screens::Screen};
+use crate::{
+    asset_tracking::LoadResource,
+    game::{car_de_spawning::create_car_spawner, pertubator::spawn_pertubator},
+    screens::Screen,
+};
 
 use super::consts::{LANEWIDTH, ROADLENGTH};
 
-#[derive(Debug, Reflect)]
+#[derive(Debug, Reflect, PartialEq, Eq, Clone, Copy)]
 enum LaneType {
     Border,
     LeftToRight,
@@ -33,6 +37,7 @@ pub fn spawn_roads(
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
     let lanes = [
+        LaneType::Separator,
         LaneType::Border,
         LaneType::LeftToRight,
         LaneType::LeftToRight,
@@ -42,6 +47,7 @@ pub fn spawn_roads(
         LaneType::RightToLeft,
         LaneType::RightToLeft,
         LaneType::Border,
+        LaneType::Separator,
     ];
 
     let tiles_per_lane = (ROADLENGTH / LANEWIDTH).round() as u32;
@@ -50,6 +56,8 @@ pub fn spawn_roads(
     // Start in the neg-neg-quadrant direction. + half lanewidth due to centered meshes.
     let start_x = -ROADLENGTH / 2. + LANEWIDTH / 2.;
     let start_z = -total_span_z / 2. + LANEWIDTH / 2.;
+
+    let mut car_spawner_info = vec![];
 
     commands
         .spawn((
@@ -86,16 +94,59 @@ pub fn spawn_roads(
                         start_z + lane_index as f32 * LANEWIDTH,
                     );
 
-                    parent.spawn((
+                    let mut segment = parent.spawn((
                         Road,
                         Name::new("Road"),
                         StateScoped(Screen::Gameplay),
                         Transform::from_translation(pos).with_scale(Vec3::splat(4.)),
                         SceneRoot(lane_asset.clone()),
                     ));
+
+                    if *lane == LaneType::Separator {
+                        segment.insert((RigidBody::Static, Collider::cuboid(1.0, 0.75, 0.8)));
+                    }
+                }
+
+                if *lane == LaneType::LeftToRight
+                    || *lane == LaneType::RightToLeft
+                    || *lane == LaneType::Border
+                {
+                    /* Hackery because a segment does not equal to a lane */
+                    let mut current_lane = *lane;
+                    if *lane == LaneType::Border {
+                        if let Some(next_segment) = lanes.get(lane_index + 1) {
+                            if *next_segment == LaneType::LeftToRight || *next_segment == LaneType::RightToLeft {
+                                current_lane = *next_segment;
+                            }
+                        }
+
+                        /* If it did not change it is a "border segment", we dont care about spawning a spawner in */
+                        if current_lane == *lane {
+                            continue;
+                        }
+                    }
+
+                    let direction = if current_lane == LaneType::LeftToRight {
+                        Vec3::X
+                    } else {
+                        Vec3::NEG_X
+                    };
+
+                    car_spawner_info.push((
+                        direction,
+                        start_z + lane_index as f32 * LANEWIDTH + LANEWIDTH / 2.0,
+                    ));
                 }
             }
         });
+
+    for car_spawner_info in car_spawner_info.iter() {
+        commands.spawn(create_car_spawner(
+            car_spawner_info.1,
+            car_spawner_info.0,
+            4.,
+        ));
+    }
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
