@@ -1,7 +1,10 @@
-use bevy::{ecs::spawn::SpawnWith, prelude::*};
+use bevy::{color::palettes::css::GOLD, ecs::spawn::SpawnWith, prelude::*};
 
 use crate::{
-    game::pertubator::{ActivePertubator, Pertubator, PertubatorAssets},
+    game::{
+        pertubator::{ActivePertubator, Pertubator, PertubatorAssets},
+        points::HighScore,
+    },
     screens::Screen,
     theme::{
         palette::{BUTTON_BACKGROUND, BUTTON_HOVERED_BACKGROUND, BUTTON_PRESSED_BACKGROUND},
@@ -9,6 +12,12 @@ use crate::{
         widget,
     },
 };
+
+pub(super) fn plugin(app: &mut App) {
+    app.register_type::<HighScoreUi>();
+
+    app.add_systems(Update, update_highscore);
+}
 
 pub fn spawn_game_ui(mut commands: Commands, pertubator_assets: Res<PertubatorAssets>) {
     commands.spawn((
@@ -79,7 +88,7 @@ fn top_container() -> impl Bundle {
         },
         //BackgroundColor(BLACK.into()),
         children![
-            widget::label("High Score"),
+            highscore(),
             widget::label("Current Combo?"),
             widget::label("Achievements")
         ],
@@ -126,4 +135,25 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                 );
         })),
     )
+}
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+struct HighScoreUi;
+
+fn highscore() -> impl Bundle {
+    (
+        Name::new("High Score"),
+        HighScoreUi,
+        Text("".into()),
+        TextFont::from_font_size(24.0),
+        TextColor(GOLD.into()),
+    )
+}
+
+fn update_highscore(
+    highscore: Res<HighScore>,
+    mut highscore_ui: Single<&mut Text, With<HighScoreUi>>,
+) {
+    highscore_ui.0 = format!("{:.0}", highscore.get().round());
 }
