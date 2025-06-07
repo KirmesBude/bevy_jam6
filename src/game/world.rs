@@ -16,14 +16,14 @@ fn spawn_light(mut commands: Commands) {
     commands.spawn((
         StateScoped(Screen::Gameplay),
         DirectionalLight {
-            illuminance: light_consts::lux::OVERCAST_DAY,
+            illuminance: 1.5 * light_consts::lux::OVERCAST_DAY,
             shadows_enabled: true,
             ..default()
         },
         Transform::from_rotation(Quat::from_euler(EulerRot::ZYX, 0.0, PI / 2., -PI / 4.)),
         CascadeShadowConfigBuilder {
             first_cascade_far_bound: 7.0,
-            maximum_distance: 25.0,
+            maximum_distance: 200.0,
             ..default()
         }
         .build(),
