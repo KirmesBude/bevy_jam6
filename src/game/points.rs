@@ -36,10 +36,10 @@ pub fn car_observer_update_highscore(
     if !cars.contains(other_entity) {
         return;
     }
-    dbg!("Colliding");
+    // dbg!("Colliding");
 
     if let Some(contact_pair) = collisions.get(car, other_entity) {
         high_score.0 += contact_pair.total_normal_impulse_magnitude() * CAR_COLLISION_MULTIPLIER;
-        dbg!("Increase high score to {}", high_score);
+        // dbg!("Increase high score to {}", high_score);
     }
 }

@@ -65,9 +65,6 @@ fn item_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
             pertubator_button(Pertubator::Spring, pertubator_assets),
             pertubator_button(Pertubator::Nails, pertubator_assets),
             pertubator_button(Pertubator::Soap, pertubator_assets),
-            widget::button_small("4", |_: Trigger<Pointer<Click>>| {
-                print_item(4);
-            }),
         ],
     )
 }
@@ -96,7 +93,7 @@ fn top_container() -> impl Bundle {
 }
 
 fn print_item(index: u8) {
-    dbg!("{}", index);
+    // dbg!("{}", index);
 }
 
 fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAssets) -> impl Bundle {

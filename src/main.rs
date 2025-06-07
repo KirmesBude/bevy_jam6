@@ -45,6 +45,11 @@ impl Plugin for AppPlugin {
                 }),
         );
 
+        #[cfg(target_family = "wasm")]
+        app.insert_resource(Time::<Fixed>::from_hz(20.0));
+        #[cfg(not(target_family = "wasm"))]
+        app.insert_resource(Time::<Fixed>::from_hz(40.0));
+
         app.add_plugins(MeshPickingPlugin);
         app.insert_resource(MeshPickingSettings {
             require_markers: true,
