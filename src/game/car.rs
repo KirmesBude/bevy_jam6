@@ -5,8 +5,12 @@ use bevy::{audio::SpatialScale, prelude::*};
 use rand::Rng;
 
 use crate::{
-    AppSystems, PausableSystems, asset_tracking::LoadResource,
-    game::consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, screens::Screen,
+    AppSystems, PausableSystems,
+    asset_tracking::LoadResource,
+    game::{
+        consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, points::car_observer_update_highscore,
+    },
+    screens::Screen,
 };
 
 use super::{
@@ -45,6 +49,26 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
+}
+
+pub fn spawn_car(
+    entity_commands: &mut EntityCommands,
+    car_assets: &CarAssets,
+    all_car_colliders: &AllCarColliders,
+    init_pos: Vec3,
+    target_velocity: f32,
+    driving_direction: Vec3,
+) {
+    entity_commands
+        .insert(create_car(
+            car_assets,
+            all_car_colliders,
+            init_pos,
+            target_velocity,
+            driving_direction,
+        ))
+        .insert(CollisionEventsEnabled)
+        .observe(car_observer_update_highscore);
 }
 
 /// Returns a bundle representing a car.
