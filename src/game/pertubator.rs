@@ -101,10 +101,19 @@ pub fn drop_obstacle(
 pub struct PertubatorAssets(HashMap<Pertubator, PertubatorAsset>);
 
 impl PertubatorAssets {
-    const SOURCE: [(Pertubator, &'static str); 3] = [
-        (Pertubator::Spring, "models/survival/barrel.glb"), /* TODO: Temporary */
-        (Pertubator::Nails, "models/mini-dungeon/trap.glb"),
-        (Pertubator::Soap, "models/survival/patch-grass.glb"),
+    const SOURCE: [(Pertubator, (&'static str, &'static str)); 3] = [
+        (
+            Pertubator::Spring,
+            ("models/survival/barrel.glb", "images/barrel.png"),
+        ), /* TODO: Temporary */
+        (
+            Pertubator::Nails,
+            ("models/mini-dungeon/trap.glb", "images/trap.png"),
+        ),
+        (
+            Pertubator::Soap,
+            ("models/survival/patch-grass.glb", "images/patch-grass.png"),
+        ),
     ];
 }
 
@@ -115,11 +124,12 @@ impl FromWorld for PertubatorAssets {
         Self(
             Self::SOURCE
                 .iter()
-                .map(|(pertubator, scene)| {
+                .map(|(pertubator, (scene, image))| {
                     (
                         *pertubator,
                         PertubatorAsset {
                             scene: assets.load(GltfAssetLabel::Scene(0).from_asset(*scene)),
+                            image: assets.load(*image),
                         },
                     )
                 })
@@ -128,10 +138,27 @@ impl FromWorld for PertubatorAssets {
     }
 }
 
+impl PertubatorAssets {
+    pub fn get(&self, pertubator: &Pertubator) -> Option<&PertubatorAsset> {
+        self.0.get(pertubator)
+    }
+}
+
 /// Assets corresponding to a specific kind of pertubator
 #[derive(Debug, Clone, Reflect)]
 pub struct PertubatorAsset {
     scene: Handle<Scene>,
+    image: Handle<Image>,
+}
+
+impl PertubatorAsset {
+    pub fn scene(&self) -> &Handle<Scene> {
+        &self.scene
+    }
+
+    pub fn image(&self) -> &Handle<Image> {
+        &self.image
+    }
 }
 
 /// This defines every Pertubator we have
@@ -159,13 +186,14 @@ impl Pertubator {
         position: Vec3,
         pertubator_assets: &PertubatorAssets,
     ) {
+        let scene = pertubator_assets.get(self).unwrap().scene().clone();
         match self {
             Pertubator::Spring => {
                 entity_commands.insert(
                 (
                             Name::new(self.name()),
                             *self,
-                            SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
+                            SceneRoot(scene),
                             Transform::from_translation(position),
                             RigidBody::Kinematic,
                             Collider::cylinder(1.0, 1.0),
@@ -186,7 +214,7 @@ impl Pertubator {
                     .insert((
                         Name::new(self.name()),
                         *self,
-                        SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
+                        SceneRoot(scene),
                         Transform::from_translation(position),
                         RigidBody::Static,
                         Collider::cylinder(1.0, 1.0),
@@ -212,7 +240,7 @@ impl Pertubator {
                     .insert((
                         Name::new(self.name()),
                         *self,
-                        SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
+                        SceneRoot(scene),
                         Transform::from_translation(position),
                         RigidBody::Static,
                         Collider::cylinder(1.0, 1.0),
@@ -336,7 +364,7 @@ fn preview_pertubator_material_transparency(
             // Potentially expensive, but probably fine
             let mut new_material = material.clone();
             new_material.alpha_mode = AlphaMode::Blend;
-            new_material.base_color.set_alpha(0.5);
+            new_material.base_color.set_alpha(0.33);
 
             // Override `MeshMaterial3d` with new material
             commands
