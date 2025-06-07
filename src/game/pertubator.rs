@@ -1,5 +1,8 @@
 use avian3d::prelude::*;
-use bevy::{platform::collections::HashMap, prelude::*, window::PrimaryWindow};
+use bevy::{
+    picking::pointer::PointerInteraction, platform::collections::HashMap, prelude::*,
+    window::PrimaryWindow,
+};
 
 use crate::{
     AppSystems, PausableSystems, asset_tracking::LoadResource, game::car_colliders::WheelCollider,
@@ -16,10 +19,12 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<PertubatorAsset>();
     app.register_type::<Pertubator>();
     app.register_type::<ActivePertubator>();
+    app.register_type::<PertubatorPreview>();
 
+    app.add_systems(OnEnter(Screen::Gameplay), spawn_preview);
     app.add_systems(
         Update,
-        drop_obstacle
+        (drop_obstacle, preview_pertubator)
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
@@ -251,5 +256,57 @@ pub fn spawn_pertubator(
 
             dbg!("Spawn {} at {}!", pertubator.name(), position);
         }
+    }
+}
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct PertubatorPreview;
+
+fn spawn_preview(mut commands: Commands) {
+    commands.spawn((
+        StateScoped(Screen::Gameplay),
+        Name::new("Pertuabtor Preview"),
+        PertubatorPreview,
+        Transform::default(),
+        Visibility::Hidden,
+        SceneRoot::default(),
+    ));
+}
+
+/// A system that draws active pertubator preview at hit location
+fn preview_pertubator(
+    pointers: Query<&PointerInteraction>,
+    active_pertubator: Res<ActivePertubator>,
+    pertubator_assets: Option<Res<PertubatorAssets>>,
+    preview: Single<(&mut Visibility, &mut Transform, &mut SceneRoot), With<PertubatorPreview>>,
+) {
+    /* Wait on asset load; There is probably a better way */
+    let Some(pertubator_assets) = pertubator_assets else {
+        return;
+    };
+    let (mut visiblity, mut transform, mut scene) = preview.into_inner();
+
+    /* Hide the preview in case we do not have a hit or no active pertubator selected*/
+    *visiblity = Visibility::Hidden;
+
+    if let Some(pertubator) = active_pertubator.0 {
+        /* Update visuals based on pertubator */
+        if active_pertubator.is_changed() {
+            scene.0 = pertubator_assets.0.get(&pertubator).unwrap().scene.clone();
+        }
+    } else {
+        /* Nothing to do if no active pertubator */
+        return;
+    }
+
+    /* Update position and visibility */
+    for point in pointers
+        .iter()
+        .filter_map(|interaction| interaction.get_nearest_hit())
+        .filter_map(|(_entity, hit)| hit.position)
+    {
+        transform.translation = point;
+        *visiblity = Visibility::Inherited;
     }
 }
