@@ -11,6 +11,7 @@ pub fn plugin(app: &mut App) {
     app.register_type::<MusicAssets>();
     app.load_resource::<MusicAssets>();
     app.add_systems(OnEnter(Screen::Gameplay), start_game_music);
+    // app.add_systems(Update, swap_game_music);
 }
 
 fn spawn_light(mut commands: Commands) {
@@ -74,10 +75,18 @@ impl FromWorld for MusicAssets {
     }
 }
 
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
+pub struct GameMusic;
+
 fn start_game_music(mut commands: Commands, game_music: Res<MusicAssets>) {
     commands.spawn((
         Name::new("Game Music"),
         StateScoped(Screen::Gameplay),
-        music(game_music.music.clone()),
+        AudioPlayer(game_music.music.clone()),
+        PlaybackSettings::DESPAWN,
+        GameMusic,
     ));
 }
+
+fn swap_game_music(mut commands: Commands, game_music: Res<MusicAssets>) {}
