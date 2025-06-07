@@ -1,6 +1,7 @@
 use avian3d::prelude::*;
 use bevy::{
     math::ops::{exp, sin},
+    pbr::NotShadowCaster,
     picking::pointer::PointerInteraction,
     platform::collections::HashMap,
     prelude::*,
@@ -364,6 +365,7 @@ fn spawn_preview(mut commands: Commands) {
         Transform::default(),
         Visibility::Hidden,
         SceneRoot::default(),
+        NotShadowCaster,
     ));
 }
 
@@ -428,7 +430,7 @@ fn preview_pertubator_material_transparency(
             // Potentially expensive, but probably fine
             let mut new_material = material.clone();
             new_material.alpha_mode = AlphaMode::Blend;
-            new_material.base_color.set_alpha(0.33);
+            new_material.base_color.set_alpha(0.66);
 
             // Override `MeshMaterial3d` with new material
             commands
