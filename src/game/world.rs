@@ -2,11 +2,15 @@ use std::f32::consts::PI;
 
 use bevy::{color::palettes::css::GREEN, pbr::CascadeShadowConfigBuilder, prelude::*};
 
-use crate::screens::Screen;
+use crate::{asset_tracking::LoadResource, audio::music, screens::Screen};
 
 pub fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_grass);
     app.add_systems(OnEnter(Screen::Gameplay), spawn_light);
+
+    app.register_type::<MusicAssets>();
+    app.load_resource::<MusicAssets>();
+    app.add_systems(OnEnter(Screen::Gameplay), start_game_music);
 }
 
 fn spawn_light(mut commands: Commands) {
@@ -51,5 +55,29 @@ pub fn spawn_grass(
     commands.spawn((
         StateScoped(Screen::Gameplay),
         grass(&mut meshes, &mut materials),
+    ));
+}
+
+#[derive(Resource, Asset, Clone, Reflect)]
+#[reflect(Resource)]
+struct MusicAssets {
+    #[dependency]
+    music: Handle<AudioSource>,
+}
+
+impl FromWorld for MusicAssets {
+    fn from_world(world: &mut World) -> Self {
+        let assets = world.resource::<AssetServer>();
+        Self {
+            music: assets.load("audio/music/FreakyWaves - CrashThemAll.ogg"),
+        }
+    }
+}
+
+fn start_game_music(mut commands: Commands, game_music: Res<MusicAssets>) {
+    commands.spawn((
+        Name::new("Game Music"),
+        StateScoped(Screen::Gameplay),
+        music(game_music.music.clone()),
     ));
 }

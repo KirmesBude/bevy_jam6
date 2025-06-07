@@ -100,7 +100,7 @@ fn update_global_volume_label(
     global_volume: Res<GlobalVolume>,
     mut label: Single<&mut Text, With<GlobalVolumeLabel>>,
 ) {
-    let percent = 100.0 * global_volume.volume.to_linear();
+    let percent = 40.0 * global_volume.volume.to_linear();
     label.0 = format!("{percent:3.0}%");
 }
 
