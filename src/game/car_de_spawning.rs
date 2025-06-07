@@ -1,7 +1,7 @@
 use std::f32::consts::FRAC_PI_4;
 
-use avian3d::{math::FRAC_PI_2, prelude::*};
-use bevy::{gizmos, prelude::*};
+use avian3d::prelude::*;
+use bevy::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
