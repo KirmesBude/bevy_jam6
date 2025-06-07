@@ -1,7 +1,7 @@
 use avian3d::prelude::*;
 use bevy::{
     picking::pointer::PointerInteraction, platform::collections::HashMap, prelude::*,
-    window::PrimaryWindow,
+    scene::SceneInstanceReady, window::PrimaryWindow,
 };
 
 use crate::{
@@ -28,6 +28,7 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
+    app.add_observer(preview_pertubator_material_transparency);
 }
 
 #[derive(Debug, Default, Clone, Component, Reflect)]
@@ -275,7 +276,6 @@ fn spawn_preview(mut commands: Commands) {
 }
 
 /// A system that draws active pertubator preview at hit location
-/// TODO: Transparency
 fn preview_pertubator(
     pointers: Query<&PointerInteraction>,
     active_pertubator: Res<ActivePertubator>,
@@ -307,8 +307,41 @@ fn preview_pertubator(
         .filter_map(|interaction| interaction.get_nearest_hit())
         .filter_map(|(_entity, hit)| hit.position)
     {
-        dbg!("{}", point);
         transform.translation = point;
         *visiblity = Visibility::Inherited;
+    }
+}
+
+fn preview_pertubator_material_transparency(
+    trigger: Trigger<SceneInstanceReady>,
+    mut commands: Commands,
+    children: Query<&Children>,
+    pertubator_preview: Single<Entity, With<PertubatorPreview>>,
+    mesh_materials: Query<&MeshMaterial3d<StandardMaterial>>,
+    mut asset_materials: ResMut<Assets<StandardMaterial>>,
+) {
+    if *pertubator_preview != trigger.target() {
+        return;
+    }
+
+    // Iterate over all children recursively
+    for descendants in children.iter_descendants(trigger.target()) {
+        // Get the material of the descendant
+        if let Some(material) = mesh_materials
+            .get(descendants)
+            .ok()
+            .and_then(|id| asset_materials.get_mut(id.id()))
+        {
+            // Create a copy of the material and override alpha
+            // Potentially expensive, but probably fine
+            let mut new_material = material.clone();
+            new_material.alpha_mode = AlphaMode::Blend;
+            new_material.base_color.set_alpha(0.5);
+
+            // Override `MeshMaterial3d` with new material
+            commands
+                .entity(descendants)
+                .insert(MeshMaterial3d(asset_materials.add(new_material)));
+        }
     }
 }
