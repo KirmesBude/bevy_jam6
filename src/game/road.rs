@@ -17,28 +17,17 @@ enum LaneType {
 struct RoadsOrigin;
 
 #[derive(Debug, Default, Component, Reflect)]
-pub struct RoadConfig {
-    types: Vec<LaneType>,
-    pos_start: Vec3,
-    pos_end: Vec3,
-    pos_inc_primary: Vec3,
-    pos_inc_secondary: Vec3,
-}
-
-#[derive(Debug, Default, Component, Reflect)]
-
 struct Road;
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<RoadConfig>();
-
     app.register_type::<RoadAssets>();
     app.load_resource::<RoadAssets>();
 
-    app.add_systems(OnEnter(Screen::Gameplay), spawn_roads_new);
+    app.add_systems(OnEnter(Screen::Gameplay), spawn_roads);
 }
 
-pub fn spawn_roads_new(mut commands: Commands, road_assets: Res<RoadAssets>) {
+/// Spawn the visuals and the collider of the road.
+pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
     let lanes = vec![
         LaneType::Border,
         LaneType::LeftToRight,
@@ -55,10 +44,8 @@ pub fn spawn_roads_new(mut commands: Commands, road_assets: Res<RoadAssets>) {
 
     let total_span_z = lanes.len() as f32 * LANEWIDTH;
     // Start in the neg-neg-quadrant direction. + half lanewidth due to centered meshes.
-    let start_x = - ROADLENGTH / 2. + LANEWIDTH / 2.;
-    let start_z = - total_span_z / 2. + LANEWIDTH / 2.;
-
-
+    let start_x = -ROADLENGTH / 2. + LANEWIDTH / 2.;
+    let start_z = -total_span_z / 2. + LANEWIDTH / 2.;
 
     commands
         .spawn((
@@ -72,7 +59,6 @@ pub fn spawn_roads_new(mut commands: Commands, road_assets: Res<RoadAssets>) {
             Friction::new(0.05),
         ))
         .with_children(|parent| {
-            
             for lane_index in 0..lanes.len() {
                 let lane_asset: &Handle<Scene> = match lanes[lane_index] {
                     LaneType::Border => &road_assets.road_border,
@@ -81,20 +67,22 @@ pub fn spawn_roads_new(mut commands: Commands, road_assets: Res<RoadAssets>) {
                 };
 
                 for tile_index in 0..tiles_per_lane {
-                    let pos: Vec3 = Vec3::new(start_x + tile_index as f32 * LANEWIDTH, 0., start_z + lane_index as f32 * LANEWIDTH);
+                    let pos: Vec3 = Vec3::new(
+                        start_x + tile_index as f32 * LANEWIDTH,
+                        0.,
+                        start_z + lane_index as f32 * LANEWIDTH,
+                    );
 
                     parent.spawn((
                         Road,
                         Name::new("Road"),
                         StateScoped(Screen::Gameplay),
-                        Transform::from_translation(pos)
-                            .with_scale(Vec3::splat(4.)),
+                        Transform::from_translation(pos).with_scale(Vec3::splat(4.)),
                         SceneRoot(lane_asset.clone()),
                     ));
                 }
             }
-        }
-    );
+        });
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]

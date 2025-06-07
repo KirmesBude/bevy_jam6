@@ -1,5 +1,10 @@
 use avian3d::prelude::*;
-use bevy::{math::ops::{exp, sin}, platform::collections::HashMap, prelude::*, window::PrimaryWindow};
+use bevy::{
+    math::ops::{exp, sin},
+    platform::collections::HashMap,
+    prelude::*,
+    window::PrimaryWindow,
+};
 
 use crate::{
     AppSystems, PausableSystems, asset_tracking::LoadResource, game::car_colliders::WheelCollider,
@@ -28,7 +33,7 @@ pub(super) fn plugin(app: &mut App) {
         FixedUpdate,
         update_springs
             .in_set(AppSystems::Update)
-            .in_set(PausableSystems)
+            .in_set(PausableSystems),
     );
 }
 
@@ -120,8 +125,10 @@ impl FromWorld for PertubatorAssets {
                     (
                         *pertubator,
                         PertubatorAsset {
-                            scene: assets.load(GltfAssetLabel::Scene(0)
-                                .from_asset(format!("models/perturbators/{}.glb", model))),
+                            scene: assets.load(
+                                GltfAssetLabel::Scene(0)
+                                    .from_asset(format!("models/perturbators/{}.glb", model)),
+                            ),
                         },
                     )
                 })
@@ -164,47 +171,50 @@ impl Pertubator {
         match self {
             Pertubator::Spring => {
                 // Kinematic object for pushing with an activation sensor and a scene as children.
-                entity_commands.insert(
-                (
-                            Name::new(self.name()),
-                            Spring {active_time: 0.},
-                            *self,
-                            Transform::from_translation(position.with_y(spring_y_position(0.))),
-                            RigidBody::Kinematic,
-                            Collider::cylinder(1.0, 4.0),
-                            Visibility::Visible,
-                        ))
-                        .with_children(|parent| {
-                            parent.spawn(
-                                (
-                                    Name::new("SpringSensor"),
-                                    RigidBody::Static,
-                                    Sensor,
-                                    Collider::sphere(0.4),
-                                    CollisionEventsEnabled,
-                                    Transform::from_xyz(0., 2., 0.),
-                                )
-                            )
-                            .observe(|trigger: Trigger<OnCollisionStart>, mut commands: Commands, possible_spring_sensors: Query<&ChildOf, With<Sensor>>, cars: Query<Entity, With<Car>>,| {
-                                let spring_sensor = trigger.target();
-                                let spring = possible_spring_sensors.get(spring_sensor).unwrap().0;
-                                let other_entity = trigger.collider;
-                                if cars.contains(other_entity) {
-                                    commands.entity(spring).insert(Lifetime::new(2.));
-                                    commands.entity(spring_sensor).remove::<CollisionEventsEnabled>();
-                                }
-                            });
-
-                            parent.spawn(
-                                (
-                                    Name::new("SpringScene"),
-                                    SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
-                                    Transform::from_xyz(0., 2., 0.),
-                                )
+                entity_commands
+                    .insert((
+                        Name::new(self.name()),
+                        Spring { active_time: 0. },
+                        *self,
+                        Transform::from_translation(position.with_y(spring_y_position(0.))),
+                        RigidBody::Kinematic,
+                        Collider::cylinder(1.0, 4.0),
+                        Visibility::Visible,
+                    ))
+                    .with_children(|parent| {
+                        parent
+                            .spawn((
+                                Name::new("SpringSensor"),
+                                RigidBody::Static,
+                                Sensor,
+                                Collider::sphere(0.4),
+                                CollisionEventsEnabled,
+                                Transform::from_xyz(0., 2., 0.),
+                            ))
+                            .observe(
+                                |trigger: Trigger<OnCollisionStart>,
+                                 mut commands: Commands,
+                                 possible_spring_sensors: Query<&ChildOf, With<Sensor>>,
+                                 cars: Query<Entity, With<Car>>| {
+                                    let spring_sensor = trigger.target();
+                                    let spring =
+                                        possible_spring_sensors.get(spring_sensor).unwrap().0;
+                                    let other_entity = trigger.collider;
+                                    if cars.contains(other_entity) {
+                                        commands.entity(spring).insert(Lifetime::new(2.));
+                                        commands
+                                            .entity(spring_sensor)
+                                            .remove::<CollisionEventsEnabled>();
+                                    }
+                                },
                             );
-                        });
-                        
-                        
+
+                        parent.spawn((
+                            Name::new("SpringScene"),
+                            SceneRoot(pertubator_assets.0.get(self).unwrap().scene.clone()),
+                            Transform::from_xyz(0., 2., 0.),
+                        ));
+                    });
             }
             Pertubator::Nails => {
                 entity_commands
@@ -262,14 +272,13 @@ impl Pertubator {
     }
 }
 
-
 #[derive(Clone, Component, Debug, Reflect)]
 struct Spring {
     active_time: f32,
 }
 
 /// Function for moving springs.
-/// 
+///
 /// It starts slightly below zero to avoid contacts with the cars before activating.
 fn spring_y_position(active_time: f32) -> f32 {
     // Scale the time to fit well in the function.
@@ -278,11 +287,13 @@ fn spring_y_position(active_time: f32) -> f32 {
     (exp(-x) * sin(2. * x) + 1322.) / 400. - 2. // -2. because of the offset of the collider
 }
 
-
 /// Updates the position of all active springs.
-/// 
+///
 /// A spring is activated through adding the Lifetime-component.
-fn update_springs(springs: Query<(&mut Spring, &Transform, &mut LinearVelocity), With<Lifetime>>, time: Res<Time<Physics>>) {
+fn update_springs(
+    springs: Query<(&mut Spring, &Transform, &mut LinearVelocity), With<Lifetime>>,
+    time: Res<Time<Physics>>,
+) {
     for (mut spring, transform, mut velocity) in springs {
         let time_step = time.delta_secs();
 
@@ -293,10 +304,6 @@ fn update_springs(springs: Query<(&mut Spring, &Transform, &mut LinearVelocity),
         velocity.y = (target_position - transform.translation.y) / time_step;
     }
 }
-
-
-
-
 
 /// This hold the currently active Pertubator as determined by ui selection
 #[derive(Debug, Default, Resource, Reflect)]
