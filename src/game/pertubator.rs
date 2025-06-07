@@ -10,7 +10,9 @@ use bevy::{
 };
 
 use crate::{
-    AppSystems, PausableSystems, asset_tracking::LoadResource, game::car_colliders::WheelCollider,
+    AppSystems, PausableSystems,
+    asset_tracking::LoadResource,
+    game::{car_colliders::WheelCollider, road::RoadsOrigin},
     screens::Screen,
 };
 
@@ -375,7 +377,9 @@ fn preview_pertubator(
     active_pertubator: Res<ActivePertubator>,
     pertubator_assets: Option<Res<PertubatorAssets>>,
     preview: Single<(&mut Visibility, &mut Transform, &mut SceneRoot), With<PertubatorPreview>>,
+    road_origins: Query<Entity, With<RoadsOrigin>>,
 ) {
+    let _ = road_origins;
     /* Wait on asset load; There is probably a better way */
     let Some(pertubator_assets) = pertubator_assets else {
         return;
@@ -396,13 +400,16 @@ fn preview_pertubator(
     }
 
     /* Update position and visibility */
-    for point in pointers
+    for (entity, hit) in pointers
         .iter()
         .filter_map(|interaction| interaction.get_nearest_hit())
-        .filter_map(|(_entity, hit)| hit.position)
     {
-        transform.translation = point;
-        *visiblity = Visibility::Inherited;
+        if road_origins.contains(*entity) {
+            if let Some(point) = hit.position {
+                transform.translation = point;
+                *visiblity = Visibility::Inherited;
+            }
+        }
     }
 }
 

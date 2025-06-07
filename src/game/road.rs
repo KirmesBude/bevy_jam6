@@ -14,7 +14,7 @@ enum LaneType {
 }
 
 #[derive(Debug, Default, Component, Reflect)]
-struct RoadsOrigin;
+pub struct RoadsOrigin;
 
 #[derive(Debug, Default, Component, Reflect)]
 struct Road;
