@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::{color::palettes::css::GREEN, pbr::CascadeShadowConfigBuilder, prelude::*};
 
-use crate::{asset_tracking::LoadResource, audio::music, screens::Screen};
+use crate::{asset_tracking::LoadResource, screens::Screen};
 
 pub fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_grass);

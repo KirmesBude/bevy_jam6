@@ -264,7 +264,7 @@ impl Pertubator {
                             let other_entity = trigger.collider;
                             if wheels.contains(other_entity) {
                                 commands.entity(other_entity).insert(Nailed);
-                                // dbg!("Car {} triggered nails {}", other_entity, nails);
+                                dbg!("Car {} triggered nails {}", other_entity, nails);
                             }
                         },
                     );
@@ -290,7 +290,7 @@ impl Pertubator {
                             let other_entity = trigger.collider;
                             if wheels.contains(other_entity) {
                                 commands.entity(other_entity).insert(Soaped);
-                                // dbg!("Car {} triggered soap {}", other_entity, soap);
+                                dbg!("Car {} triggered soap {}", other_entity, soap);
                             }
                         },
                     );

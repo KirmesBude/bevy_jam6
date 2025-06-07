@@ -92,9 +92,9 @@ fn top_container() -> impl Bundle {
     )
 }
 
-fn print_item(index: u8) {
-    // dbg!("{}", index);
-}
+// fn print_item(index: u8) {
+//     dbg!("{}", index);
+// }
 
 fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAssets) -> impl Bundle {
     let image = pertubator_assets.get(&pertubator).unwrap().image().clone();
