@@ -111,7 +111,7 @@ fn update_car_spawners(
 // System for despawning cars that are outside of the visible area.
 fn despawn_cars(mut commands: Commands, cars: Query<(Entity, &Transform), With<Car>>) {
     for (entity, transform) in cars.iter() {
-        if transform.translation.xz().length() > 2. * ROADLENGTH || transform.translation.y < -10. {
+        if transform.translation.xz().length() > ROADLENGTH || transform.translation.y < -10. {
             commands.entity(entity).despawn();
         }
     }
