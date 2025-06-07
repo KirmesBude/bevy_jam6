@@ -1,6 +1,5 @@
 use std::f32::consts::PI;
 
-use avian3d::prelude::*;
 use bevy::{color::palettes::css::GREEN, pbr::CascadeShadowConfigBuilder, prelude::*};
 
 use crate::screens::Screen;
@@ -40,13 +39,9 @@ fn grass(meshes: &mut Assets<Mesh>, materials: &mut Assets<StandardMaterial>) ->
     (
         Name::new("Grass"),
         Ground,
-        Transform::from_xyz(0., 0., 0.),
+        Transform::from_xyz(0., -0.01, 0.),
         Mesh3d(meshes.add(Plane3d::new(Vec3::Y, GRASS_SIZE).mesh())),
         MeshMaterial3d(materials.add(Color::from(GREEN))),
-        RigidBody::Static,
-        Collider::half_space(Vec3::Y),
-        Friction::new(0.05),
-        Pickable::default(),
     )
 }
 

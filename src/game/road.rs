@@ -1,6 +1,9 @@
+use avian3d::prelude::*;
 use bevy::prelude::*;
 
 use crate::{asset_tracking::LoadResource, screens::Screen};
+
+use super::consts::{LANEWIDTH, ROADLENGTH};
 
 #[derive(Debug, Reflect)]
 enum LaneType {
@@ -32,70 +35,66 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<RoadAssets>();
     app.load_resource::<RoadAssets>();
 
-    app.add_systems(OnEnter(Screen::Gameplay), spawn_roads);
+    app.add_systems(OnEnter(Screen::Gameplay), spawn_roads_new);
 }
 
-pub fn spawn_roads(mut commands: Commands, road_assets: Res<RoadAssets>) {
-    let conf: RoadConfig = RoadConfig {
-        types: vec![
-            LaneType::Border,
-            LaneType::LeftToRight,
-            LaneType::LeftToRight,
-            LaneType::Border,
-            LaneType::Separator,
-            LaneType::Border,
-            LaneType::RightToLeft,
-            LaneType::RightToLeft,
-            LaneType::Border,
-        ],
-        pos_start: Vec3::new(-50.0, 0.0, 0.0),
-        pos_end: Vec3::new(50.0, 0.0, 0.0),
-        pos_inc_primary: Vec3::new(4.0, 0.0, 0.0),
-        pos_inc_secondary: Vec3::new(0.0, 0.0, 4.0),
-    };
+pub fn spawn_roads_new(mut commands: Commands, road_assets: Res<RoadAssets>) {
+    let lanes = vec![
+        LaneType::Border,
+        LaneType::LeftToRight,
+        LaneType::LeftToRight,
+        LaneType::Border,
+        LaneType::Separator,
+        LaneType::Border,
+        LaneType::RightToLeft,
+        LaneType::RightToLeft,
+        LaneType::Border,
+    ];
+
+    let tiles_per_lane = (ROADLENGTH / LANEWIDTH).round() as u32;
+
+    let total_span_z = lanes.len() as f32 * LANEWIDTH;
+    // Start in the neg-neg-quadrant direction. + half lanewidth due to centered meshes.
+    let start_x = - ROADLENGTH / 2. + LANEWIDTH / 2.;
+    let start_z = - total_span_z / 2. + LANEWIDTH / 2.;
+
+
 
     commands
         .spawn((
             RoadsOrigin,
-            Name::new("Roads Origin"),
+            Name::new("RoadOrigin"),
             StateScoped(Screen::Gameplay),
             Transform::default(),
             Visibility::default(),
+            RigidBody::Static,
+            Collider::half_space(Vec3::Y),
+            Friction::new(0.05),
         ))
         .with_children(|parent| {
-            let mut z_offset: f32 =
-                -(conf.types.len() as f32 / 2.0) * (conf.pos_inc_secondary.length() / 2.);
-
-            for lane_type in conf.types.iter() {
-                let mut pos: Vec3 = conf.pos_start.with_z(z_offset);
-
-                let road_asset: &Handle<Scene> = match lane_type {
+            
+            for lane_index in 0..lanes.len() {
+                let lane_asset: &Handle<Scene> = match lanes[lane_index] {
                     LaneType::Border => &road_assets.road_border,
                     LaneType::Separator => &road_assets.road_separator,
                     _ => &road_assets.road_straight,
                 };
 
-                while conf.pos_end.with_z(z_offset).distance(pos)
-                    >= conf.pos_inc_primary.length() / 2.
-                {
-                    // info!("Spawning road: {:?} at {}", lane_type, pos);
+                for tile_index in 0..tiles_per_lane {
+                    let pos: Vec3 = Vec3::new(start_x + tile_index as f32 * LANEWIDTH, 0., start_z + lane_index as f32 * LANEWIDTH);
 
                     parent.spawn((
                         Road,
                         Name::new("Road"),
                         StateScoped(Screen::Gameplay),
-                        Transform::from_translation(pos + Vec3::new(0.0, 0.0, z_offset))
+                        Transform::from_translation(pos)
                             .with_scale(Vec3::splat(4.)),
-                        SceneRoot(road_asset.clone()),
+                        SceneRoot(lane_asset.clone()),
                     ));
-
-                    pos += conf.pos_inc_primary;
                 }
-
-                pos += conf.pos_inc_secondary;
-                z_offset += conf.pos_inc_secondary.length() / 2.;
             }
-        });
+        }
+    );
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
