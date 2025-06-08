@@ -3,7 +3,6 @@ use bevy::{prelude::*, render::mesh::CuboidMeshBuilder};
 
 use crate::{
     asset_tracking::LoadResource,
-
     game::{car_de_spawning::create_car_spawner, pertubator::spawn_pertubator},
     screens::Screen,
 };
