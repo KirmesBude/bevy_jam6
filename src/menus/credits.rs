@@ -52,16 +52,14 @@ fn assets() -> impl Bundle {
             "Music, SFX and 3d models made or adapted during the jam",
             "CC0 by FreakyWaves",
         ],
-        ["Car crash sounds source", "by https://quicksounds.com"],
         [
-            "Explosion grenade sounds source",
+            "Car crash & explosion grenade sounds source",
             "by https://quicksounds.com",
         ],
-        ["Font package", "CC0 by Kenney (www.kenney.nl)"],
-        ["Toy Car Kit (1.2)", "CC0 by Kenney (www.kenney.nl)"],
-        ["Car Kit (2.0)", "CC0 by Kenney (www.kenney.nl)"],
-        ["Mini Dungeon (1.5)", "CC0 by Kenney (www.kenney.nl)"],
-        ["Survival Kit (2.0)", "CC0 by Kenney (www.kenney.nl)"],
+        [
+            "Font package, Toy Car Kit (1.2), Car Kit (2.0), Mini Dungeon (1.5), Survival Kit (2.0)",
+            "CC0 by Kenney (www.kenney.nl)",
+        ],
         [
             "Car Engine Loop 96kHz, 4s",
             "CC BY 3.0 by qubodup (opengameart.org)",
@@ -71,6 +69,7 @@ fn assets() -> impl Bundle {
             "Bevy logo",
             "All rights reserved by the Bevy Foundation, permission granted for splash screen use when unmodified",
         ],
+        ["avian", "Apache-2.0/MIT by Jondolf"],
     ])
 }
 
