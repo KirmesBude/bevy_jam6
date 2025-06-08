@@ -173,12 +173,13 @@ impl Pertubator {
                                 |trigger: Trigger<OnCollisionStart>,
                                  mut commands: Commands,
                                  possible_spring_sensors: Query<&ChildOf, With<Sensor>>,
-                                 cars: Query<Entity, With<Car>>| {
+                                 mut cars: Query<&mut Car>| {
                                     let spring_sensor = trigger.target();
                                     let spring =
                                         possible_spring_sensors.get(spring_sensor).unwrap().0;
                                     let other_entity = trigger.collider;
                                     if cars.contains(other_entity) {
+                                        cars.get_mut(other_entity).unwrap().wrecked = true;
                                         commands.entity(spring).insert(Lifetime::new(2.));
                                         commands
                                             .entity(spring_sensor)
