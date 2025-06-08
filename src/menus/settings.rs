@@ -4,7 +4,11 @@
 
 use bevy::{audio::Volume, input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
-use crate::{menus::Menu, screens::Screen, theme::prelude::*};
+use crate::{
+    menus::Menu,
+    screens::Screen,
+    theme::{prelude::*, widget::UiAssets},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Settings), spawn_settings_menu);
@@ -20,20 +24,20 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_settings_menu(mut commands: Commands) {
+fn spawn_settings_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
     commands.spawn((
         widget::ui_root("Settings Menu"),
         GlobalZIndex(2),
         StateScoped(Menu::Settings),
         children![
-            widget::header("Settings"),
-            settings_grid(),
-            widget::button("Back", go_back_on_click),
+            widget::header("Settings", &ui_assets),
+            settings_grid(&ui_assets),
+            widget::button("Back", go_back_on_click, &ui_assets),
         ],
     ));
 }
 
-fn settings_grid() -> impl Bundle {
+fn settings_grid(ui_assets: &UiAssets) -> impl Bundle {
     (
         Name::new("Settings Grid"),
         Node {
@@ -45,18 +49,18 @@ fn settings_grid() -> impl Bundle {
         },
         children![
             (
-                widget::label("Master Volume"),
+                widget::label("Master Volume", ui_assets),
                 Node {
                     justify_self: JustifySelf::End,
                     ..default()
                 }
             ),
-            global_volume_widget(),
+            global_volume_widget(ui_assets),
         ],
     )
 }
 
-fn global_volume_widget() -> impl Bundle {
+fn global_volume_widget(ui_assets: &UiAssets) -> impl Bundle {
     (
         Name::new("Global Volume Widget"),
         Node {
@@ -64,7 +68,7 @@ fn global_volume_widget() -> impl Bundle {
             ..default()
         },
         children![
-            widget::button_small("-", lower_global_volume),
+            widget::button_small("-", lower_global_volume, ui_assets),
             (
                 Name::new("Current Volume"),
                 Node {
@@ -72,9 +76,9 @@ fn global_volume_widget() -> impl Bundle {
                     justify_content: JustifyContent::Center,
                     ..default()
                 },
-                children![(widget::label(""), GlobalVolumeLabel)],
+                children![(widget::label("", ui_assets), GlobalVolumeLabel)],
             ),
-            widget::button_small("+", raise_global_volume),
+            widget::button_small("+", raise_global_volume, ui_assets),
         ],
     )
 }

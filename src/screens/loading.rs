@@ -3,7 +3,11 @@
 
 use bevy::prelude::*;
 
-use crate::{asset_tracking::ResourceHandles, screens::Screen, theme::prelude::*};
+use crate::{
+    asset_tracking::ResourceHandles,
+    screens::Screen,
+    theme::{prelude::*, widget::UiAssets},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Loading), spawn_loading_screen);
@@ -14,11 +18,11 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_loading_screen(mut commands: Commands) {
+fn spawn_loading_screen(mut commands: Commands, ui_assets: Res<UiAssets>) {
     commands.spawn((
         widget::ui_root("Loading Screen"),
         StateScoped(Screen::Loading),
-        children![widget::label("Loading...")],
+        children![widget::label("Loading...", &ui_assets)],
     ));
 }
 

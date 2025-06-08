@@ -29,26 +29,24 @@ fn close_menu(mut next_menu: ResMut<NextState<Menu>>) {
 #[reflect(Component)]
 struct Rotating;
 
-fn spawn_rotating_cars(mut commands: Commands, car_assets: Option<Res<CarAssets>>) {
-    if let Some(car_assets) = car_assets {
-        let rng = &mut rand::thread_rng();
-        const DISTANCE: f32 = 15.;
-        const SCALE: f32 = 3.;
+fn spawn_rotating_cars(mut commands: Commands, car_assets: Res<CarAssets>) {
+    let rng = &mut rand::thread_rng();
+    const DISTANCE: f32 = 15.;
+    const SCALE: f32 = 3.;
 
-        for i in -4..=4 {
-            for j in -4..=4 {
-                let car_index = rng.gen_range(0..car_assets.get_scenes().len());
-                let scene = car_assets.get_scenes()[car_index].clone();
-                let translation = Vec3::new(i as f32 * DISTANCE, 0.0, j as f32 * DISTANCE);
+    for i in -4..=4 {
+        for j in -4..=4 {
+            let car_index = rng.gen_range(0..car_assets.get_scenes().len());
+            let scene = car_assets.get_scenes()[car_index].clone();
+            let translation = Vec3::new(i as f32 * DISTANCE, 0.0, j as f32 * DISTANCE);
 
-                commands.spawn((
-                    Name::new("Title Car"),
-                    SceneRoot(scene),
-                    Transform::from_translation(translation).with_scale(SCALE * Vec3::ONE),
-                    Rotating,
-                    StateScoped(Screen::Title),
-                ));
-            }
+            commands.spawn((
+                Name::new("Title Car"),
+                SceneRoot(scene),
+                Transform::from_translation(translation).with_scale(SCALE * Vec3::ONE),
+                Rotating,
+                StateScoped(Screen::Title),
+            ));
         }
     }
 }
