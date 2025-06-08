@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use avian3d::prelude::*;
-use bevy::{audio::SpatialScale, prelude::*};
+use bevy::{audio::SpatialScale, math::ops::acos, prelude::*};
 use rand::Rng;
 
 use crate::{
@@ -159,22 +159,16 @@ fn correct_car_torque(
             continue;
         }
 
-        // Get the angle with sign between the car rotation and the planned driving direction.
-        // The calculated angle is corrensponding to a rotation around - Vec3::Y, because of the use of xz() instead of something like {x}{-z}()
-        // This is why we use the minus to bring it into our 3D-space. Afterwards the initial rotation of the entity to fit the model on to the object is subtracted.
-        let mut angle_offset = -transform
+        let current_direction = transform
             .rotation
-            .mul_vec3(Vec3::X)
-            .xz()
-            .angle_to(car.driving_direction.xz())
-            - INITIALCARMODELROTATION;
+            .mul_quat(Quat::from_rotation_y(-INITIALCARMODELROTATION))
+            .mul_vec3(Vec3::X);
+        let axis = current_direction.cross(car.driving_direction);
 
-        if angle_offset < -PI {
-            angle_offset += 2. * PI;
-        }
+        let angle = acos(current_direction.dot(car.driving_direction));
 
         // Do not rotate if the car is in the tolerated range.
-        if angle_offset.abs() < MINIMALANGLEOFFSETFORTORQUECORRECTION {
+        if angle.abs() < MINIMALANGLEOFFSETFORTORQUECORRECTION {
             continue;
         }
 
@@ -184,7 +178,8 @@ fn correct_car_torque(
         if angular_velocity.y.abs() > MAXIMALANGULARVELOCITYFORTORQUECORRECTION {
             continue;
         }
-        torque.y -= angle_offset * inertia.value().y_axis.y * 0.5;
+
+        torque.y = inertia.tensor().y_axis.y * axis.y.signum();
     }
 }
 
