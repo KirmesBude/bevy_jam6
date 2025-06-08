@@ -7,7 +7,7 @@ use crate::{
     screens::Screen,
 };
 
-use super::consts::{LANEWIDTH, ROADLENGTH};
+use super::consts::{GROUNDFRICTION, LANEWIDTH, ROADLENGTH};
 
 #[derive(Debug, Reflect, PartialEq, Eq, Clone, Copy)]
 
@@ -69,7 +69,7 @@ pub fn spawn_roads(
             Visibility::default(),
             RigidBody::Static,
             Collider::half_space(Vec3::Y),
-            Friction::new(0.05),
+            Friction::new(GROUNDFRICTION),
             Mesh3d(
                 meshes.add(CuboidMeshBuilder::default().build().scaled_by(Vec3::new(
                     ROADLENGTH,
@@ -149,7 +149,7 @@ pub fn spawn_roads(
         commands.spawn(create_car_spawner(
             car_spawner_info.1,
             car_spawner_info.0,
-            4.,
+            5.,
         ));
     }
 }

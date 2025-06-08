@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use avian3d::prelude::*;
-use bevy::{audio::SpatialScale, prelude::*};
+use bevy::{audio::SpatialScale, math::ops::acos, prelude::*};
 use rand::Rng;
 
 use crate::{
@@ -16,10 +16,9 @@ use crate::{
 use super::{
     car_colliders::{AllCarColliders, WheelCollider},
     consts::{
-        AIRFRICTIONCOEFFICIENT, CARBODYFRICTION, CARFORWARDFORCE, INITIALCARMODELROTATION,
+        CARBODYFRICTION, CARFORWARDFORCE, INITIALCARMODELROTATION,
         MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION, MINIMALANGLEOFFSETFORTORQUECORRECTION,
-        MINIMALVELOCITYFORAIRFRICTION, WHEELFRICTIONNAILED, WHEELFRICTIONSOAPED,
-        WHEELFRICTIONSOAPEDANDNAILED,
+        WHEELFRICTIONNAILED, WHEELFRICTIONSOAPED, WHEELFRICTIONSOAPEDANDNAILED,
     },
     pertubator::{Nailed, Soaped},
 };
@@ -40,12 +39,7 @@ pub(super) fn plugin(app: &mut App) {
     // TODO: Put this in the right schedule
     app.add_systems(
         FixedUpdate,
-        (
-            air_friction,
-            accelerate_cars,
-            correct_car_torque,
-            update_friction_changes,
-        )
+        (accelerate_cars, correct_car_torque, update_friction_changes)
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
@@ -129,26 +123,6 @@ pub fn create_car(
     )
 }
 
-/// Applies air friction to the moving objects.
-///
-/// Objects are typically cars, car parts or obstacles.
-/// If they are standing still, they are skipped.
-fn air_friction(mut moving_objects: Query<(&LinearVelocity, &mut ExternalForce)>) {
-    for (velocity, mut applied_force) in moving_objects.iter_mut() {
-        // Only apply this friction to high enough velocities to avoid vibrations when standing still
-        if velocity.length() < MINIMALVELOCITYFORAIRFRICTION {
-            continue;
-        }
-        // Apply a force in the opposite direction of the velocity.
-        // This force is proportional to the square of the velocity with the given factor.
-        // It has to be weighted with the time step.
-        // The force is cleared by avian every frame.
-        let new_force =
-            applied_force.force() - AIRFRICTIONCOEFFICIENT * velocity.0.length() * velocity.0;
-        applied_force.set_force(new_force);
-    }
-}
-
 /// Applies the driving force to the cars being not wrecked.
 fn accelerate_cars(mut cars: Query<(&Car, &LinearVelocity, &mut ExternalForce)>) {
     for (car, velocity, mut applied_force) in cars.iter_mut() {
@@ -185,22 +159,16 @@ fn correct_car_torque(
             continue;
         }
 
-        // Get the angle with sign between the car rotation and the planned driving direction.
-        // The calculated angle is corrensponding to a rotation around - Vec3::Y, because of the use of xz() instead of something like {x}{-z}()
-        // This is why we use the minus to bring it into our 3D-space. Afterwards the initial rotation of the entity to fit the model on to the object is subtracted.
-        let mut angle_offset = -transform
+        let current_direction = transform
             .rotation
-            .mul_vec3(car.driving_direction)
-            .xz()
-            .angle_to(car.driving_direction.xz())
-            - INITIALCARMODELROTATION;
+            .mul_quat(Quat::from_rotation_y(-INITIALCARMODELROTATION))
+            .mul_vec3(Vec3::X);
+        let axis = current_direction.cross(car.driving_direction);
 
-        if angle_offset < -PI {
-            angle_offset += 2. * PI;
-        }
+        let angle = acos(current_direction.dot(car.driving_direction));
 
         // Do not rotate if the car is in the tolerated range.
-        if angle_offset.abs() < MINIMALANGLEOFFSETFORTORQUECORRECTION {
+        if angle.abs() < MINIMALANGLEOFFSETFORTORQUECORRECTION {
             continue;
         }
 
@@ -210,7 +178,8 @@ fn correct_car_torque(
         if angular_velocity.y.abs() > MAXIMALANGULARVELOCITYFORTORQUECORRECTION {
             continue;
         }
-        torque.y -= angle_offset * inertia.value().y_axis.y * 0.5;
+
+        torque.y = inertia.tensor().y_axis.y * axis.y.signum();
     }
 }
 
