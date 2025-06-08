@@ -4,7 +4,7 @@ pub mod car;
 mod car_colliders;
 mod car_de_spawning;
 mod consts;
-mod pertubator;
+pub mod pertubator;
 mod points;
 mod road;
 pub mod ui;
