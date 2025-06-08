@@ -26,7 +26,7 @@ use super::{
 
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
-    wrecked: bool, // TODO: Mabye make this a tag component.
+    pub wrecked: bool, // TODO: Mabye make this a tag component.
     target_velocity: f32,
     driving_direction: Vec3, // This has to be a normalized vector!
 }
