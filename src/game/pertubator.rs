@@ -182,12 +182,13 @@ impl Pertubator {
                                 |trigger: Trigger<OnCollisionStart>,
                                  mut commands: Commands,
                                  possible_spring_sensors: Query<&ChildOf, With<Sensor>>,
-                                 cars: Query<Entity, With<Car>>| {
+                                 mut cars: Query<&mut Car>| {
                                     let spring_sensor = trigger.target();
                                     let spring =
                                         possible_spring_sensors.get(spring_sensor).unwrap().0;
                                     let other_entity = trigger.collider;
                                     if cars.contains(other_entity) {
+                                        cars.get_mut(other_entity).unwrap().wrecked = true;
                                         commands.entity(spring).insert(Lifetime::new(2.));
                                         commands
                                             .entity(spring_sensor)
@@ -214,16 +215,16 @@ impl Pertubator {
                         Collider::cylinder(0.5, 0.5),
                         Sensor,
                         CollisionEventsEnabled,
-                        //Lifetime::new(5.),
                     ))
                     .observe(
                         |trigger: Trigger<OnCollisionStart>,
                          mut commands: Commands,
                          wheels: Query<Entity, With<WheelCollider>>| {
-                            // let nails = trigger.target();
+                            let nails = trigger.target();
                             let other_entity = trigger.collider;
                             if wheels.contains(other_entity) {
                                 commands.entity(other_entity).insert(Nailed);
+                                commands.entity(nails).insert(Lifetime::new(1.0));
                                 // dbg!("Car {} triggered nails {}", other_entity, nails);
                             }
                         },
@@ -240,16 +241,16 @@ impl Pertubator {
                         Collider::cylinder(0.5, 0.5),
                         Sensor,
                         CollisionEventsEnabled,
-                        Lifetime::new(5.),
                     ))
                     .observe(
                         |trigger: Trigger<OnCollisionStart>,
                          mut commands: Commands,
                          wheels: Query<Entity, With<WheelCollider>>| {
-                            // let soap = trigger.target();
+                            let soap = trigger.target();
                             let other_entity = trigger.collider;
                             if wheels.contains(other_entity) {
                                 commands.entity(other_entity).insert(Soaped);
+                                commands.entity(soap).insert(Lifetime::new(1.0));
                                 // dbg!("Car {} triggered soap {}", other_entity, soap);
                             }
                         },

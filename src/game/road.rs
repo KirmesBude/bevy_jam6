@@ -3,7 +3,7 @@ use bevy::{prelude::*, render::mesh::CuboidMeshBuilder};
 
 use crate::{
     asset_tracking::LoadResource,
-    game::{car_de_spawning::create_car_spawner, pertubator::spawn_pertubator},
+    game::{car::CarCrashable, car_de_spawning::create_car_spawner, pertubator::spawn_pertubator},
     screens::Screen,
 };
 
@@ -108,7 +108,7 @@ pub fn spawn_roads(
                     ));
 
                     if *lane == LaneType::Separator {
-                        segment.insert((RigidBody::Static, Collider::cuboid(1.0, 0.75, 0.8)));
+                        segment.insert((RigidBody::Static, Collider::cuboid(1.0, 0.75, 0.8), CarCrashable));
                     }
                 }
 

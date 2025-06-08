@@ -3,6 +3,7 @@
 use std::borrow::Cow;
 
 use bevy::{
+    color::palettes::css::WHITE,
     ecs::{spawn::SpawnWith, system::IntoObserverSystem},
     prelude::*,
     ui::Val::*,
@@ -48,6 +49,10 @@ pub fn header(text: impl Into<String>, ui_assets: &UiAssets) -> impl Bundle {
             ..Default::default()
         },
         TextColor(HEADER_TEXT),
+        TextShadow {
+            offset: Vec2::splat(2.5),
+            ..Default::default()
+        },
     )
 }
 
@@ -62,6 +67,10 @@ pub fn label(text: impl Into<String>, ui_assets: &UiAssets) -> impl Bundle {
             ..Default::default()
         },
         TextColor(LABEL_TEXT),
+        TextShadow {
+            offset: Vec2::splat(2.5),
+            ..Default::default()
+        },
     )
 }
 
@@ -70,7 +79,11 @@ pub fn label_simple(text: impl Into<String>) -> impl Bundle {
         Name::new("Label"),
         Text(text.into()),
         TextFont::from_font_size(16.0),
-        TextColor(LABEL_TEXT),
+        TextColor(WHITE.into()),
+        TextShadow {
+            offset: Vec2::splat(2.5),
+            ..Default::default()
+        },
     )
 }
 
@@ -161,6 +174,10 @@ where
                             ..Default::default()
                         },
                         TextColor(BUTTON_TEXT),
+                        TextShadow {
+                            offset: Vec2::splat(2.5),
+                            ..Default::default()
+                        },
                         // Don't bubble picking events from the text up to the button.
                         Pickable::IGNORE,
                     )],

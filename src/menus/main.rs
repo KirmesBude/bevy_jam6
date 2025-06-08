@@ -1,6 +1,6 @@
 //! The main menu (seen on the title screen).
 
-use bevy::prelude::*;
+use bevy::{color::palettes::css::RED, prelude::*};
 
 use crate::{
     asset_tracking::ResourceHandles,
@@ -20,6 +20,7 @@ fn spawn_main_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
         StateScoped(Menu::Main),
         #[cfg(not(target_family = "wasm"))]
         children![
+            game_title("THE GAME", &ui_assets),
             widget::button("Play", enter_loading_or_gameplay_screen, &ui_assets),
             widget::button("Settings", open_settings_menu, &ui_assets),
             widget::button("Credits", open_credits_menu, &ui_assets),
@@ -27,6 +28,7 @@ fn spawn_main_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
         ],
         #[cfg(target_family = "wasm")]
         children![
+            game_title("THE GAME", &ui_assets),
             widget::button("Play", enter_loading_or_gameplay_screen, &ui_assets),
             widget::button("Settings", open_settings_menu, &ui_assets),
             widget::button("Credits", open_credits_menu, &ui_assets),
@@ -57,4 +59,21 @@ fn open_credits_menu(_: Trigger<Pointer<Click>>, mut next_menu: ResMut<NextState
 #[cfg(not(target_family = "wasm"))]
 fn exit_app(_: Trigger<Pointer<Click>>, mut app_exit: EventWriter<AppExit>) {
     app_exit.write(AppExit::Success);
+}
+
+fn game_title(text: impl Into<String>, ui_assets: &UiAssets) -> impl Bundle {
+    (
+        Name::new("Header"),
+        Text(text.into()),
+        TextFont {
+            font: ui_assets.font.clone(),
+            font_size: 80.,
+            ..Default::default()
+        },
+        TextColor(RED.into()),
+        TextShadow {
+            offset: Vec2::splat(2.5),
+            ..Default::default()
+        },
+    )
 }
