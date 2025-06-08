@@ -26,8 +26,12 @@ const CRASH_SOUND_MAGNITUDE_CUTOFF_2: f32 = 20.0;
 const DEBRIS_IMPULSE: f32 = 50.0;
 
 #[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct Wrecked;
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
 pub struct Car {
-    pub wrecked: bool, // TODO: Mabye make this a tag component.
     target_velocity: f32,
     driving_direction: Vec3, // This has to be a normalized vector!
 }
@@ -50,7 +54,6 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            crash_to_wrecked,
             play_crash_sound,
             spawn_debris_on_crash,
             spawn_smoke_on_wrecked,
@@ -64,8 +67,7 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<CarCrash>();
     app.add_event::<CarCrash>();
 
-    app.register_type::<WreckedEvent>();
-    app.add_event::<WreckedEvent>();
+    app.register_type::<Wrecked>();
 }
 
 pub fn spawn_car(
@@ -111,7 +113,6 @@ pub fn create_car(
     (
         Name::new("Car"),
         Car {
-            wrecked: false,
             target_velocity,
             driving_direction,
         },
@@ -147,9 +148,9 @@ pub fn create_car(
 }
 
 /// Applies the driving force to the cars being not wrecked.
-fn accelerate_cars(mut cars: Query<(&Car, &LinearVelocity, &mut ExternalForce)>) {
-    for (car, velocity, mut applied_force) in cars.iter_mut() {
-        if car.wrecked || velocity.length() > car.target_velocity {
+fn accelerate_cars(mut cars: Query<(&Car, &LinearVelocity, &mut ExternalForce, Has<Wrecked>)>) {
+    for (car, velocity, mut applied_force, has_wrecked) in cars.iter_mut() {
+        if has_wrecked || velocity.length() > car.target_velocity {
             continue;
         }
         // Let the car accelerate in the trageted direction.
@@ -169,10 +170,11 @@ fn correct_car_torque(
         &ComputedAngularInertia,
         &Transform,
         &mut ExternalTorque,
+        Has<Wrecked>,
     )>,
 ) {
-    for (car, angular_velocity, inertia, transform, mut torque) in cars.iter_mut() {
-        if car.wrecked {
+    for (car, angular_velocity, inertia, transform, mut torque, has_wrecked) in cars.iter_mut() {
+        if has_wrecked {
             continue;
         }
 
@@ -210,6 +212,7 @@ fn correct_car_torque(
 ///
 /// At the moment, only the `Soaped` and the `Nailed` tags exist and are handled.
 fn update_friction_changes(
+    mut commands: Commands,
     mut changed_objects: Query<
         (
             &mut Friction,
@@ -220,7 +223,6 @@ fn update_friction_changes(
         ),
         Or<(Added<Soaped>, Added<Nailed>)>,
     >,
-    mut cars: Query<&mut Car>,
 ) {
     for (mut friction, possible_parent, is_wheel, is_soaped, is_nailed) in
         changed_objects.iter_mut()
@@ -242,11 +244,11 @@ fn update_friction_changes(
 
         // Part of a car -> mark it as wrecked.
         if is_wheel && possible_parent.is_some() {
-            let mut parent_car = cars.get_mut(possible_parent.unwrap().0).unwrap();
-
-            // Mark the car as wrecked (-> make the car stop) if anything of this happened.
-            // No effect, if the car is already wrecked
-            parent_car.wrecked = true;
+            if let Some(parent) = possible_parent {
+                // Mark the car as wrecked (-> make the car stop) if anything of this happened.
+                // No effect, if the car is already wrecked
+                commands.entity(parent.0).insert(Wrecked);
+            }
         }
     }
 }
@@ -438,16 +440,13 @@ fn spawn_debris_on_crash(
     }
 }
 
-#[derive(Debug, Event, Reflect)]
-pub struct WreckedEvent(pub Entity);
-
 fn spawn_smoke_on_wrecked(
     mut commands: Commands,
-    mut wrecked_events: EventReader<WreckedEvent>,
+    wrecked_cars: Query<Entity, Added<Wrecked>>,
     car_assets: Res<CarAssets>,
 ) {
     let smoke = car_assets.smoke.clone();
-    for wrecked_event in wrecked_events.read() {
+    for wrecked_car in wrecked_cars {
         let child = commands
             .spawn((
                 SceneRoot(smoke.clone()),
@@ -457,16 +456,6 @@ fn spawn_smoke_on_wrecked(
             ))
             .id();
 
-        commands.entity(wrecked_event.0).add_child(child);
-    }
-}
-
-fn crash_to_wrecked(
-    mut car_crashes: EventReader<CarCrash>,
-    mut wrecked_events: EventWriter<WreckedEvent>,
-) {
-    for car_crash in car_crashes.read() {
-        wrecked_events.write(WreckedEvent(car_crash.entities[0]));
-        wrecked_events.write(WreckedEvent(car_crash.entities[1]));
+        commands.entity(wrecked_car).add_child(child);
     }
 }

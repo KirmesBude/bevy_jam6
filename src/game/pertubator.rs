@@ -11,7 +11,7 @@ use bevy::{
 use crate::{
     AppSystems, PausableSystems,
     asset_tracking::LoadResource,
-    game::{car_colliders::WheelCollider, road::RoadsOrigin},
+    game::{car::Wrecked, car_colliders::WheelCollider, road::RoadsOrigin},
     screens::Screen,
 };
 
@@ -189,13 +189,13 @@ impl Pertubator {
                                 |trigger: Trigger<OnCollisionStart>,
                                  mut commands: Commands,
                                  possible_spring_sensors: Query<&ChildOf, With<Sensor>>,
-                                 mut cars: Query<&mut Car>| {
+                                 cars: Query<&Car>| {
                                     let spring_sensor = trigger.target();
                                     let spring =
                                         possible_spring_sensors.get(spring_sensor).unwrap().0;
                                     let other_entity = trigger.collider;
                                     if cars.contains(other_entity) {
-                                        cars.get_mut(other_entity).unwrap().wrecked = true;
+                                        commands.entity(other_entity).insert(Wrecked);
                                         commands.entity(spring).insert(Lifetime::new(2.));
                                         commands
                                             .entity(spring_sensor)
@@ -278,7 +278,7 @@ impl Pertubator {
                     .observe(
                         |trigger: Trigger<OnCollisionStart>,
                          mut commands: Commands,
-                         mut cars: Query<(&mut Car, &mut ExternalImpulse, &Transform)>,
+                         mut cars: Query<(&mut ExternalImpulse, &Transform), With<Car>>,
                          transform: Query<&Transform>,
                          spatial_query: SpatialQuery| {
                             let barrel = trigger.target();
@@ -298,10 +298,8 @@ impl Pertubator {
                                 );
 
                                 for entity in intersections.iter() {
-                                    if let Ok((mut car, mut impulse, transform)) =
-                                        cars.get_mut(*entity)
-                                    {
-                                        car.wrecked = true;
+                                    if let Ok((mut impulse, transform)) = cars.get_mut(*entity) {
+                                        commands.entity(*entity).insert(Wrecked);
                                         impulse.apply_impulse(
                                             BARREL_EXPLOSION_STRENGTH
                                                 * (transform.translation - barrel_pos.translation)
