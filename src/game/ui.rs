@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css::GOLD, ecs::spawn::SpawnWith, prelude::*};
+use bevy::{color::palettes::css::*, ecs::spawn::SpawnWith, prelude::*};
 
 use crate::{
     game::{
@@ -31,23 +31,18 @@ fn bottom_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
     (
         Name::new("UI Bottom"),
         Node {
-            width: Val::Percent(100.),
-            height: Val::Percent(15.),
+            width: Val::Vw(100.),
+            height: Val::Vh(16.),
             position_type: PositionType::Absolute,
             bottom: Val::Percent(0.), /* TODO: This can be replaced if root ui is SpaceBetween */
             flex_direction: FlexDirection::Row,
-            justify_content: JustifyContent::SpaceBetween,
+            justify_content: JustifyContent::SpaceAround,
             align_items: AlignItems::Center,
             padding: UiRect::all(Val::Percent(1.)),
             ..Default::default()
         },
-        //BackgroundColor(WHITE.into()),
-        children![
-            item_container(pertubator_assets),
-            widget::button("crash out", |_: Trigger<Pointer<Click>>| {
-                /* TODO: Nothing for now */
-            }),
-        ],
+        BackgroundColor(BLACK.with_alpha(0.33).into()),
+        children![item_container(pertubator_assets),],
     )
 }
 
@@ -60,7 +55,7 @@ fn item_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
             align_items: AlignItems::Center,
             ..Default::default()
         },
-        //BackgroundColor(RED.into()),
+        BackgroundColor(BLACK.into()),
         children![
             pertubator_button(Pertubator::Spring, pertubator_assets),
             pertubator_button(Pertubator::Nails, pertubator_assets),
@@ -74,20 +69,21 @@ fn top_container() -> impl Bundle {
         Name::new("UI Top"),
         Node {
             width: Val::Percent(100.),
-            height: Val::Percent(15.),
+            height: Val::Percent(8.),
             position_type: PositionType::Absolute,
             top: Val::Percent(0.),
             flex_direction: FlexDirection::Row,
-            justify_content: JustifyContent::SpaceBetween,
+            justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
             padding: UiRect::all(Val::Percent(1.)),
             ..Default::default()
         },
-        //BackgroundColor(BLACK.into()),
+        BackgroundColor(BLACK.with_alpha(0.33).into()),
         children![
+            (Text("Score: ".into()), TextFont::from_font_size(24.0)),
             highscore(),
-            widget::label("Current Combo?"),
-            widget::label("Achievements")
+            // widget::label("Current Combo?"),
+            // widget::label("Achievements")
         ],
     )
 }
@@ -107,8 +103,11 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                 .spawn((
                     Name::new("Button Inner"),
                     Button,
-                    Node::default(),
-                    BackgroundColor(BUTTON_BACKGROUND),
+                    Node {
+                        padding: UiRect::all(Val::Percent(1.)),
+                        ..Default::default()
+                    },
+                    // BackgroundColor(BUTTON_BACKGROUND.with_alpha(0.33)),
                     InteractionPalette {
                         none: BUTTON_BACKGROUND,
                         hovered: BUTTON_HOVERED_BACKGROUND,

@@ -18,7 +18,7 @@ fn spawn_light(mut commands: Commands) {
     commands.spawn((
         StateScoped(Screen::Gameplay),
         DirectionalLight {
-            illuminance: 1.5 * light_consts::lux::OVERCAST_DAY,
+            illuminance: 1.0 * light_consts::lux::AMBIENT_DAYLIGHT,
             shadows_enabled: true,
             ..default()
         },
@@ -84,7 +84,7 @@ fn start_game_music(mut commands: Commands, game_music: Res<MusicAssets>) {
         Name::new("Game Music"),
         StateScoped(Screen::Gameplay),
         AudioPlayer(game_music.music.clone()),
-        PlaybackSettings::DESPAWN,
+        PlaybackSettings::LOOP,
         GameMusic,
     ));
 }
