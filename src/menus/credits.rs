@@ -54,6 +54,7 @@ fn assets() -> impl Bundle {
         ],
         ["Car crash sounds source", "by https://quicksounds.com"],
         ["Font package", "CC0 by Kenney (www.kenney.nl)"],
+        ["Toy Car Kit (1.2)", "CC0 by Kenney (www.kenney.nl)"],
         ["Car Kit (2.0)", "CC0 by Kenney (www.kenney.nl)"],
         ["Mini Dungeon (1.5)", "CC0 by Kenney (www.kenney.nl)"],
         ["Survival Kit (2.0)", "CC0 by Kenney (www.kenney.nl)"],
