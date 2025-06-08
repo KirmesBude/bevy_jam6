@@ -1,8 +1,8 @@
-# Bevy Jam6
+# Are we there yet?
 
-WIP
+A bevy_jam6 entry by @MacTrissy, @FreakyWaves and @KirmesBude.
+Wreck havoc on a busy highway.
 This project was generated using the [Bevy New 2D](https://github.com/TheBevyFlock/bevy_new_2d) template.
-Check out the [documentation](https://github.com/TheBevyFlock/bevy_new_2d/blob/main/README.md) to get started!
 
 ## License
 
@@ -14,4 +14,3 @@ The source code in this repository is licensed under any of the following at you
 ## Credits
 
 The [assets](./assets) in this repository are all 3rd-party. See the [credits menu](./src/menus/credits.rs) for more information.
-funcfunc
