@@ -2,6 +2,7 @@
 
 mod gameplay;
 mod loading;
+mod shop;
 mod splash;
 mod title;
 
@@ -13,6 +14,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins((
         gameplay::plugin,
         loading::plugin,
+        shop::plugin,
         splash::plugin,
         title::plugin,
     ));
@@ -27,4 +29,5 @@ pub enum Screen {
     Title,
     Loading,
     Gameplay,
+    Shop,
 }

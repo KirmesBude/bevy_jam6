@@ -4,6 +4,7 @@ mod credits;
 mod main;
 mod pause;
 mod settings;
+mod shop;
 
 use bevy::prelude::*;
 
@@ -14,6 +15,7 @@ pub(super) fn plugin(app: &mut App) {
         credits::plugin,
         main::plugin,
         settings::plugin,
+        shop::plugin,
         pause::plugin,
     ));
 }
@@ -27,4 +29,5 @@ pub enum Menu {
     Credits,
     Settings,
     Pause,
+    Shop,
 }
