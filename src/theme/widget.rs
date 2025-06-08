@@ -3,6 +3,7 @@
 use std::borrow::Cow;
 
 use bevy::{
+    color::palettes::css::{BLACK, WHITE},
     ecs::{spawn::SpawnWith, system::IntoObserverSystem},
     prelude::*,
     ui::Val::*,
@@ -70,7 +71,11 @@ pub fn label_simple(text: impl Into<String>) -> impl Bundle {
         Name::new("Label"),
         Text(text.into()),
         TextFont::from_font_size(16.0),
-        TextColor(LABEL_TEXT),
+        TextColor(WHITE.into()),
+        TextShadow {
+            offset: Vec2::splat(3.),
+            ..Default::default()
+        },
     )
 }
 
