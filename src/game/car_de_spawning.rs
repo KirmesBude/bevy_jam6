@@ -1,13 +1,12 @@
-use std::f32::consts::FRAC_PI_4;
-
 use avian3d::prelude::*;
 use bevy::prelude::*;
+use rand::Rng;
 
 use crate::{
     AppSystems, PausableSystems,
     game::{
         car::spawn_car,
-        consts::{DISTANCEUNTILCARSREACHTHEROAD, ROADLENGTH},
+        consts::{DISTANCEUNTILCARSREACHTHEROAD, MAX_AMOUNT_OF_CARS, ROADLENGTH},
     },
     screens::Screen,
 };
@@ -39,6 +38,7 @@ pub(super) fn plugin(app: &mut App) {
 pub struct CarSpawner {
     target_velocity: f32,
     driving_direction: Vec3, // This has to be a normalized vector!
+    timer: Timer,
 }
 
 impl CarSpawner {
@@ -46,6 +46,7 @@ impl CarSpawner {
         CarSpawner {
             target_velocity,
             driving_direction,
+            timer: Timer::default(),
         }
     }
 }
@@ -58,24 +59,14 @@ pub fn create_car_spawner(
 ) -> impl Bundle {
     assert!(driving_direction == Vec3::X || driving_direction == Vec3::NEG_X);
 
-    let driving_direction_sign = if driving_direction == Vec3::X {
-        1.
-    } else {
-        -1.
-    };
-
     (
         Name::new("CarSpawner"),
-        Transform {
-            translation: Vec3::new(
-                -driving_direction.x * (ROADLENGTH / 2. + DISTANCEUNTILCARSREACHTHEROAD),
-                MAXCARHEIGHT / 2.,
-                mid_of_lane_coord_z,
-            ),
-            rotation: Quat::from_rotation_y(driving_direction_sign * FRAC_PI_4),
-            ..default()
-        },
-        CarSpawner::new(target_velocity, driving_direction * driving_direction_sign),
+        Transform::from_xyz(
+            -driving_direction.x * (ROADLENGTH / 2. + DISTANCEUNTILCARSREACHTHEROAD),
+            MAXCARHEIGHT / 2.,
+            mid_of_lane_coord_z,
+        ),
+        CarSpawner::new(target_velocity, driving_direction),
         StateScoped(Screen::Gameplay),
     )
 }
@@ -83,49 +74,66 @@ pub fn create_car_spawner(
 /// Update all car spawners to create cars, if possible.
 fn update_car_spawners(
     mut commands: Commands,
-    spawners: Query<(&CarSpawner, &Transform)>,
+    mut spawners: Query<(&mut CarSpawner, &Transform)>,
     all_rigid_bodies: Query<&RigidBody>,
     spatial_query: SpatialQuery,
     car_assets: Res<CarAssets>,
     all_car_colliders: Res<AllCarColliders>,
+    cars: Query<Entity, With<Car>>,
+    time: Res<Time>,
 ) {
-    for (spawner, transform) in spawners.iter() {
-        // Check, if there is space to spawn the car
-        let spawn_area = ColliderAabb::new(
-            transform.translation,
-            Vec3::new(MAXCARLENGTH, MAXCARHEIGHT, MAXCARWIDTH) / 2.,
-        );
+    let rng = &mut rand::thread_rng();
 
-        let colliders_in_spawn = spatial_query.aabb_intersections_with_aabb(spawn_area);
+    if cars.iter().len() >= MAX_AMOUNT_OF_CARS {
+        return;
+    }
 
-        if colliders_in_spawn
-            .iter()
-            .filter(|entity| {
-                *all_rigid_bodies.get(**entity).unwrap_or(&RigidBody::Static) == RigidBody::Dynamic
-            })
-            .count()
-            > 0
-        {
-            // If there are any dynamic objects in the spawn area, it is blocked.
-            continue;
+    for (mut spawner, transform) in &mut spawners {
+        if spawner.timer.tick(time.delta()).finished() {
+            // Check, if there is space to spawn the car
+            let spawn_area = ColliderAabb::new(
+                transform.translation,
+                Vec3::new(MAXCARLENGTH, MAXCARHEIGHT, MAXCARWIDTH) / 2.,
+            );
+
+            let colliders_in_spawn = spatial_query.aabb_intersections_with_aabb(spawn_area);
+
+            if colliders_in_spawn
+                .iter()
+                .filter(|entity| {
+                    *all_rigid_bodies.get(**entity).unwrap_or(&RigidBody::Static)
+                        == RigidBody::Dynamic
+                })
+                .count()
+                > 0
+            {
+                // If there are any dynamic objects in the spawn area, it is blocked.
+                continue;
+            }
+
+            let mut entity_commands = commands.spawn_empty();
+            spawn_car(
+                &mut entity_commands,
+                &car_assets,
+                &all_car_colliders,
+                transform.translation.with_y(0.01),
+                spawner.target_velocity,
+                spawner.driving_direction,
+            );
+
+            /* Reset Timer */
+            spawner.timer = Timer::from_seconds(rng.gen_range(2.0..5.0), TimerMode::Once);
         }
-
-        let mut entity_commands = commands.spawn_empty();
-        spawn_car(
-            &mut entity_commands,
-            &car_assets,
-            &all_car_colliders,
-            transform.translation.with_y(0.01),
-            spawner.target_velocity,
-            spawner.driving_direction,
-        );
     }
 }
 
 // System for despawning cars that are outside of the visible area.
 fn despawn_cars(mut commands: Commands, cars: Query<(Entity, &Transform), With<Car>>) {
     for (entity, transform) in cars.iter() {
-        if transform.translation.xz().length() > ROADLENGTH || transform.translation.y < -10. {
+        if transform.translation.xz().length()
+            > (ROADLENGTH / 2. + DISTANCEUNTILCARSREACHTHEROAD * 1.5)
+            || transform.translation.y < -10.
+        {
             commands.entity(entity).despawn();
         }
     }

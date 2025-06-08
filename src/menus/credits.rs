@@ -4,7 +4,12 @@ use bevy::{
     ecs::spawn::SpawnIter, input::common_conditions::input_just_pressed, prelude::*, ui::Val::*,
 };
 
-use crate::{asset_tracking::LoadResource, audio::music, menus::Menu, theme::prelude::*};
+use crate::{
+    asset_tracking::LoadResource,
+    audio::music,
+    menus::Menu,
+    theme::{prelude::*, widget::UiAssets},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Credits), spawn_credits_menu);
@@ -18,35 +23,36 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Credits), start_credits_music);
 }
 
-fn spawn_credits_menu(mut commands: Commands) {
+fn spawn_credits_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
     commands.spawn((
         widget::ui_root("Credits Menu"),
         GlobalZIndex(2),
         StateScoped(Menu::Credits),
         children![
-            widget::header("Created by"),
+            widget::header("Created by", &ui_assets),
             created_by(),
-            widget::header("Assets"),
+            widget::header("Assets", &ui_assets),
             assets(),
-            widget::button("Back", go_back_on_click),
+            widget::button("Back", go_back_on_click, &ui_assets),
         ],
     ));
 }
 
 fn created_by() -> impl Bundle {
     grid(vec![
-        ["MacTrissy", ""],
-        ["FreakyWaves", ""],
-        ["KirmesBude", ""],
+        ["MacTrissy", "The man, the myth, the legend"],
+        ["FreakyWaves", "Genius, playboy, philanthropist"],
+        ["KirmesBude", "I was here the whole time"],
     ])
 }
 
 fn assets() -> impl Bundle {
     grid(vec![
         [
-            "FreakyWaves",
-            "Music, SFX and 3d models made or apadted during the jam",
+            "Music, SFX and 3d models made or adapted during the jam",
+            "CC0 by FreakyWaves",
         ],
+        ["Font package", "CC0 by Kenney (www.kenney.nl)"],
         ["Car Kit (2.0)", "CC0 by Kenney (www.kenney.nl)"],
         ["Mini Dungeon (1.5)", "CC0 by Kenney (www.kenney.nl)"],
         ["Survival Kit (2.0)", "CC0 by Kenney (www.kenney.nl)"],
@@ -75,7 +81,7 @@ fn grid(content: Vec<[&'static str; 2]>) -> impl Bundle {
         Children::spawn(SpawnIter(content.into_iter().flatten().enumerate().map(
             |(i, text)| {
                 (
-                    widget::label(text),
+                    widget::label_simple(text),
                     Node {
                         justify_self: if i % 2 == 0 {
                             JustifySelf::End

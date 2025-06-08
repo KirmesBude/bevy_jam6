@@ -1,17 +1,13 @@
+use std::f32::consts::PI;
+
 use bevy::{
-    input::mouse::{AccumulatedMouseScroll, MouseScrollUnit},
-    prelude::*,
+    color::palettes::css::ORANGE_RED, pbr::CascadeShadowConfigBuilder, prelude::*,
     render::camera::ScalingMode,
 };
 
-use crate::screens::Screen;
-
-const ZOOM_SCROLL_FACTOR: f32 = 256.;
-
 pub(super) fn plugin(app: &mut App) {
     // Spawn and update the zoom of the game camera
-    app.add_systems(Startup, spawn_camera);
-    app.add_systems(Update, zoom_camera.run_if(in_state(Screen::Gameplay)));
+    app.add_systems(Startup, (spawn_camera, spawn_light));
 }
 
 fn spawn_camera(mut commands: Commands) {
@@ -30,30 +26,26 @@ fn spawn_camera(mut commands: Commands) {
     ));
 }
 
-fn zoom_camera(
-    projection: Single<&mut Projection>,
-    time: Res<Time>,
-    acc_scroll: Res<AccumulatedMouseScroll>,
-) {
-    let scroll_y = match acc_scroll.unit {
-        MouseScrollUnit::Pixel => acc_scroll.delta.y / 100.0,
-        MouseScrollUnit::Line => acc_scroll.delta.y,
-    };
+fn spawn_light(mut commands: Commands) {
+    // ambient light
+    commands.insert_resource(AmbientLight {
+        color: ORANGE_RED.into(),
+        brightness: 1.0,
+        ..default()
+    });
 
-    let delta = scroll_y * ZOOM_SCROLL_FACTOR * time.delta_secs();
-
-    if delta == 0.0 {
-        return;
-    }
-
-    #[cfg(feature = "dev")]
-    if let Projection::Orthographic(ref mut ortho) = *projection.into_inner() {
-        if let ScalingMode::FixedHorizontal { viewport_width } = &mut ortho.scaling_mode {
-            let autoscale_factor = 1. - (1.0 / (1. + *viewport_width));
-            *viewport_width += delta * autoscale_factor;
-            *viewport_width = viewport_width.clamp(8., 256.);
-
-            // info!(viewport_height, delta, scroll_y, acc_scroll.delta.y);
+    commands.spawn((
+        DirectionalLight {
+            illuminance: 1.0 * light_consts::lux::AMBIENT_DAYLIGHT,
+            shadows_enabled: true,
+            ..default()
+        },
+        Transform::from_rotation(Quat::from_euler(EulerRot::ZYX, 0.0, PI / 2., -PI / 4.)),
+        CascadeShadowConfigBuilder {
+            first_cascade_far_bound: 7.0,
+            maximum_distance: 200.0,
+            ..default()
         }
-    }
+        .build(),
+    ));
 }

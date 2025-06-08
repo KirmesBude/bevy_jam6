@@ -8,7 +8,15 @@ use bevy::{
     ui::Val::*,
 };
 
-use crate::theme::{interaction::InteractionPalette, palette::*};
+use crate::{
+    asset_tracking::LoadResource,
+    theme::{interaction::InteractionPalette, palette::*},
+};
+
+pub(super) fn plugin(app: &mut App) {
+    app.register_type::<UiAssets>();
+    app.load_resource::<UiAssets>();
+}
 
 /// A root UI node that fills the window and centers its content.
 pub fn ui_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
@@ -30,17 +38,34 @@ pub fn ui_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
 }
 
 /// A simple header label. Bigger than [`label`].
-pub fn header(text: impl Into<String>) -> impl Bundle {
+pub fn header(text: impl Into<String>, ui_assets: &UiAssets) -> impl Bundle {
     (
         Name::new("Header"),
         Text(text.into()),
-        TextFont::from_font_size(40.0),
+        TextFont {
+            font: ui_assets.font.clone(),
+            font_size: 40.,
+            ..Default::default()
+        },
         TextColor(HEADER_TEXT),
     )
 }
 
 /// A simple text label.
-pub fn label(text: impl Into<String>) -> impl Bundle {
+pub fn label(text: impl Into<String>, ui_assets: &UiAssets) -> impl Bundle {
+    (
+        Name::new("Label"),
+        Text(text.into()),
+        TextFont {
+            font: ui_assets.font.clone(),
+            font_size: 24.,
+            ..Default::default()
+        },
+        TextColor(LABEL_TEXT),
+    )
+}
+
+pub fn label_simple(text: impl Into<String>) -> impl Bundle {
     (
         Name::new("Label"),
         Text(text.into()),
@@ -50,7 +75,7 @@ pub fn label(text: impl Into<String>) -> impl Bundle {
 }
 
 /// A large rounded button with text and an action defined as an [`Observer`].
-pub fn button<E, B, M, I>(text: impl Into<String>, action: I) -> impl Bundle
+pub fn button<E, B, M, I>(text: impl Into<String>, action: I, ui_assets: &UiAssets) -> impl Bundle
 where
     E: Event,
     B: Bundle,
@@ -69,11 +94,16 @@ where
             },
             BorderRadius::MAX,
         ),
+        ui_assets,
     )
 }
 
 /// A small square button with text and an action defined as an [`Observer`].
-pub fn button_small<E, B, M, I>(text: impl Into<String>, action: I) -> impl Bundle
+pub fn button_small<E, B, M, I>(
+    text: impl Into<String>,
+    action: I,
+    ui_assets: &UiAssets,
+) -> impl Bundle
 where
     E: Event,
     B: Bundle,
@@ -89,6 +119,7 @@ where
             justify_content: JustifyContent::Center,
             ..default()
         },
+        ui_assets,
     )
 }
 
@@ -97,6 +128,7 @@ fn button_base<E, B, M, I>(
     text: impl Into<String>,
     action: I,
     button_bundle: impl Bundle,
+    ui_assets: &UiAssets,
 ) -> impl Bundle
 where
     E: Event,
@@ -105,6 +137,7 @@ where
 {
     let text = text.into();
     let action = IntoObserverSystem::into_system(action);
+    let font = ui_assets.font.clone();
     (
         Name::new("Button"),
         Node::default(),
@@ -122,7 +155,11 @@ where
                     children![(
                         Name::new("Button Text"),
                         Text(text),
-                        TextFont::from_font_size(40.0),
+                        TextFont {
+                            font,
+                            font_size: 40.,
+                            ..Default::default()
+                        },
                         TextColor(BUTTON_TEXT),
                         // Don't bubble picking events from the text up to the button.
                         Pickable::IGNORE,
@@ -132,4 +169,20 @@ where
                 .observe(action);
         })),
     )
+}
+
+#[derive(Debug, Resource, Asset, Clone, Reflect)]
+#[reflect(Resource)]
+pub struct UiAssets {
+    #[dependency]
+    pub font: Handle<Font>,
+}
+
+impl FromWorld for UiAssets {
+    fn from_world(world: &mut World) -> Self {
+        let assets = world.resource::<AssetServer>();
+        Self {
+            font: assets.load("fonts/Kenney Future Narrow.ttf"),
+        }
+    }
 }

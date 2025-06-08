@@ -1,6 +1,6 @@
 use bevy::app::App;
 
-mod car;
+pub mod car;
 mod car_colliders;
 mod car_de_spawning;
 mod consts;

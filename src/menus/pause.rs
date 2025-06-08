@@ -2,7 +2,11 @@
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{menus::Menu, screens::Screen, theme::widget};
+use crate::{
+    menus::Menu,
+    screens::Screen,
+    theme::widget::{self, UiAssets},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Pause), spawn_pause_menu);
@@ -12,25 +16,25 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_pause_menu(mut commands: Commands) {
+fn spawn_pause_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
     commands.spawn((
         widget::ui_root("Pause Menu"),
         GlobalZIndex(2),
         StateScoped(Menu::Pause),
         #[cfg(not(target_family = "wasm"))]
         children![
-            widget::header("Game paused"),
-            widget::button("Continue", close_menu),
-            widget::button("Settings", open_settings_menu),
-            widget::button("Quit to title", quit_to_title),
-            widget::button("Exit", exit_app),
+            widget::header("Game paused", &ui_assets),
+            widget::button("Continue", close_menu, &ui_assets),
+            widget::button("Settings", open_settings_menu, &ui_assets),
+            widget::button("Quit to title", quit_to_title, &ui_assets),
+            widget::button("Exit", exit_app, &ui_assets),
         ],
         #[cfg(target_family = "wasm")]
         children![
-            widget::header("Game paused"),
-            widget::button("Continue", close_menu),
-            widget::button("Settings", open_settings_menu),
-            widget::button("Quit to title", quit_to_title),
+            widget::header("Game paused", &ui_assets),
+            widget::button("Continue", close_menu, &ui_assets),
+            widget::button("Settings", open_settings_menu, &ui_assets),
+            widget::button("Quit to title", quit_to_title, &ui_assets),
         ],
     ));
 }
