@@ -143,11 +143,20 @@ impl Pertubator {
         &self,
         entity_commands: &mut EntityCommands,
         position: Vec3,
+        all_objects: &SpatialQuery,
         pertubator_assets: &PertubatorAssets,
     ) {
         let scene = pertubator_assets.get(self).unwrap().scene().clone();
         match self {
             Pertubator::Spring => {
+                // Wake up all close objects
+                for obj in all_objects.aabb_intersections_with_aabb(ColliderAabb::new(
+                    position,
+                    Vec3::new(2., 2., 2.),
+                )) {
+                    entity_commands.commands().queue(WakeUpBody(obj));
+                }
+
                 // Kinematic object for pushing with an activation sensor and a scene as children.
                 entity_commands
                     .insert((
@@ -294,15 +303,19 @@ pub struct ActivePertubator(pub Option<Pertubator>);
 pub fn spawn_pertubator(
     trigger: Trigger<Pointer<Pressed>>,
     mut commands: Commands,
+    spatial_query: SpatialQuery,
     active_pertubator: Res<ActivePertubator>,
     pertubator_assets: Res<PertubatorAssets>,
 ) {
     if let Some(pertubator) = active_pertubator.0 {
         if let Some(position) = trigger.hit.position {
             let mut entity_commands = commands.spawn(StateScoped(Screen::Gameplay));
-            pertubator.spawn(&mut entity_commands, position, &pertubator_assets);
-
-            // dbg!("Spawn {} at {}!", pertubator.name(), position);
+            pertubator.spawn(
+                &mut entity_commands,
+                position,
+                &spatial_query,
+                &pertubator_assets,
+            );
         }
     }
 }
