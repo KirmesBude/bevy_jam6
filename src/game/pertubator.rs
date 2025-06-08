@@ -131,6 +131,14 @@ impl Pertubator {
         }
     }
 
+    pub fn scale(&self) -> Vec3 {
+        match self {
+            Pertubator::Spring => Vec3::ONE,
+            Pertubator::Nails => 2. * Vec3::ONE,
+            Pertubator::Soap => 2. * Vec3::ONE,
+        }
+    }
+
     fn spawn(
         &self,
         entity_commands: &mut EntityCommands,
@@ -192,9 +200,9 @@ impl Pertubator {
                         Name::new(self.name()),
                         *self,
                         SceneRoot(scene),
-                        Transform::from_translation(position),
+                        Transform::from_translation(position).with_scale(self.scale()),
                         RigidBody::Static,
-                        Collider::cylinder(1.0, 1.0),
+                        Collider::cylinder(0.5, 0.5),
                         Sensor,
                         CollisionEventsEnabled,
                         //Lifetime::new(5.),
@@ -218,9 +226,9 @@ impl Pertubator {
                         Name::new(self.name()),
                         *self,
                         SceneRoot(scene),
-                        Transform::from_translation(position),
+                        Transform::from_translation(position).with_scale(self.scale()),
                         RigidBody::Static,
-                        Collider::cylinder(1.0, 1.0),
+                        Collider::cylinder(0.5, 0.5),
                         Sensor,
                         CollisionEventsEnabled,
                         Lifetime::new(5.),
@@ -332,15 +340,16 @@ fn preview_pertubator(
     /* Hide the preview in case we do not have a hit or no active pertubator selected*/
     *visiblity = Visibility::Hidden;
 
-    if let Some(pertubator) = active_pertubator.0 {
+    let scale = if let Some(pertubator) = active_pertubator.0 {
         /* Update visuals based on pertubator */
         if active_pertubator.is_changed() {
             scene.0 = pertubator_assets.0.get(&pertubator).unwrap().scene.clone();
         }
+        pertubator.scale()
     } else {
         /* Nothing to do if no active pertubator */
         return;
-    }
+    };
 
     /* Update position and visibility */
     for (entity, hit) in pointers
@@ -350,6 +359,7 @@ fn preview_pertubator(
         if road_origins.contains(*entity) {
             if let Some(point) = hit.position {
                 transform.translation = point;
+                *transform = transform.with_scale(scale);
                 *visiblity = Visibility::Inherited;
             }
         }
