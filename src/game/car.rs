@@ -58,6 +58,7 @@ pub(super) fn plugin(app: &mut App) {
             spawn_debris_on_crash,
             spawn_smoke_on_wrecked,
             remove_audio_on_wrecked,
+            rotate_y,
         )
             .in_set(AppSystems::Update)
             .in_set(PausableSystems)
@@ -69,6 +70,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_event::<CarCrash>();
 
     app.register_type::<Wrecked>();
+    app.register_type::<RotateY>();
 }
 
 pub fn spawn_car(
@@ -441,6 +443,16 @@ fn spawn_debris_on_crash(
     }
 }
 
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+struct RotateY;
+
+fn rotate_y(mut transforms: Query<&mut Transform, With<RotateY>>, time: Res<Time>) {
+    for mut transform in &mut transforms {
+        transform.rotate_y(time.delta_secs() / 2.);
+    }
+}
+
 fn spawn_smoke_on_wrecked(
     mut commands: Commands,
     wrecked_cars: Query<Entity, Added<Wrecked>>,
@@ -454,6 +466,7 @@ fn spawn_smoke_on_wrecked(
                 Transform::default()
                     .with_translation(Vec3::new(0., 3., 0.))
                     .with_scale(Vec3::splat(3.0)),
+                RotateY,
             ))
             .id();
 
