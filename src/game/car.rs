@@ -370,28 +370,29 @@ fn car_observer_crash(
 
 fn play_crash_sound(
     mut commands: Commands,
-    transforms: Query<&Transform>,
+    transforms: Query<&Transform, (With<Car>, Without<Wrecked>)>,
     mut car_crashes: EventReader<CarCrash>,
     car_assets: Res<CarAssets>,
 ) {
     for car_crash in car_crashes.read() {
-        let transform = transforms.get(car_crash.entities[0]).unwrap();
-        let audio_source_index = if car_crash.magnitude < CRASH_SOUND_MAGNITUDE_CUTOFF_1 {
-            0
-        } else if car_crash.magnitude < CRASH_SOUND_MAGNITUDE_CUTOFF_2 {
-            1
-        } else {
-            2
-        };
+        if let Ok(transform) = transforms.get(car_crash.entities[0]) {
+            let audio_source_index = if car_crash.magnitude < CRASH_SOUND_MAGNITUDE_CUTOFF_1 {
+                0
+            } else if car_crash.magnitude < CRASH_SOUND_MAGNITUDE_CUTOFF_2 {
+                1
+            } else {
+                2
+            };
 
-        commands.spawn((
-            Name::new("Crash Sound"),
-            StateScoped(Screen::Gameplay),
-            *transform,
-            Lifetime::new(1.0),
-            AudioPlayer::new(car_assets.crash_audio[audio_source_index].clone()),
-            PlaybackSettings::ONCE.with_volume(bevy::audio::Volume::Decibels(-23.)),
-        ));
+            commands.spawn((
+                Name::new("Crash Sound"),
+                StateScoped(Screen::Gameplay),
+                *transform,
+                Lifetime::new(1.0),
+                AudioPlayer::new(car_assets.crash_audio[audio_source_index].clone()),
+                PlaybackSettings::ONCE.with_volume(bevy::audio::Volume::Decibels(-23.)),
+            ));
+        }
     }
 }
 
@@ -399,12 +400,18 @@ fn play_crash_sound(
 // TODO: Maybe debris should be children so?
 fn spawn_debris_on_crash(
     mut commands: Commands,
-    transforms: Query<&Transform>,
+    transforms: Query<&Transform, (With<Car>, Without<Wrecked>)>,
     mut car_crashes: EventReader<CarCrash>,
     car_assets: Res<CarAssets>,
 ) {
     for car_crash in car_crashes.read() {
-        let transforms = transforms.get_many(car_crash.entities).unwrap();
+        let transforms: Vec<&Transform> = [
+            transforms.get(car_crash.entities[0]),
+            transforms.get(car_crash.entities[1]),
+        ]
+        .iter()
+        .filter_map(|res| res.ok())
+        .collect();
 
         for transform in transforms {
             commands.spawn((
