@@ -5,8 +5,10 @@ use bevy::{audio::SpatialScale, math::ops::acos, prelude::*};
 use rand::Rng;
 
 use crate::{
-    AppSystems, PausableSystems, asset_tracking::LoadResource,
-    game::consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, screens::Screen,
+    AppSystems, PausableSystems,
+    asset_tracking::LoadResource,
+    game::{consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, util::Lifetime},
+    screens::Screen,
 };
 
 use super::{
@@ -18,6 +20,10 @@ use super::{
     },
     pertubator::{Nailed, Soaped},
 };
+
+const CRASH_SOUND_MAGNITUDE_CUTOFF_1: f32 = 10.0;
+const CRASH_SOUND_MAGNITUDE_CUTOFF_2: f32 = 20.0;
+const DEBRIS_IMPULSE: f32 = 50.0;
 
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
@@ -37,7 +43,16 @@ pub(super) fn plugin(app: &mut App) {
         FixedUpdate,
         (accelerate_cars, correct_car_torque, update_friction_changes)
             .in_set(AppSystems::Update)
-            .in_set(PausableSystems),
+            .in_set(PausableSystems)
+            .run_if(in_state(Screen::Gameplay)),
+    );
+
+    app.add_systems(
+        Update,
+        (play_crash_sound, spawn_debris_on_crash)
+            .in_set(AppSystems::Update)
+            .in_set(PausableSystems)
+            .run_if(in_state(Screen::Gameplay)),
     );
 
     app.register_type::<CarCrashable>();
@@ -314,6 +329,7 @@ pub struct CarCrash {
 
 /// To be added to a car entity
 /// Will observer all car related collisions and update score based on total collision impulse
+/// TODO: Does this actually trigger twice on a car on car collision?
 fn car_observer_crash(
     trigger: Trigger<OnCollisionStart>,
     mut car_crash_writer: EventWriter<CarCrash>,
@@ -332,6 +348,82 @@ fn car_observer_crash(
             };
 
             car_crash_writer.write(event);
+        }
+    }
+}
+
+fn play_crash_sound(
+    mut commands: Commands,
+    transforms: Query<&Transform>,
+    mut car_crashes: EventReader<CarCrash>,
+    car_assets: Res<CarAssets>,
+) {
+    for car_crash in car_crashes.read() {
+        let transform = transforms.get(car_crash.entities[0]).unwrap();
+        let audio_source_index = if car_crash.magnitude < CRASH_SOUND_MAGNITUDE_CUTOFF_1 {
+            0
+        } else if car_crash.magnitude < CRASH_SOUND_MAGNITUDE_CUTOFF_2 {
+            1
+        } else {
+            2
+        };
+
+        commands.spawn((
+            Name::new("Crash Sound"),
+            StateScoped(Screen::Gameplay),
+            *transform,
+            Lifetime::new(1.0),
+            AudioPlayer::new(car_assets.crash_audio[audio_source_index].clone()),
+            PlaybackSettings::ONCE
+                .with_spatial(true)
+                .with_spatial_scale(SpatialScale::new(0.2))
+                .with_volume(bevy::audio::Volume::Linear(0.3)),
+        ));
+    }
+}
+
+// TODO: rng the trajectory
+fn spawn_debris_on_crash(
+    mut commands: Commands,
+    transforms: Query<&Transform>,
+    mut car_crashes: EventReader<CarCrash>,
+    car_assets: Res<CarAssets>,
+) {
+    for car_crash in car_crashes.read() {
+        let transforms = transforms.get_many(car_crash.entities).unwrap();
+
+        for transform in transforms {
+            commands.spawn((
+                Name::new("Bolt"),
+                StateScoped(Screen::Gameplay),
+                Transform {
+                    translation: transform.translation,
+                    scale: Vec3::splat(3.0),
+                    ..Default::default()
+                },
+                Lifetime::new(4.0),
+                RigidBody::Dynamic,
+                Mass(10.0),
+                ExternalImpulse::new(DEBRIS_IMPULSE * Vec3::new(-1., 1., 1.).normalize())
+                    .with_persistence(false),
+                SceneRoot(car_assets.bolt.clone()),
+            ));
+
+            commands.spawn((
+                Name::new("Nut"),
+                StateScoped(Screen::Gameplay),
+                Transform {
+                    translation: transform.translation,
+                    scale: Vec3::splat(3.0),
+                    ..Default::default()
+                },
+                Lifetime::new(4.0),
+                RigidBody::Dynamic,
+                Mass(10.0),
+                ExternalImpulse::new(DEBRIS_IMPULSE * Vec3::new(1., 1., -1.).normalize())
+                    .with_persistence(false),
+                SceneRoot(car_assets.nut.clone()),
+            ));
         }
     }
 }
