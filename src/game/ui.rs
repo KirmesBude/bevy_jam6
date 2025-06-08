@@ -38,7 +38,7 @@ fn bottom_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
     (
         Name::new("UI Bottom"),
         Node {
-            width: Val::Vw(100.),
+            width: Val::Percent(100.),
             height: Val::Vh(12.),
             position_type: PositionType::Absolute,
             bottom: Val::Percent(0.), /* TODO: This can be replaced if root ui is SpaceBetween */
@@ -64,9 +64,10 @@ fn item_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
         },
         BackgroundColor(BLACK.into()),
         children![
-            pertubator_button(Pertubator::Spring, pertubator_assets),
-            pertubator_button(Pertubator::Nails, pertubator_assets),
             pertubator_button(Pertubator::Soap, pertubator_assets),
+            pertubator_button(Pertubator::Nails, pertubator_assets),
+            pertubator_button(Pertubator::Spring, pertubator_assets),
+            pertubator_button(Pertubator::Barrel, pertubator_assets),
         ],
     )
 }
@@ -93,7 +94,7 @@ fn top_container(ui_assets: &UiAssets) -> impl Bundle {
                     font: ui_assets.font.clone(),
                     font_size: 24.,
                     ..Default::default()
-                }
+                },
             ),
             highscore(ui_assets),
             // widget::label("Current Combo?"),
@@ -117,7 +118,13 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                 .spawn((
                     Name::new("Button Inner"),
                     Button,
-                    Node::default(),
+                    Node {
+                        display: Display::Block,
+                        // width: Val::Percent(10.),
+                        // height: Val::Percent(10.),
+                        // aspect_ratio: Some(1. / 1.),
+                        ..default()
+                    },
                     BackgroundColor(BUTTON_BACKGROUND.with_alpha(0.6)),
                     InteractionPalette {
                         none: BUTTON_BACKGROUND,
@@ -132,14 +139,46 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                         },
                         // Don't bubble picking events from the text up to the button.
                         Pickable::IGNORE,
-                    )],
+                        children![]
+                    ),],
                 ))
                 .observe(
                     move |_: Trigger<Pointer<Click>>,
                           mut active_pertubator: ResMut<ActivePertubator>| {
                         active_pertubator.0 = Some(pertubator);
                     },
-                );
+                )
+                .with_children(|parent| {
+                    parent.spawn((
+                        Node {
+                            display: Display::Block,
+                            bottom: Val::Percent(0.),
+                            position_type: PositionType::Absolute,
+                            ..Default::default()
+                        },
+                        Text(pertubator.name().into()),
+                        TextFont {
+                            font_size: 16.,
+                            ..Default::default()
+                        },
+                    ));
+                })
+                .with_children(|parent| {
+                    parent.spawn((
+                        Node {
+                            display: Display::Block,
+                            top: Val::Percent(0.),
+                            position_type: PositionType::Absolute,
+
+                            ..Default::default()
+                        },
+                        Text(format!("Cost: {}", pertubator.price())),
+                        TextFont {
+                            font_size: 16.,
+                            ..Default::default()
+                        },
+                    ));
+                });
         })),
     )
 }

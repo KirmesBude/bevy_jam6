@@ -58,10 +58,11 @@ pub struct Nailed;
 pub struct PertubatorAssets(HashMap<Pertubator, PertubatorAsset>);
 
 impl PertubatorAssets {
-    const SOURCE: [(Pertubator, (&'static str, &'static str)); 3] = [
-        (Pertubator::Spring, ("spring", "images/spring.png")),
+    const SOURCE: [(Pertubator, (&'static str, &'static str)); 4] = [
+        (Pertubator::Spring, ("spring", "images/spring_64.png")),
         (Pertubator::Nails, ("trap", "images/trap.png")),
         (Pertubator::Soap, ("patch-grass", "images/patch-grass.png")),
+        (Pertubator::Barrel, ("barrel", "images/barrel.png")),
     ];
 }
 
@@ -117,17 +118,19 @@ impl PertubatorAsset {
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Component, Reflect)]
 #[reflect(Component)]
 pub enum Pertubator {
-    Spring,
-    Nails, /* "Trap" */
     Soap,  /* "Sludge" */
+    Nails, /* "Trap" */
+    Spring,
+    Barrel,
 }
 
 impl Pertubator {
     pub fn name(&self) -> &'static str {
         match self {
+            Pertubator::Soap => "Sludge",
+            Pertubator::Nails => "Spikes",
             Pertubator::Spring => "Spring",
-            Pertubator::Nails => "Nails",
-            Pertubator::Soap => "Soap",
+            Pertubator::Barrel => "Boom",
         }
     }
 
@@ -136,6 +139,16 @@ impl Pertubator {
             Pertubator::Spring => Vec3::ONE,
             Pertubator::Nails => 2. * Vec3::ONE,
             Pertubator::Soap => 2. * Vec3::ONE,
+            Pertubator::Barrel => 2. * Vec3::ONE,
+        }
+    }
+
+    pub fn price(&self) -> i32 {
+        match self {
+            Pertubator::Soap => 0,
+            Pertubator::Nails => 10,
+            Pertubator::Spring => 100,
+            Pertubator::Barrel => 1000,
         }
     }
 
@@ -243,6 +256,27 @@ impl Pertubator {
                                 commands.entity(other_entity).insert(Soaped);
                                 // dbg!("Car {} triggered soap {}", other_entity, soap);
                             }
+                        },
+                    );
+            }
+            Pertubator::Barrel => {
+                entity_commands
+                    .insert((
+                        Name::new(self.name()),
+                        *self,
+                        SceneRoot(scene),
+                        Transform::from_translation(position).with_scale(self.scale()),
+                        RigidBody::Static,
+                        Collider::cylinder(0.5, 0.5),
+                        Sensor,
+                        CollisionEventsEnabled,
+                        Lifetime::new(5.),
+                    ))
+                    .observe(
+                        |trigger: Trigger<OnCollisionStart>,
+                         mut commands: Commands,
+                         wheels: Query<Entity, With<WheelCollider>>| {
+                            // TODO: implement explosion
                         },
                     );
             }

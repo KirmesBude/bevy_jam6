@@ -20,6 +20,7 @@ fn spawn_main_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
         StateScoped(Menu::Main),
         #[cfg(not(target_family = "wasm"))]
         children![
+            widget::header("Crash them all", &ui_assets),
             widget::button("Play", enter_loading_or_gameplay_screen, &ui_assets),
             widget::button("Settings", open_settings_menu, &ui_assets),
             widget::button("Credits", open_credits_menu, &ui_assets),
@@ -27,6 +28,7 @@ fn spawn_main_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
         ],
         #[cfg(target_family = "wasm")]
         children![
+            widget::header("Crash them all", &ui_assets),
             widget::button("Play", enter_loading_or_gameplay_screen, &ui_assets),
             widget::button("Settings", open_settings_menu, &ui_assets),
             widget::button("Credits", open_credits_menu, &ui_assets),

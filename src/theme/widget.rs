@@ -44,7 +44,7 @@ pub fn header(text: impl Into<String>, ui_assets: &UiAssets) -> impl Bundle {
         Text(text.into()),
         TextFont {
             font: ui_assets.font.clone(),
-            font_size: 40.,
+            font_size: 80.,
             ..Default::default()
         },
         TextColor(HEADER_TEXT),
