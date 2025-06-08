@@ -1,6 +1,6 @@
 //! The main menu (seen on the title screen).
 
-use bevy::prelude::*;
+use bevy::{color::palettes::css::RED, prelude::*};
 
 use crate::{
     asset_tracking::ResourceHandles,
@@ -32,6 +32,7 @@ fn spawn_main_menu(
         ],
         #[cfg(target_family = "wasm")]
         children![
+            game_title("THE GAME", &ui_assets),
             widget::button("Play", enter_loading_or_gameplay_screen, &ui_assets),
             widget::button("Settings", open_settings_menu, &ui_assets),
             widget::button("Credits", open_credits_menu, &ui_assets),
@@ -64,6 +65,7 @@ fn exit_app(_: Trigger<Pointer<Click>>, mut app_exit: EventWriter<AppExit>) {
     app_exit.write(AppExit::Success);
 }
 
+
 fn game_title(asset_server: Res<AssetServer>) -> impl Bundle {
     (
         Name::new("Game Title"),
@@ -74,6 +76,7 @@ fn game_title(asset_server: Res<AssetServer>) -> impl Bundle {
         },
         ImageNode {
             image: asset_server.load("images/logotype.png"),
+
             ..Default::default()
         },
     )

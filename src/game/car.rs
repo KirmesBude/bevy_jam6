@@ -5,12 +5,8 @@ use bevy::{audio::SpatialScale, math::ops::acos, prelude::*};
 use rand::Rng;
 
 use crate::{
-    AppSystems, PausableSystems,
-    asset_tracking::LoadResource,
-    game::{
-        consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, points::car_observer_update_highscore,
-    },
-    screens::Screen,
+    AppSystems, PausableSystems, asset_tracking::LoadResource,
+    game::consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, screens::Screen,
 };
 
 use super::{
@@ -25,7 +21,7 @@ use super::{
 
 #[derive(Debug, Default, Component, Reflect)]
 pub struct Car {
-    wrecked: bool, // TODO: Mabye make this a tag component.
+    pub wrecked: bool, // TODO: Mabye make this a tag component.
     target_velocity: f32,
     driving_direction: Vec3, // This has to be a normalized vector!
 }
@@ -43,6 +39,10 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
+
+    app.register_type::<CarCrashable>();
+    app.register_type::<CarCrash>();
+    app.add_event::<CarCrash>();
 }
 
 pub fn spawn_car(
@@ -61,8 +61,8 @@ pub fn spawn_car(
             target_velocity,
             driving_direction,
         ))
-        .insert(CollisionEventsEnabled)
-        .observe(car_observer_update_highscore);
+        .insert((CollisionEventsEnabled, CarCrashable))
+        .observe(car_observer_crash);
 }
 
 /// Returns a bundle representing a car.
@@ -280,6 +280,40 @@ impl FromWorld for CarAssets {
                 })
                 .collect(),
             engine_audio: assets.load("audio/sound_effects/engine-loop.ogg"),
+        }
+    }
+}
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct CarCrashable;
+
+#[derive(Debug, Event, Reflect)]
+pub struct CarCrash {
+    pub entities: [Entity; 2],
+    pub magnitude: f32,
+}
+
+/// To be added to a car entity
+/// Will observer all car related collisions and update score based on total collision impulse
+fn car_observer_crash(
+    trigger: Trigger<OnCollisionStart>,
+    mut car_crash_writer: EventWriter<CarCrash>,
+    car_crashables: Query<Entity, With<CarCrashable>>,
+    collisions: Collisions,
+) {
+    let car = trigger.target();
+    let other_entity = trigger.collider;
+
+    /* Allow any car on car crashable collision */
+    if car_crashables.contains(other_entity) {
+        if let Some(contact_pair) = collisions.get(car, other_entity) {
+            let event = CarCrash {
+                entities: [car, other_entity],
+                magnitude: contact_pair.total_normal_impulse_magnitude(),
+            };
+
+            car_crash_writer.write(event);
         }
     }
 }

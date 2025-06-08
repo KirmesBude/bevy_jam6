@@ -60,7 +60,7 @@ fn grass(
             let rng = &mut rand::thread_rng();
 
             let x = -ROADLENGTH / 2.0;
-            let z = 6. * LANEWIDTH; // Harcoded based on the lane we currently have
+            let z = 5.5 * LANEWIDTH; // Harcoded based on the lane we currently have
 
             let amount = (ROADLENGTH / LANEWIDTH) as i32;
             for i in 0..amount {
