@@ -28,7 +28,7 @@ fn spawn_credits_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
         widget::ui_root("Credits Menu"),
         GlobalZIndex(2),
         StateScoped(Menu::Credits),
-        BackgroundColor(Color::BLACK.with_alpha(0.6).into()),
+        BackgroundColor(Color::BLACK.with_alpha(0.6)),
         children![
             widget::header("Created by", &ui_assets),
             created_by(),
