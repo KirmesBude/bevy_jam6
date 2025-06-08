@@ -65,7 +65,6 @@ fn exit_app(_: Trigger<Pointer<Click>>, mut app_exit: EventWriter<AppExit>) {
     app_exit.write(AppExit::Success);
 }
 
-
 fn game_title(asset_server: Res<AssetServer>) -> impl Bundle {
     (
         Name::new("Game Title"),
