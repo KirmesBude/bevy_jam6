@@ -57,6 +57,7 @@ pub(super) fn plugin(app: &mut App) {
             play_crash_sound,
             spawn_debris_on_crash,
             spawn_smoke_on_wrecked,
+            remove_audio_on_wrecked,
         )
             .in_set(AppSystems::Update)
             .in_set(PausableSystems)
@@ -457,5 +458,14 @@ fn spawn_smoke_on_wrecked(
             .id();
 
         commands.entity(wrecked_car).add_child(child);
+    }
+}
+
+fn remove_audio_on_wrecked(
+    mut commands: Commands,
+    wrecked_cars: Query<Entity, Added<Wrecked>>,
+) {
+    for wrecked_car in wrecked_cars {
+        commands.entity(wrecked_car).remove::<(AudioPlayer, PlaybackSettings, AudioSink)>();
     }
 }
