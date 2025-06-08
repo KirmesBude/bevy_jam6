@@ -14,11 +14,7 @@ mod screens;
 mod theme;
 
 use avian3d::prelude::*;
-use bevy::{
-    asset::AssetMetaCheck,
-    audio::{DefaultSpatialScale, SpatialScale},
-    prelude::*,
-};
+use bevy::{asset::AssetMetaCheck, prelude::*};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
