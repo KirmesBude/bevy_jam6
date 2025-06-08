@@ -67,6 +67,7 @@ fn item_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
             pertubator_button(Pertubator::Spring, pertubator_assets),
             pertubator_button(Pertubator::Nails, pertubator_assets),
             pertubator_button(Pertubator::Soap, pertubator_assets),
+            pertubator_button(Pertubator::Barrel, pertubator_assets),
         ],
     )
 }

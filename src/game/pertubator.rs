@@ -17,6 +17,9 @@ use crate::{
 
 use super::{car::Car, util::Lifetime};
 
+const BARREL_SPHERE_SIZE: f32 = 15.0;
+const BARREL_EXPLOSION_STRENGTH: f32 = 50.0;
+
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<PertubatorAssets>();
     app.init_resource::<ActivePertubator>();
@@ -58,10 +61,11 @@ pub struct Nailed;
 pub struct PertubatorAssets(HashMap<Pertubator, PertubatorAsset>);
 
 impl PertubatorAssets {
-    const SOURCE: [(Pertubator, (&'static str, &'static str)); 3] = [
+    const SOURCE: [(Pertubator, (&'static str, &'static str)); 4] = [
         (Pertubator::Spring, ("spring", "images/spring.png")),
         (Pertubator::Nails, ("trap", "images/trap.png")),
         (Pertubator::Soap, ("patch-grass", "images/patch-grass.png")),
+        (Pertubator::Barrel, ("barrel", "images/barrel.png")),
     ];
 }
 
@@ -120,6 +124,7 @@ pub enum Pertubator {
     Spring,
     Nails, /* "Trap" */
     Soap,  /* "Sludge" */
+    Barrel,
 }
 
 impl Pertubator {
@@ -127,7 +132,8 @@ impl Pertubator {
         match self {
             Pertubator::Spring => "Spring",
             Pertubator::Nails => "Nails",
-            Pertubator::Soap => "Soap",
+            Pertubator::Soap => "Sludge",
+            Pertubator::Barrel => "Barrel",
         }
     }
 
@@ -136,6 +142,7 @@ impl Pertubator {
             Pertubator::Spring => Vec3::ONE,
             Pertubator::Nails => 2. * Vec3::ONE,
             Pertubator::Soap => 2. * Vec3::ONE,
+            Pertubator::Barrel => 2. * Vec3::ONE,
         }
     }
 
@@ -251,6 +258,58 @@ impl Pertubator {
                             if wheels.contains(other_entity) {
                                 commands.entity(other_entity).insert(Soaped);
                                 commands.entity(soap).insert(Lifetime::new(1.0));
+                                // dbg!("Car {} triggered soap {}", other_entity, soap);
+                            }
+                        },
+                    );
+            }
+            Pertubator::Barrel => {
+                entity_commands
+                    .insert((
+                        Name::new(self.name()),
+                        *self,
+                        SceneRoot(scene),
+                        Transform::from_translation(position).with_scale(self.scale()),
+                        RigidBody::Static,
+                        Collider::cylinder(0.25, 0.25),
+                        Sensor,
+                        CollisionEventsEnabled,
+                    ))
+                    .observe(
+                        |trigger: Trigger<OnCollisionStart>,
+                         mut commands: Commands,
+                         mut cars: Query<(&mut Car, &mut ExternalImpulse, &Transform)>,
+                         transform: Query<&Transform>,
+                         spatial_query: SpatialQuery| {
+                            let barrel = trigger.target();
+                            let other_entity = trigger.collider;
+                            if cars.contains(other_entity) {
+                                /* Despawn Barrel */
+                                commands.entity(barrel).insert(Lifetime::new(0.1));
+
+                                /* Get all info for the explosion*/
+                                let barrel_pos = transform.get(barrel).unwrap();
+                                let shape = Collider::sphere(BARREL_SPHERE_SIZE);
+                                let intersections = spatial_query.shape_intersections(
+                                    &shape,
+                                    barrel_pos.translation,
+                                    Quat::default(),
+                                    &SpatialQueryFilter::default(),
+                                );
+
+                                for entity in intersections.iter() {
+                                    if let Ok((mut car, mut impulse, transform)) =
+                                        cars.get_mut(*entity)
+                                    {
+                                        car.wrecked = true;
+                                        impulse.apply_impulse(
+                                            BARREL_EXPLOSION_STRENGTH
+                                                * (transform.translation - barrel_pos.translation)
+                                                    .normalize(),
+                                        );
+                                    }
+                                }
+
                                 // dbg!("Car {} triggered soap {}", other_entity, soap);
                             }
                         },
