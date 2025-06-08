@@ -1,6 +1,6 @@
 //! The main menu (seen on the title screen).
 
-use bevy::{color::palettes::css::RED, prelude::*};
+use bevy::prelude::*;
 
 use crate::{
     asset_tracking::ResourceHandles,
