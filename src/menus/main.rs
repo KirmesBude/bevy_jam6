@@ -13,13 +13,18 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Main), spawn_main_menu);
 }
 
-fn spawn_main_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
+fn spawn_main_menu(
+    mut commands: Commands,
+    ui_assets: Res<UiAssets>,
+    asset_server: Res<AssetServer>,
+) {
     commands.spawn((
         widget::ui_root("Main Menu"),
         GlobalZIndex(2),
         StateScoped(Menu::Main),
         #[cfg(not(target_family = "wasm"))]
         children![
+            game_title(asset_server),
             widget::button("Play", enter_loading_or_gameplay_screen, &ui_assets),
             widget::button("Settings", open_settings_menu, &ui_assets),
             widget::button("Credits", open_credits_menu, &ui_assets),
@@ -59,15 +64,16 @@ fn exit_app(_: Trigger<Pointer<Click>>, mut app_exit: EventWriter<AppExit>) {
     app_exit.write(AppExit::Success);
 }
 
-fn game_title(
-    text: impl Into<String>,
-    ui_assets: &UiAssets,
-    asset_server: Res<AssetServer>,
-) -> impl Bundle {
+fn game_title(asset_server: Res<AssetServer>) -> impl Bundle {
     (
         Name::new("Game Title"),
+        Node {
+            height: Val::Vh(20.),
+            aspect_ratio: Some(2.),
+            ..Default::default()
+        },
         ImageNode {
-            asset: asset_server.load("images/logotype.png"),
+            image: asset_server.load("images/logotype.png"),
             ..Default::default()
         },
     )
