@@ -14,6 +14,7 @@ use crate::{
 };
 
 use super::pertubator::Money;
+pub const POINT_TO_MONEY_CONVERSION: f32 = 1. / 1000.;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<HighScoreUi>();
@@ -228,7 +229,11 @@ fn stop_button(ui_assets: &UiAssets) -> impl Bundle {
                 ))
                 .observe(
                     move |_: Trigger<Pointer<Click>>,
-                          mut next_screen: ResMut<NextState<Screen>>| {
+                          mut next_screen: ResMut<NextState<Screen>>,
+                          mut points: ResMut<HighScore>,
+                          mut money: ResMut<Money>| {
+                        money.0 += (points.get() * POINT_TO_MONEY_CONVERSION) as i32;
+                        points.0 = 0.0;
                         next_screen.set(Screen::Shop);
                     },
                 );

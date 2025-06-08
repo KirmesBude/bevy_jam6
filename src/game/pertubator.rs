@@ -37,6 +37,7 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<ActivePertubator>();
     app.register_type::<PertubatorPreview>();
     app.register_type::<UnlockedPertubators>();
+    app.register_type::<Money>();
 
     app.add_systems(OnEnter(Screen::Gameplay), spawn_preview);
     app.add_systems(
@@ -514,6 +515,7 @@ impl Default for UnlockedPertubators {
 }
 
 #[derive(Default, Resource, Clone, Reflect, Deref, DerefMut)]
+#[reflect(Resource)]
 pub struct Money(pub i32);
 
 #[derive(Debug, Default, Component, Reflect)]

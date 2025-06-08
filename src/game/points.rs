@@ -14,7 +14,7 @@ const CAR_COLLISION_MULTIPLIER: f32 = 100.;
 /// HighScore in f32
 #[derive(Debug, Default, Resource, Reflect)]
 #[reflect(Resource)]
-pub struct HighScore(f32);
+pub struct HighScore(pub f32);
 
 impl HighScore {
     pub fn get(&self) -> f32 {
