@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use avian3d::prelude::*;
-use bevy::{audio::SpatialScale, math::ops::acos, prelude::*};
+use bevy::{math::ops::acos, prelude::*};
 use rand::Rng;
 
 use crate::{
@@ -143,9 +143,7 @@ pub fn create_car(
         SceneRoot(scene_handle),
         AudioPlayer::new(car_assets.engine_audio.clone()),
         PlaybackSettings::LOOP
-            .with_spatial(true)
-            .with_spatial_scale(SpatialScale::new(0.2))
-            .with_volume(bevy::audio::Volume::Decibels(-14.))
+            .with_volume(bevy::audio::Volume::Decibels(-22.))
             .with_speed(rng.gen_range(0.1..0.8)),
     )
 }
@@ -392,10 +390,7 @@ fn play_crash_sound(
             *transform,
             Lifetime::new(1.0),
             AudioPlayer::new(car_assets.crash_audio[audio_source_index].clone()),
-            PlaybackSettings::ONCE
-                .with_spatial(true)
-                .with_spatial_scale(SpatialScale::new(0.2))
-                .with_volume(bevy::audio::Volume::Linear(0.3)),
+            PlaybackSettings::ONCE.with_volume(bevy::audio::Volume::Decibels(-23.)),
         ));
     }
 }

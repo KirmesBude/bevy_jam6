@@ -322,7 +322,8 @@ impl Pertubator {
                                     *barrel_pos,
                                     Lifetime::new(0.5),
                                     AudioPlayer::new(car_assets.explosion_audio.clone()),
-                                    PlaybackSettings::ONCE.with_spatial(false),
+                                    PlaybackSettings::ONCE
+                                        .with_volume(bevy::audio::Volume::Decibels(-13.)),
                                     Explosion,
                                     SceneRoot(car_assets.smoke.clone()),
                                 ));
