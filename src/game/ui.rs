@@ -9,7 +9,7 @@ use crate::{
     theme::{
         palette::{BUTTON_BACKGROUND, BUTTON_HOVERED_BACKGROUND, BUTTON_PRESSED_BACKGROUND},
         prelude::InteractionPalette,
-        widget,
+        widget::{self, UiAssets},
     },
 };
 
@@ -19,11 +19,18 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, update_highscore);
 }
 
-pub fn spawn_game_ui(mut commands: Commands, pertubator_assets: Res<PertubatorAssets>) {
+pub fn spawn_game_ui(
+    mut commands: Commands,
+    pertubator_assets: Res<PertubatorAssets>,
+    ui_assets: Res<UiAssets>,
+) {
     commands.spawn((
         widget::ui_root("UI Root"),
         StateScoped(Screen::Gameplay),
-        children![top_container(), bottom_container(&pertubator_assets),],
+        children![
+            top_container(&ui_assets),
+            bottom_container(&pertubator_assets),
+        ],
     ));
 }
 
@@ -64,7 +71,7 @@ fn item_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
     )
 }
 
-fn top_container() -> impl Bundle {
+fn top_container(ui_assets: &UiAssets) -> impl Bundle {
     (
         Name::new("UI Top"),
         Node {
@@ -80,8 +87,15 @@ fn top_container() -> impl Bundle {
         },
         BackgroundColor(BLACK.with_alpha(0.6).into()),
         children![
-            (Text("Score: ".into()), TextFont::from_font_size(24.0)),
-            highscore(),
+            (
+                Text("Score: ".into()),
+                TextFont {
+                    font: ui_assets.font.clone(),
+                    font_size: 24.,
+                    ..Default::default()
+                }
+            ),
+            highscore(ui_assets),
             // widget::label("Current Combo?"),
             // widget::label("Achievements")
         ],
@@ -114,7 +128,6 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                         Name::new("Button Image"),
                         ImageNode {
                             image,
-
                             ..Default::default()
                         },
                         // Don't bubble picking events from the text up to the button.
@@ -135,12 +148,16 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
 #[reflect(Component)]
 struct HighScoreUi;
 
-fn highscore() -> impl Bundle {
+fn highscore(ui_assets: &UiAssets) -> impl Bundle {
     (
         Name::new("High Score"),
         HighScoreUi,
         Text("".into()),
-        TextFont::from_font_size(32.0),
+        TextFont {
+            font: ui_assets.font.clone(),
+            font_size: 32.,
+            ..Default::default()
+        },
         TextColor(GOLD.into()),
     )
 }

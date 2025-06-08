@@ -174,7 +174,8 @@ where
 #[derive(Debug, Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
 pub struct UiAssets {
-    font: Handle<Font>,
+    #[dependency]
+    pub font: Handle<Font>,
 }
 
 impl FromWorld for UiAssets {
