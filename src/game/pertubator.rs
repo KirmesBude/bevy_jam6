@@ -150,7 +150,10 @@ impl Pertubator {
         match self {
             Pertubator::Spring => {
                 // Wake up all close objects
-                for obj in all_objects.aabb_intersections_with_aabb(ColliderAabb::new(position, Vec3::new(2., 2., 2.))) {
+                for obj in all_objects.aabb_intersections_with_aabb(ColliderAabb::new(
+                    position,
+                    Vec3::new(2., 2., 2.),
+                )) {
                     entity_commands.commands().queue(WakeUpBody(obj));
                 }
 
@@ -199,7 +202,6 @@ impl Pertubator {
                             Transform::from_xyz(0., 2., 0.),
                         ));
                     });
-
             }
             Pertubator::Nails => {
                 entity_commands
@@ -307,7 +309,12 @@ pub fn spawn_pertubator(
     if let Some(pertubator) = active_pertubator.0 {
         if let Some(position) = trigger.hit.position {
             let mut entity_commands = commands.spawn(StateScoped(Screen::Gameplay));
-            pertubator.spawn(&mut entity_commands, position, &spatial_query, &pertubator_assets);
+            pertubator.spawn(
+                &mut entity_commands,
+                position,
+                &spatial_query,
+                &pertubator_assets,
+            );
         }
     }
 }
