@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="256"
+   height="128"
+   viewBox="0 0 256 128"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   sodipodi:docname="logotype.svg"
+   inkscape:export-filename="../assets/images/logotype.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#acacac"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="true"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     showgrid="true"
+     inkscape:zoom="5.344313"
+     inkscape:cx="125.27335"
+     inkscape:cy="66.051521"
+     inkscape:window-width="2560"
+     inkscape:window-height="1356"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     showguides="true">
+    <inkscape:grid
+       id="grid1"
+       units="px"
+       originx="64"
+       originy="64"
+       spacingx="4"
+       spacingy="4"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="8"
+       enabled="true"
+       visible="true"
+       dotted="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1">
+    <linearGradient
+       id="linearGradient47"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#21ff02;stop-opacity:1;"
+         offset="0.03663556"
+         id="stop46" />
+      <stop
+         style="stop-color:#0084ff;stop-opacity:0.99633127;"
+         offset="1"
+         id="stop47" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient39"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#21ff02;stop-opacity:1;"
+         offset="0.40970349"
+         id="stop40" />
+      <stop
+         style="stop-color:#050300;stop-opacity:0.99633127;"
+         offset="1"
+         id="stop41" />
+    </linearGradient>
+    <rect
+       x="24"
+       y="13.961598"
+       width="308.32812"
+       height="217.34317"
+       id="rect3" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient39"
+       id="linearGradient41"
+       x1="104"
+       y1="-12"
+       x2="96"
+       y2="88"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient47"
+       id="linearGradient43"
+       x1="124"
+       y1="56"
+       x2="124"
+       y2="104"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient47"
+       id="linearGradient46"
+       x1="215.88484"
+       y1="55.289997"
+       x2="211.22891"
+       y2="109.761"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     style="display:none">
+    <path
+       id="path6"
+       style="fill:none;fill-opacity:1;stroke:#95c6eb;stroke-width:9.44879;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100.77764,105.37492 60.88171,5.28043 M 57.2318,108.97871 c -15.630499,-1.35567 -7.024232,-9.6529 -3.515855,-15.894104 4.16743,-7.413625 9.071761,-12.459948 17.500068,-11.583702 8.428318,0.876252 15.174834,5.678826 16.579905,14.062642 1.388171,8.282974 6.843381,17.699014 -8.718903,15.686294 z m 122.16606,11.11862 c -15.63051,-1.35567 -7.02425,-9.65289 -3.51587,-15.8941 4.16744,-7.413616 9.07177,-12.459943 17.50007,-11.583699 8.42834,0.876256 15.17483,5.678825 16.57991,14.062639 1.38817,8.28298 6.8434,17.69902 -8.71891,15.68629 z M 39.414635,100.05273 15.968883,98.019227 22.269729,66.951782 114.11308,74.917598 M 117.78597,29.244547 114.11308,74.917598 196,84 M 22.269729,66.951782 C 27.938227,55.399092 34.214183,43.928999 50.794252,33.860117 96.121023,25.782576 136.17055,25.578373 173.53017,44.505315 186.7665,59.345049 182.072,65.736089 196,84 l 38.90383,5.345829 -2.41952,27.452341 -9.41129,-0.81627" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="logotype"
+     style="display:inline"
+     sodipodi:insensitive="true">
+    <path
+       style="fill:none;stroke:none;stroke-width:2.64567;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="M -40,52 C 7.4338544,185.70135 218.82194,1.5665056 264,184"
+       id="path4"
+       sodipodi:nodetypes="cc"
+       inkscape:label="control 2" />
+    <path
+       style="fill:none;stroke:none;stroke-width:2.64567;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="M -226.27412,118.54065 C -201.83029,94.795805 -98.400913,228.00209 -60,140 36,-80 120,192 304,-48"
+       id="path2"
+       sodipodi:nodetypes="csc"
+       inkscape:label="control 1" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:84.5066px;font-family:'Kenney Future Narrow';-inkscape-font-specification:'Kenney Future Narrow';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:url(#linearGradient46);fill-opacity:1;stroke:#ffffff;stroke-width:1.51181;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       x="220.08296"
+       y="103.10266"
+       id="text6"
+       transform="matrix(0.99360515,-0.16763787,0.16510295,0.97858037,0,0)"><tspan
+         sodipodi:role="line"
+         id="tspan6"
+         x="220.08296"
+         y="103.10266"
+         style="fill:url(#linearGradient46);fill-opacity:1;stroke:#ffffff;stroke-width:1.51181;stroke-dasharray:none;stroke-opacity:1">?</tspan></text>
+    <text
+       xml:space="preserve"
+       id="text3"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:42.6667px;font-family:'Kenney Future Narrow';-inkscape-font-specification:'Kenney Future Narrow';text-align:center;writing-mode:lr-tb;direction:ltr;white-space:pre;display:inline;fill:url(#linearGradient41);fill-opacity:1;stroke:#ffffff;stroke-width:1.51181;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"><textPath
+         xlink:href="#path2"
+         startOffset="50%"
+         id="textPath2"
+         style="fill:url(#linearGradient41);fill-opacity:1;stroke:#ffffff;stroke-width:1.51181;stroke-dasharray:none;stroke-opacity:1"><tspan
+           id="tspan1"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:42.6667px;font-family:'Kenney Future Narrow';-inkscape-font-specification:'Kenney Future Narrow';fill:url(#linearGradient41);fill-opacity:1;stroke:#ffffff;stroke-width:1.51181;stroke-dasharray:none;stroke-opacity:1">ARE WE </tspan></textPath></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:42.6667px;font-family:'Kenney Future Narrow';-inkscape-font-specification:'Kenney Future Narrow';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:url(#linearGradient43);fill-opacity:1;stroke:#ffffff;stroke-width:1.51181;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       id="text2"><textPath
+         xlink:href="#path4"
+         startOffset="50%"
+         id="textPath4"
+         style="fill:url(#linearGradient43);fill-opacity:1;stroke:#ffffff;stroke-width:1.51181;stroke-dasharray:none;stroke-opacity:1"><tspan
+           id="tspan2"
+           style="font-size:42.6667px;fill:url(#linearGradient43);fill-opacity:1;stroke:#ffffff;stroke-width:1.51181;stroke-dasharray:none;stroke-opacity:1">THERE YET</tspan></textPath></text>
+  </g>
+</svg>
