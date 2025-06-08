@@ -2,7 +2,7 @@ use bevy::{color::palettes::css::*, ecs::spawn::SpawnWith, prelude::*};
 
 use crate::{
     game::{
-        pertubator::{ActivePertubator, Pertubator, PertubatorAssets},
+        pertubator::{ActivePertubator, Pertubator, PertubatorAssets, UnlockedPertubators},
         points::HighScore,
     },
     screens::Screen,
@@ -23,18 +23,22 @@ pub fn spawn_game_ui(
     mut commands: Commands,
     pertubator_assets: Res<PertubatorAssets>,
     ui_assets: Res<UiAssets>,
+    unlocked_pertubators: Res<UnlockedPertubators>,
 ) {
     commands.spawn((
         widget::ui_root("UI Root"),
         StateScoped(Screen::Gameplay),
         children![
             top_container(&ui_assets),
-            bottom_container(&pertubator_assets),
+            bottom_container(&pertubator_assets, &unlocked_pertubators),
         ],
     ));
 }
 
-fn bottom_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
+fn bottom_container(
+    pertubator_assets: &PertubatorAssets,
+    unlocked_pertubators: &UnlockedPertubators,
+) -> impl Bundle {
     (
         Name::new("UI Bottom"),
         Node {
@@ -49,11 +53,14 @@ fn bottom_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
             ..Default::default()
         },
         BackgroundColor(BLACK.with_alpha(0.6).into()),
-        children![item_container(pertubator_assets),],
+        children![item_container(pertubator_assets, unlocked_pertubators),],
     )
 }
 
-fn item_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
+fn item_container(
+    pertubator_assets: &PertubatorAssets,
+    unlocked_pertubators: &UnlockedPertubators,
+) -> impl Bundle {
     (
         Name::new("UI Items"),
         Node {
@@ -64,10 +71,10 @@ fn item_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
         },
         BackgroundColor(BLACK.into()),
         children![
-            pertubator_button(Pertubator::Soap, pertubator_assets),
-            pertubator_button(Pertubator::Nails, pertubator_assets),
-            pertubator_button(Pertubator::Spring, pertubator_assets),
-            pertubator_button(Pertubator::Barrel, pertubator_assets),
+            pertubator_button(Pertubator::Soap, pertubator_assets, unlocked_pertubators),
+            pertubator_button(Pertubator::Nails, pertubator_assets, unlocked_pertubators),
+            pertubator_button(Pertubator::Spring, pertubator_assets, unlocked_pertubators),
+            pertubator_button(Pertubator::Barrel, pertubator_assets, unlocked_pertubators),
         ],
     )
 }
@@ -107,8 +114,13 @@ fn top_container(ui_assets: &UiAssets) -> impl Bundle {
 //     dbg!("{}", index);
 // }
 
-fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAssets) -> impl Bundle {
+fn pertubator_button(
+    pertubator: Pertubator,
+    pertubator_assets: &PertubatorAssets,
+    unlocked_pertubators: &UnlockedPertubators,
+) -> impl Bundle {
     let image = pertubator_assets.get(&pertubator).unwrap().image().clone();
+    let unlocked = unlocked_pertubators.contains(&pertubator);
 
     (
         Name::new(pertubator.name()),
@@ -129,6 +141,11 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                         Name::new("Button Image"),
                         ImageNode {
                             image,
+                            color: if !unlocked {
+                                BLACK.with_alpha(0.6).into()
+                            } else {
+                                Color::default()
+                            },
                             ..Default::default()
                         },
                         // Don't bubble picking events from the text up to the button.
@@ -138,7 +155,9 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                 .observe(
                     move |_: Trigger<Pointer<Click>>,
                           mut active_pertubator: ResMut<ActivePertubator>| {
-                        active_pertubator.0 = Some(pertubator);
+                        if unlocked {
+                            active_pertubator.0 = Some(pertubator);
+                        }
                     },
                 );
         })),
