@@ -32,16 +32,16 @@ fn bottom_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
         Name::new("UI Bottom"),
         Node {
             width: Val::Vw(100.),
-            height: Val::Vh(16.),
+            height: Val::Vh(12.),
             position_type: PositionType::Absolute,
             bottom: Val::Percent(0.), /* TODO: This can be replaced if root ui is SpaceBetween */
             flex_direction: FlexDirection::Row,
             justify_content: JustifyContent::SpaceAround,
             align_items: AlignItems::Center,
-            padding: UiRect::all(Val::Percent(1.)),
+            padding: UiRect::all(Val::Px(2.)),
             ..Default::default()
         },
-        BackgroundColor(BLACK.with_alpha(0.33).into()),
+        BackgroundColor(BLACK.with_alpha(0.6).into()),
         children![item_container(pertubator_assets),],
     )
 }
@@ -75,10 +75,10 @@ fn top_container() -> impl Bundle {
             flex_direction: FlexDirection::Row,
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            padding: UiRect::all(Val::Percent(1.)),
+            padding: UiRect::all(Val::Px(2.)),
             ..Default::default()
         },
-        BackgroundColor(BLACK.with_alpha(0.33).into()),
+        BackgroundColor(BLACK.with_alpha(0.6).into()),
         children![
             (Text("Score: ".into()), TextFont::from_font_size(24.0)),
             highscore(),
@@ -103,11 +103,8 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                 .spawn((
                     Name::new("Button Inner"),
                     Button,
-                    Node {
-                        padding: UiRect::all(Val::Percent(1.)),
-                        ..Default::default()
-                    },
-                    // BackgroundColor(BUTTON_BACKGROUND.with_alpha(0.33)),
+                    Node::default(),
+                    BackgroundColor(BUTTON_BACKGROUND.with_alpha(0.6)),
                     InteractionPalette {
                         none: BUTTON_BACKGROUND,
                         hovered: BUTTON_HOVERED_BACKGROUND,
@@ -117,6 +114,7 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                         Name::new("Button Image"),
                         ImageNode {
                             image,
+
                             ..Default::default()
                         },
                         // Don't bubble picking events from the text up to the button.
@@ -142,7 +140,7 @@ fn highscore() -> impl Bundle {
         Name::new("High Score"),
         HighScoreUi,
         Text("".into()),
-        TextFont::from_font_size(24.0),
+        TextFont::from_font_size(32.0),
         TextColor(GOLD.into()),
     )
 }
