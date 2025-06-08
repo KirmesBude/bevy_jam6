@@ -49,7 +49,12 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_systems(
         Update,
-        (play_crash_sound, spawn_debris_on_crash)
+        (
+            crash_to_wrecked,
+            play_crash_sound,
+            spawn_debris_on_crash,
+            spawn_smoke_on_wrecked,
+        )
             .in_set(AppSystems::Update)
             .in_set(PausableSystems)
             .run_if(in_state(Screen::Gameplay)),
@@ -58,6 +63,9 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<CarCrashable>();
     app.register_type::<CarCrash>();
     app.add_event::<CarCrash>();
+
+    app.register_type::<WreckedEvent>();
+    app.add_event::<WreckedEvent>();
 }
 
 pub fn spawn_car(
@@ -321,6 +329,7 @@ impl FromWorld for CarAssets {
 #[reflect(Component)]
 pub struct CarCrashable;
 
+// TODO: This can contain other things than cars, so you need to filter for that when reading
 #[derive(Debug, Event, Reflect)]
 pub struct CarCrash {
     pub entities: [Entity; 2],
@@ -383,6 +392,7 @@ fn play_crash_sound(
 }
 
 // TODO: rng the trajectory
+// TODO: Maybe debris should be children so?
 fn spawn_debris_on_crash(
     mut commands: Commands,
     transforms: Query<&Transform>,
@@ -425,5 +435,38 @@ fn spawn_debris_on_crash(
                 SceneRoot(car_assets.nut.clone()),
             ));
         }
+    }
+}
+
+#[derive(Debug, Event, Reflect)]
+pub struct WreckedEvent(pub Entity);
+
+fn spawn_smoke_on_wrecked(
+    mut commands: Commands,
+    mut wrecked_events: EventReader<WreckedEvent>,
+    car_assets: Res<CarAssets>,
+) {
+    let smoke = car_assets.smoke.clone();
+    for wrecked_event in wrecked_events.read() {
+        let child = commands
+            .spawn((
+                SceneRoot(smoke.clone()),
+                Transform::default()
+                    .with_translation(Vec3::new(0., 3., 0.))
+                    .with_scale(Vec3::splat(3.0)),
+            ))
+            .id();
+
+        commands.entity(wrecked_event.0).add_child(child);
+    }
+}
+
+fn crash_to_wrecked(
+    mut car_crashes: EventReader<CarCrash>,
+    mut wrecked_events: EventWriter<WreckedEvent>,
+) {
+    for car_crash in car_crashes.read() {
+        wrecked_events.write(WreckedEvent(car_crash.entities[0]));
+        wrecked_events.write(WreckedEvent(car_crash.entities[1]));
     }
 }
