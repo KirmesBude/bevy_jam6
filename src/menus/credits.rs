@@ -52,6 +52,7 @@ fn assets() -> impl Bundle {
             "Music, SFX and 3d models made or adapted during the jam",
             "CC0 by FreakyWaves",
         ],
+        ["Car crash sounds source", "by https://quicksounds.com"],
         ["Font package", "CC0 by Kenney (www.kenney.nl)"],
         ["Car Kit (2.0)", "CC0 by Kenney (www.kenney.nl)"],
         ["Mini Dungeon (1.5)", "CC0 by Kenney (www.kenney.nl)"],
@@ -76,6 +77,7 @@ fn grid(content: Vec<[&'static str; 2]>) -> impl Bundle {
             row_gap: Px(10.0),
             column_gap: Px(30.0),
             grid_template_columns: RepeatedGridTrack::px(2, 400.0),
+            overflow: Overflow::scroll_y(),
             ..default()
         },
         Children::spawn(SpawnIter(content.into_iter().flatten().enumerate().map(

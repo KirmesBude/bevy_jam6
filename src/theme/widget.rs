@@ -69,7 +69,7 @@ pub fn label_simple(text: impl Into<String>) -> impl Bundle {
     (
         Name::new("Label"),
         Text(text.into()),
-        TextFont::from_font_size(24.0),
+        TextFont::from_font_size(16.0),
         TextColor(LABEL_TEXT),
     )
 }
