@@ -193,6 +193,8 @@ where
 pub struct UiAssets {
     #[dependency]
     pub font: Handle<Font>,
+    #[dependency]
+    pub stop: Handle<Image>,
 }
 
 impl FromWorld for UiAssets {
@@ -200,6 +202,7 @@ impl FromWorld for UiAssets {
         let assets = world.resource::<AssetServer>();
         Self {
             font: assets.load("fonts/Kenney Future Narrow.ttf"),
+            stop: assets.load("images/stop.png"),
         }
     }
 }
