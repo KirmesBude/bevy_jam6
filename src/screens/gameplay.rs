@@ -32,14 +32,18 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn unpause(mut next_pause: ResMut<NextState<Pause>>, mut physics_time: ResMut<Time<Physics>>) {
+fn unpause(mut next_pause: ResMut<NextState<Pause>>, mut physics_time: ResMut<Time<Physics>>, mut virtual_time: ResMut<Time<Virtual>>) {
     next_pause.set(Pause(false));
+
+    virtual_time.unpause();
 
     physics_time.unpause();
 }
 
-fn pause(mut next_pause: ResMut<NextState<Pause>>, mut physics_time: ResMut<Time<Physics>>) {
+fn pause(mut next_pause: ResMut<NextState<Pause>>, mut physics_time: ResMut<Time<Physics>>, mut virtual_time: ResMut<Time<Virtual>>) {
     next_pause.set(Pause(true));
+
+    virtual_time.pause();
 
     physics_time.pause();
 }
