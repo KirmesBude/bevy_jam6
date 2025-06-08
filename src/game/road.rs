@@ -10,6 +10,7 @@ use crate::{
 use super::consts::{LANEWIDTH, ROADLENGTH};
 
 #[derive(Debug, Reflect, PartialEq, Eq, Clone, Copy)]
+
 enum LaneType {
     Border,
     LeftToRight,
@@ -80,12 +81,15 @@ pub fn spawn_roads(
         ))
         .observe(spawn_pertubator)
         .with_children(|parent| {
+
             for (lane_index, lane) in lanes.iter().enumerate() {
                 let lane_asset: &Handle<Scene> = match lane {
+
                     LaneType::Border => &road_assets.road_border,
                     LaneType::Separator => &road_assets.road_separator,
                     _ => &road_assets.road_straight,
                 };
+
 
                 for tile_index in 0..tiles_per_lane {
                     let pos: Vec3 = Vec3::new(
@@ -93,6 +97,7 @@ pub fn spawn_roads(
                         0.,
                         start_z + lane_index as f32 * LANEWIDTH,
                     );
+
 
                     let mut segment = parent.spawn((
                         Road,

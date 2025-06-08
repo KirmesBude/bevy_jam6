@@ -6,7 +6,6 @@ use bevy::{
     platform::collections::HashMap,
     prelude::*,
     scene::SceneInstanceReady,
-    window::PrimaryWindow,
 };
 
 use crate::{
@@ -31,7 +30,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_preview);
     app.add_systems(
         Update,
-        (drop_obstacle, preview_pertubator)
+        (preview_pertubator)
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
@@ -51,62 +50,6 @@ pub struct Soaped;
 #[derive(Debug, Default, Clone, Component, Reflect)]
 pub struct Nailed;
 
-fn obstacle(
-    meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
-    point: Vec3,
-) -> impl Bundle {
-    (
-        Name::new("Obstacle"),
-        Mesh3d(meshes.add(Sphere::default())),
-        MeshMaterial3d(materials.add(Color::srgb(1.0, 0.0, 1.0))),
-        Transform::from_translation(point).with_scale(Vec3::new(0.5, 0.5, 0.5)),
-        RigidBody::Dynamic,
-        ExternalForce::default().with_persistence(false),
-        Collider::cuboid(1.0, 1.0, 1.0),
-    )
-}
-
-pub fn drop_obstacle(
-    mut commands: Commands,
-    buttons: Res<ButtonInput<MouseButton>>,
-    window: Single<&Window, With<PrimaryWindow>>,
-    camera: Single<(&Camera, &GlobalTransform)>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    let (camera, cam_transform) = *camera;
-
-    let Some(cursor_position) = window.cursor_position() else {
-        return;
-    };
-
-    let Ok(ray) = camera.viewport_to_world(cam_transform, cursor_position) else {
-        return;
-    };
-
-    let Some(distance) = ray.intersect_plane(Vec3::ZERO, InfinitePlane3d::new(Vec3::Y)) else {
-        return;
-    };
-    let point = ray.get_point(distance);
-
-    /* TODO: Right, because Left triggers on transition */
-    if buttons.pressed(MouseButton::Right) {
-        commands.spawn((
-            obstacle(
-                &mut meshes,
-                &mut materials,
-                Vec3 {
-                    x: point.x,
-                    y: 5.,
-                    z: point.z,
-                },
-            ),
-            StateScoped(Screen::Gameplay),
-        ));
-    }
-}
-
 /// All pertubator assets
 /// Extend SOURCE whenever new kinds of pertubators are added
 /// Also needs adjustment if there new assets are necessary
@@ -116,7 +59,7 @@ pub struct PertubatorAssets(HashMap<Pertubator, PertubatorAsset>);
 
 impl PertubatorAssets {
     const SOURCE: [(Pertubator, (&'static str, &'static str)); 3] = [
-        (Pertubator::Spring, ("spring", "images/barrel.png")), /* TODO: Temporary */
+        (Pertubator::Spring, ("spring", "images/spring.png")),
         (Pertubator::Nails, ("trap", "images/trap.png")),
         (Pertubator::Soap, ("patch-grass", "images/patch-grass.png")),
     ];
@@ -260,11 +203,11 @@ impl Pertubator {
                         |trigger: Trigger<OnCollisionStart>,
                          mut commands: Commands,
                          wheels: Query<Entity, With<WheelCollider>>| {
-                            let nails = trigger.target();
+                            // let nails = trigger.target();
                             let other_entity = trigger.collider;
                             if wheels.contains(other_entity) {
                                 commands.entity(other_entity).insert(Nailed);
-                                dbg!("Car {} triggered nails {}", other_entity, nails);
+                                // dbg!("Car {} triggered nails {}", other_entity, nails);
                             }
                         },
                     );
@@ -286,11 +229,11 @@ impl Pertubator {
                         |trigger: Trigger<OnCollisionStart>,
                          mut commands: Commands,
                          wheels: Query<Entity, With<WheelCollider>>| {
-                            let soap = trigger.target();
+                            // let soap = trigger.target();
                             let other_entity = trigger.collider;
                             if wheels.contains(other_entity) {
                                 commands.entity(other_entity).insert(Soaped);
-                                dbg!("Car {} triggered soap {}", other_entity, soap);
+                                // dbg!("Car {} triggered soap {}", other_entity, soap);
                             }
                         },
                     );
@@ -350,7 +293,7 @@ pub fn spawn_pertubator(
             let mut entity_commands = commands.spawn(StateScoped(Screen::Gameplay));
             pertubator.spawn(&mut entity_commands, position, &pertubator_assets);
 
-            dbg!("Spawn {} at {}!", pertubator.name(), position);
+            // dbg!("Spawn {} at {}!", pertubator.name(), position);
         }
     }
 }

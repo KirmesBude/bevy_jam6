@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css::GOLD, ecs::spawn::SpawnWith, prelude::*};
+use bevy::{color::palettes::css::*, ecs::spawn::SpawnWith, prelude::*};
 
 use crate::{
     game::{
@@ -31,23 +31,18 @@ fn bottom_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
     (
         Name::new("UI Bottom"),
         Node {
-            width: Val::Percent(100.),
-            height: Val::Percent(15.),
+            width: Val::Vw(100.),
+            height: Val::Vh(12.),
             position_type: PositionType::Absolute,
             bottom: Val::Percent(0.), /* TODO: This can be replaced if root ui is SpaceBetween */
             flex_direction: FlexDirection::Row,
-            justify_content: JustifyContent::SpaceBetween,
+            justify_content: JustifyContent::SpaceAround,
             align_items: AlignItems::Center,
-            padding: UiRect::all(Val::Percent(1.)),
+            padding: UiRect::all(Val::Px(2.)),
             ..Default::default()
         },
-        //BackgroundColor(WHITE.into()),
-        children![
-            item_container(pertubator_assets),
-            widget::button("crash out", |_: Trigger<Pointer<Click>>| {
-                /* TODO: Nothing for now */
-            }),
-        ],
+        BackgroundColor(BLACK.with_alpha(0.6).into()),
+        children![item_container(pertubator_assets),],
     )
 }
 
@@ -60,14 +55,11 @@ fn item_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
             align_items: AlignItems::Center,
             ..Default::default()
         },
-        //BackgroundColor(RED.into()),
+        BackgroundColor(BLACK.into()),
         children![
             pertubator_button(Pertubator::Spring, pertubator_assets),
             pertubator_button(Pertubator::Nails, pertubator_assets),
             pertubator_button(Pertubator::Soap, pertubator_assets),
-            widget::button_small("4", |_: Trigger<Pointer<Click>>| {
-                print_item(4);
-            }),
         ],
     )
 }
@@ -77,27 +69,28 @@ fn top_container() -> impl Bundle {
         Name::new("UI Top"),
         Node {
             width: Val::Percent(100.),
-            height: Val::Percent(15.),
+            height: Val::Percent(8.),
             position_type: PositionType::Absolute,
             top: Val::Percent(0.),
             flex_direction: FlexDirection::Row,
-            justify_content: JustifyContent::SpaceBetween,
+            justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            padding: UiRect::all(Val::Percent(1.)),
+            padding: UiRect::all(Val::Px(2.)),
             ..Default::default()
         },
-        //BackgroundColor(BLACK.into()),
+        BackgroundColor(BLACK.with_alpha(0.6).into()),
         children![
+            (Text("Score: ".into()), TextFont::from_font_size(24.0)),
             highscore(),
-            widget::label("Current Combo?"),
-            widget::label("Achievements")
+            // widget::label("Current Combo?"),
+            // widget::label("Achievements")
         ],
     )
 }
 
-fn print_item(index: u8) {
-    dbg!("{}", index);
-}
+// fn print_item(index: u8) {
+//     dbg!("{}", index);
+// }
 
 fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAssets) -> impl Bundle {
     let image = pertubator_assets.get(&pertubator).unwrap().image().clone();
@@ -111,7 +104,7 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                     Name::new("Button Inner"),
                     Button,
                     Node::default(),
-                    BackgroundColor(BUTTON_BACKGROUND),
+                    BackgroundColor(BUTTON_BACKGROUND.with_alpha(0.6)),
                     InteractionPalette {
                         none: BUTTON_BACKGROUND,
                         hovered: BUTTON_HOVERED_BACKGROUND,
@@ -121,6 +114,7 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                         Name::new("Button Image"),
                         ImageNode {
                             image,
+
                             ..Default::default()
                         },
                         // Don't bubble picking events from the text up to the button.
@@ -146,7 +140,7 @@ fn highscore() -> impl Bundle {
         Name::new("High Score"),
         HighScoreUi,
         Text("".into()),
-        TextFont::from_font_size(24.0),
+        TextFont::from_font_size(32.0),
         TextColor(GOLD.into()),
     )
 }

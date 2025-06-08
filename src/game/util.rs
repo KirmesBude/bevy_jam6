@@ -29,7 +29,7 @@ fn tick_lifetime(
 ) {
     for (entity, mut lifetime) in &mut lifetimes {
         if lifetime.0.tick(time.delta()).just_finished() {
-            dbg!("Despawn {}, because lifetime ended", entity);
+            // dbg!("Despawn {}, because lifetime ended", entity);
             commands.entity(entity).despawn();
         }
     }

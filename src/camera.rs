@@ -20,8 +20,8 @@ fn spawn_camera(mut commands: Commands) {
         Camera3d::default(),
         Projection::from(OrthographicProjection {
             // 6 world units per pixel of window height.
-            scaling_mode: ScalingMode::FixedVertical {
-                viewport_height: 32.0,
+            scaling_mode: ScalingMode::FixedHorizontal {
+                viewport_width: 100.0,
             },
             ..OrthographicProjection::default_3d()
         }),
@@ -46,11 +46,12 @@ fn zoom_camera(
         return;
     }
 
+    #[cfg(feature = "dev")]
     if let Projection::Orthographic(ref mut ortho) = *projection.into_inner() {
-        if let ScalingMode::FixedVertical { viewport_height } = &mut ortho.scaling_mode {
-            let autoscale_factor = 1. - (1.0 / (1. + *viewport_height));
-            *viewport_height += delta * autoscale_factor;
-            *viewport_height = viewport_height.clamp(8., 128.);
+        if let ScalingMode::FixedHorizontal { viewport_width } = &mut ortho.scaling_mode {
+            let autoscale_factor = 1. - (1.0 / (1. + *viewport_width));
+            *viewport_width += delta * autoscale_factor;
+            *viewport_width = viewport_width.clamp(8., 256.);
 
             // info!(viewport_height, delta, scroll_y, acc_scroll.delta.y);
         }

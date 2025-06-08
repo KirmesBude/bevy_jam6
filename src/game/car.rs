@@ -124,7 +124,7 @@ pub fn create_car(
         PlaybackSettings::LOOP
             .with_spatial(true)
             .with_spatial_scale(SpatialScale::new(0.2))
-            .with_volume(bevy::audio::Volume::Decibels(-24.))
+            .with_volume(bevy::audio::Volume::Decibels(-14.))
             .with_speed(rng.gen_range(0.1..0.8)),
     )
 }
