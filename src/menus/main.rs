@@ -58,3 +58,17 @@ fn open_credits_menu(_: Trigger<Pointer<Click>>, mut next_menu: ResMut<NextState
 fn exit_app(_: Trigger<Pointer<Click>>, mut app_exit: EventWriter<AppExit>) {
     app_exit.write(AppExit::Success);
 }
+
+fn game_title(
+    text: impl Into<String>,
+    ui_assets: &UiAssets,
+    asset_server: Res<AssetServer>,
+) -> impl Bundle {
+    (
+        Name::new("Game Title"),
+        ImageNode {
+            asset: asset_server.load("images/logotype.png"),
+            ..Default::default()
+        },
+    )
+}
