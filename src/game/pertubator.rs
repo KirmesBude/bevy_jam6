@@ -28,12 +28,15 @@ const EXPLOSION_EXPANSION_FACTOR: f32 = 40.0;
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<PertubatorAssets>();
     app.init_resource::<ActivePertubator>();
+    app.init_resource::<UnlockedPertubators>();
+    app.init_resource::<Money>();
 
     app.register_type::<PertubatorAssets>();
     app.register_type::<PertubatorAsset>();
     app.register_type::<Pertubator>();
     app.register_type::<ActivePertubator>();
     app.register_type::<PertubatorPreview>();
+    app.register_type::<UnlockedPertubators>();
 
     app.add_systems(OnEnter(Screen::Gameplay), spawn_preview);
     app.add_systems(
@@ -139,6 +142,15 @@ impl Pertubator {
             Pertubator::Nails => "Nails",
             Pertubator::Soap => "Sludge",
             Pertubator::Barrel => "Barrel",
+        }
+    }
+
+    pub fn cost(&self) -> i32 {
+        match self {
+            Pertubator::Spring => 100,
+            Pertubator::Nails => 10,
+            Pertubator::Soap => -1,
+            Pertubator::Barrel => 1000,
         }
     }
 
@@ -491,6 +503,12 @@ fn preview_pertubator_material_transparency(
     }
 }
 
+// TODO: Move into a fitting location
+#[derive(Default, Resource, Clone, Reflect, Deref, DerefMut)]
+pub struct UnlockedPertubators(pub Vec<Pertubator>);
+
+#[derive(Default, Resource, Clone, Reflect, Deref, DerefMut)]
+pub struct Money(pub i32);
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
 struct Explosion;
