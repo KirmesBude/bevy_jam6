@@ -118,7 +118,7 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
         Node {
             display: Display::Block,
             height: Val::Percent(100.),
-            aspect_ratio: Some(1. / 1.),
+            aspect_ratio: Some(1.),
             ..default()
         },
         Children::spawn(SpawnWith(move |parent: &mut ChildSpawner| {
@@ -129,7 +129,7 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                     Node {
                         display: Display::Block,
                         height: Val::Percent(100.),
-                        aspect_ratio: Some(1. / 1.),
+                        aspect_ratio: Some(1.),
                         ..default()
                     },
                     BackgroundColor(BUTTON_BACKGROUND.with_alpha(0.6)),
@@ -143,7 +143,7 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                         Node {
                             display: Display::Block,
                             height: Val::Percent(100.),
-                            aspect_ratio: Some(1. / 1.),
+                            aspect_ratio: Some(1.),
                             ..default()
                         },
                         ImageNode {
