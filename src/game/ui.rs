@@ -39,7 +39,8 @@ fn bottom_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
         Name::new("UI Bottom"),
         Node {
             width: Val::Percent(100.),
-            height: Val::Vh(12.),
+            height: Val::Vh(10.),
+            min_height: Val::Px(64.0),
             position_type: PositionType::Absolute,
             bottom: Val::Percent(0.), /* TODO: This can be replaced if root ui is SpaceBetween */
             flex_direction: FlexDirection::Row,
@@ -60,6 +61,7 @@ fn item_container(pertubator_assets: &PertubatorAssets) -> impl Bundle {
             flex_direction: FlexDirection::Row,
             justify_content: JustifyContent::SpaceBetween,
             align_items: AlignItems::Center,
+            height: Val::Percent(100.),
             ..Default::default()
         },
         BackgroundColor(BLACK.into()),
@@ -78,6 +80,7 @@ fn top_container(ui_assets: &UiAssets) -> impl Bundle {
         Node {
             width: Val::Percent(100.),
             height: Val::Percent(8.),
+            min_height: Val::Px(64.0),
             position_type: PositionType::Absolute,
             top: Val::Percent(0.),
             flex_direction: FlexDirection::Row,
@@ -112,7 +115,12 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
 
     (
         Name::new(pertubator.name()),
-        Node::default(),
+        Node {
+            display: Display::Block,
+            height: Val::Percent(100.),
+            aspect_ratio: Some(1. / 1.),
+            ..default()
+        },
         Children::spawn(SpawnWith(move |parent: &mut ChildSpawner| {
             parent
                 .spawn((
@@ -120,9 +128,8 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                     Button,
                     Node {
                         display: Display::Block,
-                        // width: Val::Percent(10.),
-                        // height: Val::Percent(10.),
-                        // aspect_ratio: Some(1. / 1.),
+                        height: Val::Percent(100.),
+                        aspect_ratio: Some(1. / 1.),
                         ..default()
                     },
                     BackgroundColor(BUTTON_BACKGROUND.with_alpha(0.6)),
@@ -133,8 +140,15 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                     },
                     children![(
                         Name::new("Button Image"),
+                        Node {
+                            display: Display::Block,
+                            height: Val::Percent(100.),
+                            aspect_ratio: Some(1. / 1.),
+                            ..default()
+                        },
                         ImageNode {
                             image,
+                            image_mode: NodeImageMode::Auto,
                             ..Default::default()
                         },
                         // Don't bubble picking events from the text up to the button.
@@ -158,7 +172,7 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                         },
                         Text(pertubator.name().into()),
                         TextFont {
-                            font_size: 16.,
+                            font_size: 12.,
                             ..Default::default()
                         },
                     ));
@@ -174,7 +188,7 @@ fn pertubator_button(pertubator: Pertubator, pertubator_assets: &PertubatorAsset
                         },
                         Text(format!("Cost: {}", pertubator.price())),
                         TextFont {
-                            font_size: 16.,
+                            font_size: 12.,
                             ..Default::default()
                         },
                     ));

@@ -272,13 +272,11 @@ impl Pertubator {
                         CollisionEventsEnabled,
                         Lifetime::new(5.),
                     ))
-                    .observe(
-                        |trigger: Trigger<OnCollisionStart>,
-                         mut commands: Commands,
-                         wheels: Query<Entity, With<WheelCollider>>| {
+                    /* .observe(
+                        |trigger: Trigger<OnCollisionStart>, mut commands: Commands| {
                             // TODO: implement explosion
                         },
-                    );
+                    ) */;
             }
         }
     }
