@@ -11,7 +11,11 @@ use bevy::{
 use crate::{
     AppSystems, PausableSystems,
     asset_tracking::LoadResource,
-    game::{car::Wrecked, car_colliders::WheelCollider, road::RoadsOrigin},
+    game::{
+        car::{CarAssets, Wrecked},
+        car_colliders::WheelCollider,
+        road::RoadsOrigin,
+    },
     screens::Screen,
 };
 
@@ -280,7 +284,8 @@ impl Pertubator {
                          mut commands: Commands,
                          mut cars: Query<(&mut ExternalImpulse, &Transform), With<Car>>,
                          transform: Query<&Transform>,
-                         spatial_query: SpatialQuery| {
+                         spatial_query: SpatialQuery,
+                         car_assets: Res<CarAssets>| {
                             let barrel = trigger.target();
                             let other_entity = trigger.collider;
                             if cars.contains(other_entity) {
@@ -307,6 +312,17 @@ impl Pertubator {
                                         );
                                     }
                                 }
+
+                                /* Explosion sound */
+                                // TODO: Could not figure out good spatial sound
+                                commands.spawn((
+                                    Name::new("Explosion Sound"),
+                                    StateScoped(Screen::Gameplay),
+                                    *barrel_pos,
+                                    Lifetime::new(1.0),
+                                    AudioPlayer::new(car_assets.explosion_audio.clone()),
+                                    PlaybackSettings::ONCE.with_spatial(false),
+                                ));
 
                                 // dbg!("Car {} triggered soap {}", other_entity, soap);
                             }
