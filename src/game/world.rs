@@ -1,11 +1,4 @@
-use std::f32::consts::PI;
-
-use bevy::{
-    color::palettes::css::{GREEN, ORANGE_RED},
-    ecs::spawn::SpawnWith,
-    pbr::CascadeShadowConfigBuilder,
-    prelude::*,
-};
+use bevy::{color::palettes::css::GREEN, ecs::spawn::SpawnWith, prelude::*};
 use rand::Rng;
 
 use crate::{
@@ -18,37 +11,11 @@ pub fn plugin(app: &mut App) {
     app.load_resource::<WorldAssets>();
     app.register_type::<WorldAssets>();
     app.add_systems(OnEnter(Screen::Gameplay), spawn_grass);
-    app.add_systems(OnEnter(Screen::Gameplay), spawn_light);
 
     app.register_type::<MusicAssets>();
     app.load_resource::<MusicAssets>();
     app.add_systems(OnEnter(Screen::Gameplay), start_game_music);
     // app.add_systems(Update, swap_game_music);
-}
-
-fn spawn_light(mut commands: Commands) {
-    // ambient light
-    commands.insert_resource(AmbientLight {
-        color: ORANGE_RED.into(),
-        brightness: 1.0,
-        ..default()
-    });
-
-    commands.spawn((
-        StateScoped(Screen::Gameplay),
-        DirectionalLight {
-            illuminance: 1.0 * light_consts::lux::AMBIENT_DAYLIGHT,
-            shadows_enabled: true,
-            ..default()
-        },
-        Transform::from_rotation(Quat::from_euler(EulerRot::ZYX, 0.0, PI / 2., -PI / 4.)),
-        CascadeShadowConfigBuilder {
-            first_cascade_far_bound: 7.0,
-            maximum_distance: 200.0,
-            ..default()
-        }
-        .build(),
-    ));
 }
 
 #[derive(Debug, Resource, Asset, Clone, Reflect)]
