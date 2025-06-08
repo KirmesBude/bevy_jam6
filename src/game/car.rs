@@ -461,11 +461,10 @@ fn spawn_smoke_on_wrecked(
     }
 }
 
-fn remove_audio_on_wrecked(
-    mut commands: Commands,
-    wrecked_cars: Query<Entity, Added<Wrecked>>,
-) {
+fn remove_audio_on_wrecked(mut commands: Commands, wrecked_cars: Query<Entity, Added<Wrecked>>) {
     for wrecked_car in wrecked_cars {
-        commands.entity(wrecked_car).remove::<(AudioPlayer, PlaybackSettings, AudioSink)>();
+        commands
+            .entity(wrecked_car)
+            .remove::<(AudioPlayer, PlaybackSettings, AudioSink)>();
     }
 }
