@@ -49,10 +49,13 @@ impl Plugin for AppPlugin {
                 }),
         );
 
+        #[cfg(feature = "dev")]
+        app.add_plugins((PhysicsDiagnosticsPlugin, PhysicsDiagnosticsUiPlugin));
+
         /* 20Hz physics and logic for performance */
         app.insert_resource(Time::<Fixed>::from_hz(30.0));
 
-        app.insert_resource(DefaultSpatialScale(SpatialScale(Vec3::splat(0.025))));
+        // app.insert_resource(DefaultSpatialScale(SpatialScale(Vec3::splat(0.025))));
 
         app.add_plugins(MeshPickingPlugin);
         app.insert_resource(MeshPickingSettings {
