@@ -236,6 +236,8 @@ pub struct CarAssets {
     #[dependency]
     engine_audio: Handle<AudioSource>,
     #[dependency]
+    crash_audio: Vec<Handle<AudioSource>>,
+    #[dependency]
     nut: Handle<Scene>,
     #[dependency]
     bolt: Handle<Scene>,
@@ -286,6 +288,11 @@ impl FromWorld for CarAssets {
                 })
                 .collect(),
             engine_audio: assets.load("audio/sound_effects/engine-loop.ogg"),
+            crash_audio: vec![
+                assets.load("audio/sound_effects/crash/small crash.ogg"),
+                assets.load("audio/sound_effects/crash/medium_crash.ogg"),
+                assets.load("audio/sound_effects/crash/big_crash.ogg"),
+            ],
             nut: assets.load(GltfAssetLabel::Scene(0).from_asset("models/vehicles/debris-nut.glb")),
             bolt: assets
                 .load(GltfAssetLabel::Scene(0).from_asset("models/vehicles/debris-bolt.glb")),
