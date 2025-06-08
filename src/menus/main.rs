@@ -1,6 +1,6 @@
 //! The main menu (seen on the title screen).
 
-use bevy::{color::palettes::css::RED, prelude::*};
+use bevy::prelude::*;
 
 use crate::{
     asset_tracking::ResourceHandles,
@@ -13,14 +13,18 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Main), spawn_main_menu);
 }
 
-fn spawn_main_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
+fn spawn_main_menu(
+    mut commands: Commands,
+    ui_assets: Res<UiAssets>,
+    asset_server: Res<AssetServer>,
+) {
     commands.spawn((
         widget::ui_root("Main Menu"),
         GlobalZIndex(2),
         StateScoped(Menu::Main),
         #[cfg(not(target_family = "wasm"))]
         children![
-            game_title("THE GAME", &ui_assets),
+            game_title(asset_server),
             widget::button("Play", enter_loading_or_gameplay_screen, &ui_assets),
             widget::button("Settings", open_settings_menu, &ui_assets),
             widget::button("Credits", open_credits_menu, &ui_assets),
@@ -28,7 +32,7 @@ fn spawn_main_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
         ],
         #[cfg(target_family = "wasm")]
         children![
-            game_title("THE GAME", &ui_assets),
+            game_title(asset_server),
             widget::button("Play", enter_loading_or_gameplay_screen, &ui_assets),
             widget::button("Settings", open_settings_menu, &ui_assets),
             widget::button("Credits", open_credits_menu, &ui_assets),
@@ -61,18 +65,17 @@ fn exit_app(_: Trigger<Pointer<Click>>, mut app_exit: EventWriter<AppExit>) {
     app_exit.write(AppExit::Success);
 }
 
-fn game_title(text: impl Into<String>, ui_assets: &UiAssets) -> impl Bundle {
+fn game_title(asset_server: Res<AssetServer>) -> impl Bundle {
     (
-        Name::new("Header"),
-        Text(text.into()),
-        TextFont {
-            font: ui_assets.font.clone(),
-            font_size: 80.,
+        Name::new("Game Title"),
+        Node {
+            height: Val::Vh(20.),
+            aspect_ratio: Some(2.),
             ..Default::default()
         },
-        TextColor(RED.into()),
-        TextShadow {
-            offset: Vec2::splat(2.5),
+        ImageNode {
+            image: asset_server.load("images/logotype.png"),
+
             ..Default::default()
         },
     )
