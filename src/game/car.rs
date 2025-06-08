@@ -143,7 +143,7 @@ pub fn create_car(
         SceneRoot(scene_handle),
         AudioPlayer::new(car_assets.engine_audio.clone()),
         PlaybackSettings::LOOP
-            .with_volume(bevy::audio::Volume::Decibels(-22.))
+            .with_volume(bevy::audio::Volume::Decibels(-24.))
             .with_speed(rng.gen_range(0.1..0.8)),
     )
 }
