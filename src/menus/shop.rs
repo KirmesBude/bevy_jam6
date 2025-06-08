@@ -26,6 +26,7 @@ fn spawn_shop_menu(
     mut commands: Commands,
     ui_assets: Res<UiAssets>,
     pertubator_assets: Res<PertubatorAssets>,
+    money: Res<Money>,
 ) {
     commands.spawn((
         widget::ui_root("Utilities Shop Menu"),
@@ -48,6 +49,7 @@ fn spawn_shop_menu(
                         ..default()
                     }
                 ),
+                (label(format!("Money: {}", money.0), &ui_assets),),
                 unlock_pertubator_widget(&ui_assets, Pertubator::Nails, &pertubator_assets),
                 unlock_pertubator_widget(&ui_assets, Pertubator::Spring, &pertubator_assets),
                 unlock_pertubator_widget(&ui_assets, Pertubator::Barrel, &pertubator_assets),

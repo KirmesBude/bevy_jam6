@@ -13,10 +13,12 @@ use crate::{
     },
 };
 
+use super::pertubator::Money;
+
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<HighScoreUi>();
 
-    app.add_systems(Update, update_highscore);
+    app.add_systems(Update, (update_highscore, update_money));
 }
 
 pub fn spawn_game_ui(
@@ -105,6 +107,22 @@ fn top_container(ui_assets: &UiAssets) -> impl Bundle {
                 }
             ),
             highscore(ui_assets),
+            (
+                Node {
+                    width: Val::Px(200.),
+                    ..default()
+                },
+                BackgroundColor(BLACK.with_alpha(0.).into())
+            ),
+            (
+                Text("Money: ".into()),
+                TextFont {
+                    font: ui_assets.font.clone(),
+                    font_size: 24.,
+                    ..Default::default()
+                }
+            ),
+            money(ui_assets),
             // widget::label("Current Combo?"),
             // widget::label("Achievements")
         ],
@@ -217,4 +235,26 @@ fn update_highscore(
     mut highscore_ui: Single<&mut Text, With<HighScoreUi>>,
 ) {
     highscore_ui.0 = format!("{:.0}", highscore.get().round());
+}
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+struct MoneyUi;
+
+fn money(ui_assets: &UiAssets) -> impl Bundle {
+    (
+        Name::new("Money"),
+        MoneyUi,
+        Text("".into()),
+        TextFont {
+            font: ui_assets.font.clone(),
+            font_size: 32.,
+            ..Default::default()
+        },
+        TextColor(GOLD.into()),
+    )
+}
+
+fn update_money(money: Res<Money>, mut highscore_ui: Single<&mut Text, With<MoneyUi>>) {
+    highscore_ui.0 = format!("{}", money.0);
 }
