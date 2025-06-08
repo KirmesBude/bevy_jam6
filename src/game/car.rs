@@ -1,12 +1,14 @@
 use std::f32::consts::PI;
 
 use avian3d::prelude::*;
-use bevy::{audio::SpatialScale, math::ops::acos, prelude::*};
+use bevy::{math::ops::acos, prelude::*};
 use rand::Rng;
 
 use crate::{
-    AppSystems, PausableSystems, asset_tracking::LoadResource,
-    game::consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, screens::Screen,
+    AppSystems, PausableSystems,
+    asset_tracking::LoadResource,
+    game::{consts::MAXIMALANGULARVELOCITYFORTORQUECORRECTION, util::Lifetime},
+    screens::Screen,
 };
 
 use super::{
@@ -19,9 +21,17 @@ use super::{
     pertubator::{Nailed, Soaped},
 };
 
+const CRASH_SOUND_MAGNITUDE_CUTOFF_1: f32 = 10.0;
+const CRASH_SOUND_MAGNITUDE_CUTOFF_2: f32 = 20.0;
+const DEBRIS_IMPULSE: f32 = 50.0;
+
 #[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct Wrecked;
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
 pub struct Car {
-    pub wrecked: bool, // TODO: Mabye make this a tag component.
     target_velocity: f32,
     driving_direction: Vec3, // This has to be a normalized vector!
 }
@@ -37,12 +47,30 @@ pub(super) fn plugin(app: &mut App) {
         FixedUpdate,
         (accelerate_cars, correct_car_torque, update_friction_changes)
             .in_set(AppSystems::Update)
-            .in_set(PausableSystems),
+            .in_set(PausableSystems)
+            .run_if(in_state(Screen::Gameplay)),
+    );
+
+    app.add_systems(
+        Update,
+        (
+            play_crash_sound,
+            spawn_debris_on_crash,
+            spawn_smoke_on_wrecked,
+            remove_audio_on_wrecked,
+            rotate_y,
+        )
+            .in_set(AppSystems::Update)
+            .in_set(PausableSystems)
+            .run_if(in_state(Screen::Gameplay)),
     );
 
     app.register_type::<CarCrashable>();
     app.register_type::<CarCrash>();
     app.add_event::<CarCrash>();
+
+    app.register_type::<Wrecked>();
+    app.register_type::<RotateY>();
 }
 
 pub fn spawn_car(
@@ -88,7 +116,6 @@ pub fn create_car(
     (
         Name::new("Car"),
         Car {
-            wrecked: false,
             target_velocity,
             driving_direction,
         },
@@ -116,17 +143,15 @@ pub fn create_car(
         SceneRoot(scene_handle),
         AudioPlayer::new(car_assets.engine_audio.clone()),
         PlaybackSettings::LOOP
-            .with_spatial(true)
-            .with_spatial_scale(SpatialScale::new(0.2))
-            .with_volume(bevy::audio::Volume::Decibels(-14.))
+            .with_volume(bevy::audio::Volume::Decibels(-24.))
             .with_speed(rng.gen_range(0.1..0.8)),
     )
 }
 
 /// Applies the driving force to the cars being not wrecked.
-fn accelerate_cars(mut cars: Query<(&Car, &LinearVelocity, &mut ExternalForce)>) {
-    for (car, velocity, mut applied_force) in cars.iter_mut() {
-        if car.wrecked || velocity.length() > car.target_velocity {
+fn accelerate_cars(mut cars: Query<(&Car, &LinearVelocity, &mut ExternalForce, Has<Wrecked>)>) {
+    for (car, velocity, mut applied_force, has_wrecked) in cars.iter_mut() {
+        if has_wrecked || velocity.length() > car.target_velocity {
             continue;
         }
         // Let the car accelerate in the trageted direction.
@@ -146,10 +171,11 @@ fn correct_car_torque(
         &ComputedAngularInertia,
         &Transform,
         &mut ExternalTorque,
+        Has<Wrecked>,
     )>,
 ) {
-    for (car, angular_velocity, inertia, transform, mut torque) in cars.iter_mut() {
-        if car.wrecked {
+    for (car, angular_velocity, inertia, transform, mut torque, has_wrecked) in cars.iter_mut() {
+        if has_wrecked {
             continue;
         }
 
@@ -187,6 +213,7 @@ fn correct_car_torque(
 ///
 /// At the moment, only the `Soaped` and the `Nailed` tags exist and are handled.
 fn update_friction_changes(
+    mut commands: Commands,
     mut changed_objects: Query<
         (
             &mut Friction,
@@ -197,7 +224,6 @@ fn update_friction_changes(
         ),
         Or<(Added<Soaped>, Added<Nailed>)>,
     >,
-    mut cars: Query<&mut Car>,
 ) {
     for (mut friction, possible_parent, is_wheel, is_soaped, is_nailed) in
         changed_objects.iter_mut()
@@ -219,11 +245,11 @@ fn update_friction_changes(
 
         // Part of a car -> mark it as wrecked.
         if is_wheel && possible_parent.is_some() {
-            let mut parent_car = cars.get_mut(possible_parent.unwrap().0).unwrap();
-
-            // Mark the car as wrecked (-> make the car stop) if anything of this happened.
-            // No effect, if the car is already wrecked
-            parent_car.wrecked = true;
+            if let Some(parent) = possible_parent {
+                // Mark the car as wrecked (-> make the car stop) if anything of this happened.
+                // No effect, if the car is already wrecked
+                commands.entity(parent.0).insert(Wrecked);
+            }
         }
     }
 }
@@ -235,6 +261,16 @@ pub struct CarAssets {
     vehicles: Vec<Handle<Scene>>,
     #[dependency]
     engine_audio: Handle<AudioSource>,
+    #[dependency]
+    crash_audio: Vec<Handle<AudioSource>>,
+    #[dependency]
+    pub explosion_audio: Handle<AudioSource>,
+    #[dependency]
+    nut: Handle<Scene>,
+    #[dependency]
+    bolt: Handle<Scene>,
+    #[dependency]
+    pub smoke: Handle<Scene>,
 }
 
 impl CarAssets {
@@ -280,6 +316,18 @@ impl FromWorld for CarAssets {
                 })
                 .collect(),
             engine_audio: assets.load("audio/sound_effects/engine-loop.ogg"),
+            crash_audio: vec![
+                assets.load("audio/sound_effects/crash/small crash.ogg"),
+                assets.load("audio/sound_effects/crash/medium_crash.ogg"),
+                assets.load("audio/sound_effects/crash/big_crash.ogg"),
+            ],
+            explosion_audio: assets
+                .load("audio/sound_effects/explosion/Grenade Explosion 1 - QuickSounds.com.ogg"),
+            nut: assets.load(GltfAssetLabel::Scene(0).from_asset("models/vehicles/debris-nut.glb")),
+            bolt: assets
+                .load(GltfAssetLabel::Scene(0).from_asset("models/vehicles/debris-bolt.glb")),
+            smoke: assets
+                .load(GltfAssetLabel::Scene(0).from_asset("models/vehicles/toy/smoke.glb")),
         }
     }
 }
@@ -288,6 +336,7 @@ impl FromWorld for CarAssets {
 #[reflect(Component)]
 pub struct CarCrashable;
 
+// TODO: This can contain other things than cars, so you need to filter for that when reading
 #[derive(Debug, Event, Reflect)]
 pub struct CarCrash {
     pub entities: [Entity; 2],
@@ -296,6 +345,7 @@ pub struct CarCrash {
 
 /// To be added to a car entity
 /// Will observer all car related collisions and update score based on total collision impulse
+/// TODO: Does this actually trigger twice on a car on car collision?
 fn car_observer_crash(
     trigger: Trigger<OnCollisionStart>,
     mut car_crash_writer: EventWriter<CarCrash>,
@@ -315,5 +365,118 @@ fn car_observer_crash(
 
             car_crash_writer.write(event);
         }
+    }
+}
+
+fn play_crash_sound(
+    mut commands: Commands,
+    transforms: Query<&Transform>,
+    mut car_crashes: EventReader<CarCrash>,
+    car_assets: Res<CarAssets>,
+) {
+    for car_crash in car_crashes.read() {
+        let transform = transforms.get(car_crash.entities[0]).unwrap();
+        let audio_source_index = if car_crash.magnitude < CRASH_SOUND_MAGNITUDE_CUTOFF_1 {
+            0
+        } else if car_crash.magnitude < CRASH_SOUND_MAGNITUDE_CUTOFF_2 {
+            1
+        } else {
+            2
+        };
+
+        commands.spawn((
+            Name::new("Crash Sound"),
+            StateScoped(Screen::Gameplay),
+            *transform,
+            Lifetime::new(1.0),
+            AudioPlayer::new(car_assets.crash_audio[audio_source_index].clone()),
+            PlaybackSettings::ONCE.with_volume(bevy::audio::Volume::Decibels(-23.)),
+        ));
+    }
+}
+
+// TODO: rng the trajectory
+// TODO: Maybe debris should be children so?
+fn spawn_debris_on_crash(
+    mut commands: Commands,
+    transforms: Query<&Transform>,
+    mut car_crashes: EventReader<CarCrash>,
+    car_assets: Res<CarAssets>,
+) {
+    for car_crash in car_crashes.read() {
+        let transforms = transforms.get_many(car_crash.entities).unwrap();
+
+        for transform in transforms {
+            commands.spawn((
+                Name::new("Bolt"),
+                StateScoped(Screen::Gameplay),
+                Transform {
+                    translation: transform.translation,
+                    scale: Vec3::splat(3.0),
+                    ..Default::default()
+                },
+                Lifetime::new(4.0),
+                RigidBody::Dynamic,
+                Mass(10.0),
+                ExternalImpulse::new(DEBRIS_IMPULSE * Vec3::new(-1., 1., 1.).normalize())
+                    .with_persistence(false),
+                SceneRoot(car_assets.bolt.clone()),
+            ));
+
+            commands.spawn((
+                Name::new("Nut"),
+                StateScoped(Screen::Gameplay),
+                Transform {
+                    translation: transform.translation,
+                    scale: Vec3::splat(3.0),
+                    ..Default::default()
+                },
+                Lifetime::new(4.0),
+                RigidBody::Dynamic,
+                Mass(10.0),
+                ExternalImpulse::new(DEBRIS_IMPULSE * Vec3::new(1., 1., -1.).normalize())
+                    .with_persistence(false),
+                SceneRoot(car_assets.nut.clone()),
+            ));
+        }
+    }
+}
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+struct RotateY;
+
+fn rotate_y(mut transforms: Query<&mut Transform, With<RotateY>>, time: Res<Time>) {
+    for mut transform in &mut transforms {
+        transform.rotate_y(time.delta_secs() / 2.);
+    }
+}
+
+fn spawn_smoke_on_wrecked(
+    mut commands: Commands,
+    wrecked_cars: Query<Entity, Added<Wrecked>>,
+    car_assets: Res<CarAssets>,
+) {
+    let smoke = car_assets.smoke.clone();
+    for wrecked_car in wrecked_cars {
+        let child = commands
+            .spawn((
+                SceneRoot(smoke.clone()),
+                Transform::default()
+                    .with_translation(Vec3::new(0., 3., 0.))
+                    .with_scale(Vec3::splat(3.0)),
+                RotateY,
+            ))
+            .id();
+
+        commands.entity(wrecked_car).add_child(child);
+    }
+}
+
+fn remove_audio_on_wrecked(mut commands: Commands, wrecked_cars: Query<Entity, Added<Wrecked>>) {
+    for wrecked_car in wrecked_cars {
+        commands
+            .entity(wrecked_car)
+            .remove::<(AudioPlayer, PlaybackSettings, AudioSink)>();
     }
 }

@@ -11,11 +11,19 @@ use bevy::{
 use crate::{
     AppSystems, PausableSystems,
     asset_tracking::LoadResource,
-    game::{car_colliders::WheelCollider, road::RoadsOrigin},
+    game::{
+        car::{CarAssets, Wrecked},
+        car_colliders::WheelCollider,
+        road::RoadsOrigin,
+    },
     screens::Screen,
 };
 
 use super::{car::Car, util::Lifetime};
+
+const BARREL_SPHERE_SIZE: f32 = 15.0;
+const BARREL_EXPLOSION_STRENGTH: f32 = 50.0;
+const EXPLOSION_EXPANSION_FACTOR: f32 = 40.0;
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<PertubatorAssets>();
@@ -33,7 +41,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_preview);
     app.add_systems(
         Update,
-        (preview_pertubator)
+        (preview_pertubator, update_explosion_size_and_transparency)
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
@@ -61,10 +69,11 @@ pub struct Nailed;
 pub struct PertubatorAssets(HashMap<Pertubator, PertubatorAsset>);
 
 impl PertubatorAssets {
-    const SOURCE: [(Pertubator, (&'static str, &'static str)); 3] = [
+    const SOURCE: [(Pertubator, (&'static str, &'static str)); 4] = [
         (Pertubator::Spring, ("spring", "images/spring.png")),
         (Pertubator::Nails, ("trap", "images/trap.png")),
         (Pertubator::Soap, ("patch-grass", "images/patch-grass.png")),
+        (Pertubator::Barrel, ("barrel", "images/barrel.png")),
     ];
 }
 
@@ -123,6 +132,7 @@ pub enum Pertubator {
     Spring,
     Nails, /* "Trap" */
     Soap,  /* "Sludge" */
+    Barrel,
 }
 
 impl Pertubator {
@@ -130,7 +140,8 @@ impl Pertubator {
         match self {
             Pertubator::Spring => "Spring",
             Pertubator::Nails => "Nails",
-            Pertubator::Soap => "Soap",
+            Pertubator::Soap => "Sludge",
+            Pertubator::Barrel => "Barrel",
         }
     }
 
@@ -139,6 +150,7 @@ impl Pertubator {
             Pertubator::Spring => 100,
             Pertubator::Nails => 10,
             Pertubator::Soap => -1,
+            Pertubator::Barrel => 1000,
         }
     }
 
@@ -147,6 +159,7 @@ impl Pertubator {
             Pertubator::Spring => Vec3::ONE,
             Pertubator::Nails => 2. * Vec3::ONE,
             Pertubator::Soap => 2. * Vec3::ONE,
+            Pertubator::Barrel => 2. * Vec3::ONE,
         }
     }
 
@@ -193,13 +206,13 @@ impl Pertubator {
                                 |trigger: Trigger<OnCollisionStart>,
                                  mut commands: Commands,
                                  possible_spring_sensors: Query<&ChildOf, With<Sensor>>,
-                                 mut cars: Query<&mut Car>| {
+                                 cars: Query<&Car>| {
                                     let spring_sensor = trigger.target();
                                     let spring =
                                         possible_spring_sensors.get(spring_sensor).unwrap().0;
                                     let other_entity = trigger.collider;
                                     if cars.contains(other_entity) {
-                                        cars.get_mut(other_entity).unwrap().wrecked = true;
+                                        commands.entity(other_entity).insert(Wrecked);
                                         commands.entity(spring).insert(Lifetime::new(2.));
                                         commands
                                             .entity(spring_sensor)
@@ -262,6 +275,71 @@ impl Pertubator {
                             if wheels.contains(other_entity) {
                                 commands.entity(other_entity).insert(Soaped);
                                 commands.entity(soap).insert(Lifetime::new(1.0));
+                                // dbg!("Car {} triggered soap {}", other_entity, soap);
+                            }
+                        },
+                    );
+            }
+            Pertubator::Barrel => {
+                entity_commands
+                    .insert((
+                        Name::new(self.name()),
+                        *self,
+                        SceneRoot(scene),
+                        Transform::from_translation(position).with_scale(self.scale()),
+                        RigidBody::Static,
+                        Collider::cylinder(0.25, 0.25),
+                        Sensor,
+                        CollisionEventsEnabled,
+                    ))
+                    .observe(
+                        |trigger: Trigger<OnCollisionStart>,
+                         mut commands: Commands,
+                         mut cars: Query<(&mut ExternalImpulse, &Transform), With<Car>>,
+                         transform: Query<&Transform>,
+                         spatial_query: SpatialQuery,
+                         car_assets: Res<CarAssets>| {
+                            let barrel = trigger.target();
+                            let other_entity = trigger.collider;
+                            if cars.contains(other_entity) {
+                                /* Despawn Barrel */
+                                commands.entity(barrel).insert(Lifetime::new(0.1));
+
+                                /* Get all info for the explosion*/
+                                let barrel_pos = transform.get(barrel).unwrap();
+                                let shape = Collider::sphere(BARREL_SPHERE_SIZE);
+                                let intersections = spatial_query.shape_intersections(
+                                    &shape,
+                                    barrel_pos.translation,
+                                    Quat::default(),
+                                    &SpatialQueryFilter::default(),
+                                );
+
+                                for entity in intersections.iter() {
+                                    if let Ok((mut impulse, transform)) = cars.get_mut(*entity) {
+                                        commands.entity(*entity).insert(Wrecked);
+                                        impulse.apply_impulse(
+                                            BARREL_EXPLOSION_STRENGTH
+                                                * (transform.translation - barrel_pos.translation)
+                                                    .normalize(),
+                                        );
+                                    }
+                                }
+
+                                /* Explosion sound */
+                                // TODO: Could not figure out good spatial sound
+                                commands.spawn((
+                                    Name::new("Explosion Sound"),
+                                    StateScoped(Screen::Gameplay),
+                                    *barrel_pos,
+                                    Lifetime::new(0.5),
+                                    AudioPlayer::new(car_assets.explosion_audio.clone()),
+                                    PlaybackSettings::ONCE
+                                        .with_volume(bevy::audio::Volume::Decibels(-13.)),
+                                    Explosion,
+                                    SceneRoot(car_assets.smoke.clone()),
+                                ));
+
                                 // dbg!("Car {} triggered soap {}", other_entity, soap);
                             }
                         },
@@ -431,3 +509,41 @@ pub struct UnlockedPertubators(pub Vec<Pertubator>);
 
 #[derive(Default, Resource, Clone, Reflect, Deref, DerefMut)]
 pub struct Money(pub i32);
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+struct Explosion;
+
+fn update_explosion_size_and_transparency(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut explosions: Query<(Entity, &mut Transform), With<Explosion>>,
+    children: Query<&Children>,
+    mesh_materials: Query<&MeshMaterial3d<StandardMaterial>>,
+    mut asset_materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for (entity, mut transform) in &mut explosions {
+        transform.scale += Vec3::splat(time.delta_secs() * EXPLOSION_EXPANSION_FACTOR);
+
+        for descendants in children.iter_descendants(entity) {
+            // Get the material of the descendant
+            if let Some(material) = mesh_materials
+                .get(descendants)
+                .ok()
+                .and_then(|id| asset_materials.get_mut(id.id()))
+            {
+                // Create a copy of the material and override alpha
+                // Potentially expensive, but probably fine
+                let mut new_material = material.clone();
+                new_material.alpha_mode = AlphaMode::Blend;
+                new_material
+                    .base_color
+                    .set_alpha(material.base_color.alpha() - (time.delta_secs() * 2.0));
+
+                // Override `MeshMaterial3d` with new material
+                commands
+                    .entity(descendants)
+                    .insert(MeshMaterial3d(asset_materials.add(new_material)));
+            }
+        }
+    }
+}
