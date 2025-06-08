@@ -272,7 +272,7 @@ pub struct CarAssets {
     #[dependency]
     bolt: Handle<Scene>,
     #[dependency]
-    smoke: Handle<Scene>,
+    pub smoke: Handle<Scene>,
 }
 
 impl CarAssets {

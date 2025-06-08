@@ -23,6 +23,7 @@ use super::{car::Car, util::Lifetime};
 
 const BARREL_SPHERE_SIZE: f32 = 15.0;
 const BARREL_EXPLOSION_STRENGTH: f32 = 50.0;
+const EXPLOSION_EXPANSION_FACTOR: f32 = 40.0;
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<PertubatorAssets>();
@@ -37,7 +38,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), spawn_preview);
     app.add_systems(
         Update,
-        (preview_pertubator)
+        (preview_pertubator, update_explosion_size_and_transparency)
             .in_set(AppSystems::Update)
             .in_set(PausableSystems),
     );
@@ -319,9 +320,11 @@ impl Pertubator {
                                     Name::new("Explosion Sound"),
                                     StateScoped(Screen::Gameplay),
                                     *barrel_pos,
-                                    Lifetime::new(1.0),
+                                    Lifetime::new(0.5),
                                     AudioPlayer::new(car_assets.explosion_audio.clone()),
                                     PlaybackSettings::ONCE.with_spatial(false),
+                                    Explosion,
+                                    SceneRoot(car_assets.smoke.clone()),
                                 ));
 
                                 // dbg!("Car {} triggered soap {}", other_entity, soap);
@@ -483,6 +486,45 @@ fn preview_pertubator_material_transparency(
             commands
                 .entity(descendants)
                 .insert(MeshMaterial3d(asset_materials.add(new_material)));
+        }
+    }
+}
+
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+struct Explosion;
+
+fn update_explosion_size_and_transparency(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut explosions: Query<(Entity, &mut Transform), With<Explosion>>,
+    children: Query<&Children>,
+    mesh_materials: Query<&MeshMaterial3d<StandardMaterial>>,
+    mut asset_materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for (entity, mut transform) in &mut explosions {
+        transform.scale += Vec3::splat(time.delta_secs() * EXPLOSION_EXPANSION_FACTOR);
+
+        for descendants in children.iter_descendants(entity) {
+            // Get the material of the descendant
+            if let Some(material) = mesh_materials
+                .get(descendants)
+                .ok()
+                .and_then(|id| asset_materials.get_mut(id.id()))
+            {
+                // Create a copy of the material and override alpha
+                // Potentially expensive, but probably fine
+                let mut new_material = material.clone();
+                new_material.alpha_mode = AlphaMode::Blend;
+                new_material
+                    .base_color
+                    .set_alpha(material.base_color.alpha() - (time.delta_secs() * 2.0));
+
+                // Override `MeshMaterial3d` with new material
+                commands
+                    .entity(descendants)
+                    .insert(MeshMaterial3d(asset_materials.add(new_material)));
+            }
         }
     }
 }
