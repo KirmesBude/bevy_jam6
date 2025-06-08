@@ -30,4 +30,5 @@ pub const MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION: f32 = PI / 180. * 10.; // 
 pub const MINIMALANGLEOFFSETFORTORQUECORRECTION: f32 = PI / 180. * 1.; // In rad
 pub const MAXIMALANGULARVELOCITYFORTORQUECORRECTION: f32 = 2. * PI * 0.1; // In rad per sec
 
-// pub const CAR_SPAWN_TARGET_VELOCITY: f32 = 5.;
+// Limit amount of cars
+pub const MAX_AMOUNT_OF_CARS: usize = 72;

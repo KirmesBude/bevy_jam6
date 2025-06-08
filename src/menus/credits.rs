@@ -35,9 +35,9 @@ fn spawn_credits_menu(mut commands: Commands) {
 
 fn created_by() -> impl Bundle {
     grid(vec![
-        ["MacTrissy", ""],
-        ["FreakyWaves", ""],
-        ["KirmesBude", ""],
+        ["MacTrissy", "The man, the myth, the legend"],
+        ["FreakyWaves", "Genius, playboy, philanthropist"],
+        ["KirmesBude", "I was here the whole time"],
     ])
 }
 
@@ -45,7 +45,7 @@ fn assets() -> impl Bundle {
     grid(vec![
         [
             "FreakyWaves",
-            "Music, SFX and 3d models made or apadted during the jam",
+            "Music, SFX and 3d models made or adapted during the jam",
         ],
         ["Car Kit (2.0)", "CC0 by Kenney (www.kenney.nl)"],
         ["Mini Dungeon (1.5)", "CC0 by Kenney (www.kenney.nl)"],

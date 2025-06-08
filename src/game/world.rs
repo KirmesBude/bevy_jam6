@@ -1,6 +1,10 @@
 use std::f32::consts::PI;
 
-use bevy::{color::palettes::css::GREEN, pbr::CascadeShadowConfigBuilder, prelude::*};
+use bevy::{
+    color::palettes::css::{GREEN, ORANGE_RED},
+    pbr::CascadeShadowConfigBuilder,
+    prelude::*,
+};
 
 use crate::{asset_tracking::LoadResource, screens::Screen};
 
@@ -15,6 +19,13 @@ pub fn plugin(app: &mut App) {
 }
 
 fn spawn_light(mut commands: Commands) {
+    // ambient light
+    commands.insert_resource(AmbientLight {
+        color: ORANGE_RED.into(),
+        brightness: 1.0,
+        ..default()
+    });
+
     commands.spawn((
         StateScoped(Screen::Gameplay),
         DirectionalLight {
