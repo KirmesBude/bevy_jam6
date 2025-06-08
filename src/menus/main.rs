@@ -28,6 +28,7 @@ fn spawn_main_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
         ],
         #[cfg(target_family = "wasm")]
         children![
+            game_title("THE GAME", &ui_assets),
             widget::button("Play", enter_loading_or_gameplay_screen, &ui_assets),
             widget::button("Settings", open_settings_menu, &ui_assets),
             widget::button("Credits", open_credits_menu, &ui_assets),
