@@ -117,8 +117,9 @@ fn spawn_tutorial(
                 Node {
                     position_type: PositionType::Absolute,
                     height: Percent(80.0),
-                    width: Percent(100.0),
+                    width: Percent(80.0),
                     bottom: Percent(12.0),
+                    left: Percent(10.0),
                     align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
                     flex_direction: FlexDirection::Column,
