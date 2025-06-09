@@ -8,14 +8,12 @@ use crate::{
         pertubator::{Money, Pertubator, PertubatorAssets, UnlockedPertubators},
     },
     menus::Menu,
-    screens::Screen,
+    screens::*,
     theme::widget::{self, UiAssets, button_base, label},
 };
 
 use bevy::{color::palettes::css::DARK_KHAKI, prelude::*};
 use rand::Rng;
-
-use crate::{game::car::CarAssets, menus::Menu, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -240,6 +238,9 @@ fn update_unlock_displays(
     }
 }
 
+#[derive(Debug, Default, Component, Reflect)]
+#[reflect(Component)]
+pub struct Rotating;
 fn spawn_rotating_cars(mut commands: Commands, car_assets: Res<CarAssets>) {
     let rng = &mut rand::thread_rng();
     const DISTANCE: f32 = 15.;
