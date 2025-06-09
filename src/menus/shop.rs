@@ -7,6 +7,7 @@ use crate::{
     game::{
         car::CarAssets,
         pertubator::{Money, Pertubator, PertubatorAssets, UnlockedPertubators},
+        ui::MoneyUi,
     },
     menus::{Menu, credits::CreditsAssets},
     screens::*,
@@ -67,7 +68,10 @@ fn spawn_shop_menu(
                         ..default()
                     }
                 ),
-                (widget::header(format!("Money: {}", money.0), &ui_assets),),
+                (
+                    widget::header(format!("Money: {}", money.0), &ui_assets),
+                    MoneyUi
+                ),
                 unlock_pertubator_widget(&ui_assets, Pertubator::Nails, &pertubator_assets),
                 unlock_pertubator_widget(&ui_assets, Pertubator::Spring, &pertubator_assets),
                 unlock_pertubator_widget(&ui_assets, Pertubator::Barrel, &pertubator_assets),

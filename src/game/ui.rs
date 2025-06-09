@@ -263,7 +263,7 @@ fn update_highscore(
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
-struct MoneyUi;
+pub struct MoneyUi;
 
 fn money(ui_assets: &UiAssets) -> impl Bundle {
     (
