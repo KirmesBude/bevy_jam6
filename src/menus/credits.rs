@@ -112,9 +112,9 @@ fn go_back(mut next_menu: ResMut<NextState<Menu>>) {
 
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
-struct CreditsAssets {
+pub struct CreditsAssets {
     #[dependency]
-    music: Handle<AudioSource>,
+    pub music: Handle<AudioSource>,
 }
 
 impl FromWorld for CreditsAssets {

@@ -151,10 +151,10 @@ impl Pertubator {
 
     pub fn cost(&self) -> i32 {
         match self {
-            Pertubator::Spring => 100,
+            Pertubator::Spring => 75,
             Pertubator::Nails => 10,
             Pertubator::Soap => -1,
-            Pertubator::Barrel => 1000,
+            Pertubator::Barrel => 250,
         }
     }
 

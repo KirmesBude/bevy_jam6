@@ -3,16 +3,17 @@
 use bevy::{prelude::*, ui::Val::*};
 
 use crate::{
+    audio::music,
     game::{
         car::CarAssets,
         pertubator::{Money, Pertubator, PertubatorAssets, UnlockedPertubators},
     },
-    menus::Menu,
+    menus::{Menu, credits::CreditsAssets},
     screens::*,
     theme::widget::{self, UiAssets, button_base, label},
 };
 
-use bevy::{color::palettes::css::DARK_KHAKI, prelude::*};
+use bevy::color::palettes::css::DARK_KHAKI;
 use rand::Rng;
 
 pub(super) fn plugin(app: &mut App) {
@@ -23,8 +24,9 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_systems(
         OnEnter(Screen::Shop),
-        (update_clear_color, spawn_rotating_cars),
+        (update_clear_color, spawn_rotating_cars, start_shop_music),
     );
+    app.add_systems(Update, rotate.run_if(in_state(Screen::Shop)));
 
     app.add_systems(
         Update,
@@ -53,8 +55,10 @@ fn spawn_shop_menu(
                 align_content: AlignContent::SpaceAround,
                 width: Px(700.),
                 row_gap: Px(30.0),
+                padding: UiRect::all(Px(16.0)),
                 ..default()
             },
+            BackgroundColor(Color::BLACK.with_alpha(0.6)),
             children![
                 (
                     widget::header("Utilities Shop", &ui_assets),
@@ -63,7 +67,7 @@ fn spawn_shop_menu(
                         ..default()
                     }
                 ),
-                (label(format!("Money: {}", money.0), &ui_assets),),
+                (widget::header(format!("Money: {}", money.0), &ui_assets),),
                 unlock_pertubator_widget(&ui_assets, Pertubator::Nails, &pertubator_assets),
                 unlock_pertubator_widget(&ui_assets, Pertubator::Spring, &pertubator_assets),
                 unlock_pertubator_widget(&ui_assets, Pertubator::Barrel, &pertubator_assets),
@@ -263,6 +267,22 @@ fn spawn_rotating_cars(mut commands: Commands, car_assets: Res<CarAssets>) {
     }
 }
 
+fn rotate(mut transforms: Query<&mut Transform, With<Rotating>>, time: Res<Time>) {
+    for mut transform in &mut transforms {
+        transform.rotate_x(time.delta_secs() / 2.);
+        transform.rotate_y(time.delta_secs() / 2.);
+        transform.rotate_z(time.delta_secs() / 2.);
+    }
+}
+
 fn update_clear_color(mut clear_color: ResMut<ClearColor>) {
     clear_color.0 = DARK_KHAKI.into();
+}
+
+fn start_shop_music(mut commands: Commands, credits_music: Res<CreditsAssets>) {
+    commands.spawn((
+        Name::new("Shop Music"),
+        StateScoped(Screen::Shop),
+        music(credits_music.music.clone()),
+    ));
 }
