@@ -30,3 +30,6 @@ pub const MAXIMALANGULARVELOCITYFORTORQUECORRECTION: f32 = 2. * PI * 0.1; // In 
 
 // Limit amount of cars
 pub const MAX_AMOUNT_OF_CARS: usize = 72;
+
+// Collision strength at which the car is marked as wrecked.
+pub const MAXWRECKINGTHRESHOLD: f32 = 0.06;

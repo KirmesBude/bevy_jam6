@@ -7,6 +7,8 @@ use crate::{
     screens::Screen,
 };
 
+use super::car::CarCrashable;
+
 pub fn plugin(app: &mut App) {
     app.load_resource::<WorldAssets>();
     app.register_type::<WorldAssets>();
@@ -53,6 +55,7 @@ fn grass(
     (
         Name::new("Ground"),
         Ground,
+        CarCrashable,
         Transform::from_xyz(0., -0.01, 0.),
         Mesh3d(meshes.add(Plane3d::new(Vec3::Y, GRASS_SIZE).mesh())),
         MeshMaterial3d(materials.add(Color::from(GREEN))),
