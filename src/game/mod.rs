@@ -5,7 +5,7 @@ mod car_colliders;
 mod car_de_spawning;
 mod consts;
 pub mod pertubator;
-mod points;
+mod points_money;
 mod road;
 pub mod ui;
 mod util;
@@ -20,7 +20,7 @@ pub(crate) fn plugin(app: &mut App) {
         world::plugin,
         pertubator::plugin,
         util::plugin,
-        points::plugin,
+        points_money::plugin,
         ui::plugin,
     ));
 }

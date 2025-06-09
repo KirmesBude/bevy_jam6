@@ -3,7 +3,7 @@ use bevy::{color::palettes::css::*, ecs::spawn::SpawnWith, prelude::*};
 use crate::{
     game::{
         pertubator::{ActivePertubator, Pertubator, PertubatorAssets},
-        points::HighScore,
+        points_money::HighScore,
     },
     screens::Screen,
     theme::{

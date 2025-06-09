@@ -19,7 +19,10 @@ use crate::{
     screens::Screen,
 };
 
-use super::{car::Car, util::Lifetime};
+use super::{
+    car::{Car, CarCrashable},
+    util::Lifetime,
+};
 
 const BARREL_SPHERE_SIZE: f32 = 15.0;
 const BARREL_EXPLOSION_STRENGTH: f32 = 50.0;
@@ -191,6 +194,7 @@ impl Pertubator {
                         RigidBody::Kinematic,
                         Collider::cylinder(1.0, 4.0),
                         Visibility::Visible,
+                        CarCrashable,
                     ))
                     .with_children(|parent| {
                         parent
@@ -206,13 +210,23 @@ impl Pertubator {
                                 |trigger: Trigger<OnCollisionStart>,
                                  mut commands: Commands,
                                  possible_spring_sensors: Query<&ChildOf, With<Sensor>>,
-                                 cars: Query<&Car>| {
+                                 car_parts: Query<
+                                    (Option<&Car>, Option<&ChildOf>),
+                                    Or<(With<Car>, With<WheelCollider>)>,
+                                >| {
                                     let spring_sensor = trigger.target();
                                     let spring =
                                         possible_spring_sensors.get(spring_sensor).unwrap().0;
                                     let other_entity = trigger.collider;
-                                    if cars.contains(other_entity) {
-                                        commands.entity(other_entity).insert(Wrecked);
+                                    if let Ok((car_opt, parent_opt)) = car_parts.get(other_entity) {
+                                        let car_entity;
+                                        if car_opt.is_some() {
+                                            car_entity = other_entity;
+                                        } else {
+                                            car_entity = parent_opt.unwrap().0;
+                                        }
+
+                                        commands.entity(car_entity).insert(Wrecked);
                                         commands.entity(spring).insert(Lifetime::new(2.));
                                         commands
                                             .entity(spring_sensor)

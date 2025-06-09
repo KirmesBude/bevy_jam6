@@ -15,8 +15,9 @@ use super::{
     car_colliders::{AllCarColliders, WheelCollider},
     consts::{
         CARBODYFRICTION, CARFORWARDFORCE, INITIALCARMODELROTATION,
-        MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION, MINIMALANGLEOFFSETFORTORQUECORRECTION,
-        WHEELFRICTIONNAILED, WHEELFRICTIONSOAPED, WHEELFRICTIONSOAPEDANDNAILED,
+        MAXIMALYAXISANGLEOFFSETFORTORQUECORRECTION, MAXWRECKINGTHRESHOLD,
+        MINIMALANGLEOFFSETFORTORQUECORRECTION, WHEELFRICTIONNAILED, WHEELFRICTIONSOAPED,
+        WHEELFRICTIONSOAPEDANDNAILED,
     },
     pertubator::{Nailed, Soaped},
 };
@@ -55,6 +56,7 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         (
             play_crash_sound,
+            wreck_crashing_cars,
             spawn_debris_on_crash,
             spawn_smoke_on_wrecked,
             remove_audio_on_wrecked,
@@ -364,6 +366,51 @@ fn car_observer_crash(
             };
 
             car_crash_writer.write(event);
+        }
+    }
+}
+
+fn wreck_crashing_cars(
+    mut commands: Commands,
+    // All car parts that are not marked as wrecked
+    car_parts: Query<
+        (Option<&Car>, Option<&ChildOf>),
+        (Or<(With<Car>, With<WheelCollider>)>, Without<Wrecked>),
+    >,
+    mut car_crashes: EventReader<CarCrash>,
+) {
+    for car_crash in car_crashes.read() {
+        if car_crash.magnitude < MAXWRECKINGTHRESHOLD {
+            continue;
+        }
+
+        let one_entity = car_crash.entities[0];
+        let other_entity = car_crash.entities[1];
+
+        if let Ok((car_opt, parent_opt)) = car_parts.get(one_entity) {
+            let car_entity;
+            if car_opt.is_some() {
+                car_entity = one_entity;
+            } else {
+                car_entity = parent_opt.unwrap().0;
+            }
+
+            if car_parts.contains(car_entity) {
+                commands.entity(car_entity).insert(Wrecked);
+            }
+        }
+
+        if let Ok((car_opt, parent_opt)) = car_parts.get(other_entity) {
+            let car_entity;
+            if car_opt.is_some() {
+                car_entity = other_entity;
+            } else {
+                car_entity = parent_opt.unwrap().0;
+            }
+
+            if car_parts.contains(car_entity) {
+                commands.entity(car_entity).insert(Wrecked);
+            }
         }
     }
 }
