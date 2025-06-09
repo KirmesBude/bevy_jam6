@@ -388,12 +388,11 @@ fn wreck_crashing_cars(
         let other_entity = car_crash.entities[1];
 
         if let Ok((car_opt, parent_opt)) = car_parts.get(one_entity) {
-            let car_entity;
-            if car_opt.is_some() {
-                car_entity = one_entity;
+            let car_entity = if car_opt.is_some() {
+                one_entity
             } else {
-                car_entity = parent_opt.unwrap().0;
-            }
+                parent_opt.unwrap().0
+            };
 
             if car_parts.contains(car_entity) {
                 commands.entity(car_entity).insert(Wrecked);
@@ -401,12 +400,11 @@ fn wreck_crashing_cars(
         }
 
         if let Ok((car_opt, parent_opt)) = car_parts.get(other_entity) {
-            let car_entity;
-            if car_opt.is_some() {
-                car_entity = other_entity;
+            let car_entity = if car_opt.is_some() {
+                other_entity
             } else {
-                car_entity = parent_opt.unwrap().0;
-            }
+                parent_opt.unwrap().0
+            };
 
             if car_parts.contains(car_entity) {
                 commands.entity(car_entity).insert(Wrecked);

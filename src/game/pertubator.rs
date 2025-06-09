@@ -220,12 +220,11 @@ impl Pertubator {
                                         possible_spring_sensors.get(spring_sensor).unwrap().0;
                                     let other_entity = trigger.collider;
                                     if let Ok((car_opt, parent_opt)) = car_parts.get(other_entity) {
-                                        let car_entity;
-                                        if car_opt.is_some() {
-                                            car_entity = other_entity;
+                                        let car_entity = if car_opt.is_some() {
+                                            other_entity
                                         } else {
-                                            car_entity = parent_opt.unwrap().0;
-                                        }
+                                            parent_opt.unwrap().0
+                                        };
 
                                         commands.entity(car_entity).insert(Wrecked);
                                         commands.entity(spring).insert(Lifetime::new(2.));

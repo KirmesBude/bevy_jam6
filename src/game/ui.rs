@@ -14,7 +14,6 @@ use crate::{
 };
 
 use super::pertubator::Money;
-pub const POINT_TO_MONEY_CONVERSION: f32 = 1. / 1000.;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<HighScoreUi>();
