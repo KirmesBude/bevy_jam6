@@ -229,11 +229,7 @@ fn stop_button(ui_assets: &UiAssets) -> impl Bundle {
                 ))
                 .observe(
                     move |_: Trigger<Pointer<Click>>,
-                          mut next_screen: ResMut<NextState<Screen>>,
-                          mut points: ResMut<HighScore>,
-                          mut money: ResMut<Money>| {
-                        money.0 += (points.get() * POINT_TO_MONEY_CONVERSION) as i32;
-                        points.0 = 0.0;
+                          mut next_screen: ResMut<NextState<Screen>>| {
                         next_screen.set(Screen::Shop);
                     },
                 );
