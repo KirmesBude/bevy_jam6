@@ -116,13 +116,17 @@ fn spawn_tutorial(
                 StateScoped(Screen::Gameplay),
                 Node {
                     position_type: PositionType::Absolute,
-                    height: Percent(80.0),
-                    width: Percent(80.0),
-                    bottom: Percent(12.0),
-                    left: Percent(10.0),
+                    // height: Percent(80.0),
+                    width: Percent(90.0),
+                    // bottom: Percent(12.0),
+                    // left: Percent(10.0),
                     align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
+                    align_self: AlignSelf::Center,
+                    justify_self: JustifySelf::Center,
                     flex_direction: FlexDirection::Column,
+                    aspect_ratio: Some(3762. / 1591.),
+
                     ..default()
                 },
                 BackgroundColor(Color::BLACK.with_alpha(0.8)),
