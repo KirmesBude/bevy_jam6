@@ -17,7 +17,7 @@ tracing = { version = "0.1", features = [
     "max_level_debug",
     "release_max_level_warn",
 ] }
-avian3d = "0.3.0"
+avian3d = { version = "0.3.0", features = ["simd"] }
 bevy-inspector-egui = "0.31.0"
 
 # Your web builds will start failing if you add a dependency that pulls in `getrandom` v0.3+.
@@ -42,6 +42,11 @@ dev = [
     "bevy/bevy_ui_debug",
     # Improve error messages coming from Bevy
     "bevy/track_location",
+
+    # diagnostics
+    "avian3d/bevy_diagnostic",
+    "avian3d/diagnostic_ui",
+
 ]
 dev_native = [
     "dev",
