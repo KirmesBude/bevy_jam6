@@ -113,17 +113,21 @@ fn spawn_tutorial(
     if !tutorial_timer.seen {
         commands
             .spawn((
+                Name::new("Tutorial"),
                 StateScoped(Screen::Gameplay),
                 Node {
                     position_type: PositionType::Absolute,
-                    height: Percent(80.0),
-                    bottom: Percent(12.0),
-                    left: Percent(15.0),
+                    // height: Percent(72.0),
+                    width: Percent(80.0),
                     align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
-                    flex_direction: FlexDirection::Column,
+                    align_self: AlignSelf::Center,
+                    justify_self: JustifySelf::Center,
+                    flex_direction: FlexDirection::Row,
+                    aspect_ratio: Some(3762. / 1591.),
                     ..default()
                 },
+                BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.8)),
                 ImageNode {
                     image: asset_server.load("images/tutorial.png"),
                     ..Default::default()
