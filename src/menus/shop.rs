@@ -20,6 +20,9 @@ pub(super) fn plugin(app: &mut App) {
         update_unlock_displays
             .run_if(in_state(Menu::Shop).and(resource_changed::<UnlockedPertubators>)),
     );
+
+    app.register_type::<UnlockPertubatorDisplay>();
+    app.register_type::<UnlockPertubatorDisplayLabel>();
 }
 
 fn spawn_shop_menu(
@@ -161,10 +164,12 @@ fn unlock_pertubator_widget(
     )
 }
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Reflect)]
+#[reflect(Component)]
 pub struct UnlockPertubatorDisplayLabel(Pertubator);
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Reflect)]
+#[reflect(Component)]
 pub struct UnlockPertubatorDisplay(Pertubator);
 
 fn unlock_button(ui_assets: &UiAssets) -> impl Bundle {
@@ -187,16 +192,19 @@ fn unlock_clicked(
     pertubator_displays: Query<&UnlockPertubatorDisplay>,
     mut pertubators: ResMut<UnlockedPertubators>,
     mut money: ResMut<Money>,
+    child_of: Query<&ChildOf>,
 ) {
-    if let Ok(display) = pertubator_displays.get(trigger.target) {
-        let pertubator = display.0;
-        if pertubators.contains(&pertubator) {
-            // The button should be gone.
-            return;
-        }
-        if money.0 >= pertubator.cost() {
-            money.0 -= pertubator.cost();
-            pertubators.push(pertubator);
+    if let Ok(child_of) = child_of.get(trigger.target) {
+        if let Ok(display) = pertubator_displays.get(child_of.0) {
+            let pertubator = display.0;
+            if pertubators.contains(&pertubator) {
+                // The button should be gone.
+                return;
+            }
+            if money.0 >= pertubator.cost() {
+                money.0 -= pertubator.cost();
+                pertubators.push(pertubator);
+            }
         }
     }
 }
