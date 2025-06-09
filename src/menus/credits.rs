@@ -40,8 +40,8 @@ fn spawn_credits_menu(mut commands: Commands, ui_assets: Res<UiAssets>) {
 
 fn created_by() -> impl Bundle {
     grid(vec![
-        ["MacTrissy", "The man, the myth, the legend"],
-        ["FreakyWaves", "Genius, playboy, philanthropist"],
+        ["MacTrissy", "Let me through, I'm a physicist!"],
+        ["FreakyWaves", "Likes to mess around with sound"],
         ["KirmesBude", "I was here the whole time"],
     ])
 }
