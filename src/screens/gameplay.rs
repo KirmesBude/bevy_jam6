@@ -117,8 +117,7 @@ fn spawn_tutorial(
                 StateScoped(Screen::Gameplay),
                 Node {
                     position_type: PositionType::Absolute,
-                    // height: Percent(72.0),
-                    width: Percent(80.0),
+                    width: Percent(90.0),
                     align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
                     align_self: AlignSelf::Center,
@@ -129,7 +128,7 @@ fn spawn_tutorial(
                 },
                 BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.8)),
                 ImageNode {
-                    image: asset_server.load("images/tutorial.png"),
+                    image: asset_server.load("images/tutorial/tutorial.png"),
                     ..Default::default()
                 },
             ))
