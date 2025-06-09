@@ -27,7 +27,7 @@ fn close_menu(mut next_menu: ResMut<NextState<Menu>>) {
 
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
-struct Rotating;
+pub struct Rotating;
 
 fn spawn_rotating_cars(mut commands: Commands, car_assets: Res<CarAssets>) {
     let rng = &mut rand::thread_rng();
