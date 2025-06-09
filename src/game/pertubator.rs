@@ -518,11 +518,18 @@ fn preview_pertubator_material_transparency(
 }
 
 // TODO: Move into a fitting location
-#[derive(Default, Resource, Clone, Reflect, Deref, DerefMut)]
+#[derive(Debug, Resource, Clone, Reflect, Deref, DerefMut)]
 pub struct UnlockedPertubators(pub Vec<Pertubator>);
+
+impl Default for UnlockedPertubators {
+    fn default() -> Self {
+        Self(vec![Pertubator::Soap])
+    }
+}
 
 #[derive(Default, Resource, Clone, Reflect, Deref, DerefMut)]
 pub struct Money(pub i32);
+
 #[derive(Debug, Default, Component, Reflect)]
 #[reflect(Component)]
 struct Explosion;

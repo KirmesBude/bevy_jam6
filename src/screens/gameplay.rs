@@ -7,7 +7,7 @@ use crate::{Pause, game::ui::spawn_game_ui, menus::Menu, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
     /* TODO: Spawn level etc. */
-    app.add_systems(OnEnter(Screen::Gameplay), spawn_game_ui);
+    app.add_systems(OnEnter(Screen::Gameplay), (spawn_game_ui, spawn_tutorial));
 
     // Toggle pause on key press.
     app.add_systems(
@@ -29,6 +29,13 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         OnEnter(Menu::None),
         unpause.run_if(in_state(Screen::Gameplay)),
+    );
+
+    app.register_type::<TutorialTimer>();
+    app.init_resource::<TutorialTimer>();
+    app.add_systems(
+        Update,
+        tick_tutorial_timer.run_if(in_state(Screen::Gameplay)),
     );
 }
 
@@ -76,4 +83,65 @@ fn open_pause_menu(mut next_menu: ResMut<NextState<Menu>>) {
 
 fn close_menu(mut next_menu: ResMut<NextState<Menu>>) {
     next_menu.set(Menu::None);
+}
+
+#[derive(Debug, Resource, Reflect)]
+#[reflect(Resource)]
+struct TutorialTimer {
+    seen: bool,
+    timer: Timer,
+}
+
+impl Default for TutorialTimer {
+    fn default() -> Self {
+        Self {
+            seen: false,
+            timer: Timer::from_seconds(1.0, TimerMode::Once),
+        }
+    }
+}
+
+fn tick_tutorial_timer(time: Res<Time>, mut tutorial_timer: ResMut<TutorialTimer>) {
+    tutorial_timer.timer.tick(time.delta());
+}
+
+fn spawn_tutorial(
+    mut commands: Commands,
+    tutorial_timer: Res<TutorialTimer>,
+    asset_server: Res<AssetServer>,
+) {
+    if !tutorial_timer.seen {
+        commands
+            .spawn((
+                Name::new("Tutorial"),
+                StateScoped(Screen::Gameplay),
+                Node {
+                    position_type: PositionType::Absolute,
+                    // height: Percent(72.0),
+                    width: Percent(80.0),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    align_self: AlignSelf::Center,
+                    justify_self: JustifySelf::Center,
+                    flex_direction: FlexDirection::Row,
+                    aspect_ratio: Some(3762. / 1591.),
+                    ..default()
+                },
+                BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.8)),
+                ImageNode {
+                    image: asset_server.load("images/tutorial.png"),
+                    ..Default::default()
+                },
+            ))
+            .observe(
+                move |trigger: Trigger<Pointer<Click>>,
+                      mut commands: Commands,
+                      mut tutorial_timer: ResMut<TutorialTimer>| {
+                    if tutorial_timer.timer.finished() {
+                        commands.entity(trigger.target).despawn();
+                        tutorial_timer.seen = true;
+                    }
+                },
+            );
+    }
 }
