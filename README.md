@@ -1,8 +1,16 @@
 # Are we there yet?
 
-A bevy_jam6 entry by @MacTrissy, @FreakyWaves and @KirmesBude.
-Wreck havoc on a busy highway.
-This project was generated using the [Bevy New 2D](https://github.com/TheBevyFlock/bevy_new_2d) template.
+This is the entry of @MacTrissy, @FreakyWaves and @KirmesBude to [Bevy Jam #6](https://itch.io/jam/bevy-jam-6), the sixth official game jam hosted by [Bevy](https://bevy.org). See our submission page on [Itch](https://kirmesbude.itch.io/are-we-there-yet).
+
+### The jam
+
+The jam ran from May 31st 2025 to June 9th 2025. All participating teams only were allowed to code in this window to create a game with the topic "chain reaction".
+We did not know each other before the jam and had a great time planning game mechanics, writing code and fixing bugs together.
+Our game can be downloaded or played on the Itch webpage.
+
+### Disclaimer
+
+As a project with a short schedule, there are some known bugs, which are non-breaking and will not be fixed due to the jam being over. We reached the goal of a playable game with some fun mechanics in this short time and hope you can enjoy it too.
 
 ## License
 
